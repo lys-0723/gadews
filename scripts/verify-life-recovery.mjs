@@ -105,6 +105,7 @@ try {
     const visibleLabels = '[...document.querySelectorAll(".report-globe-label")].filter(el => el.getClientRects().length && getComputedStyle(el).visibility === "visible").length';
     await evaluate(toggle + ".click()");
     await wait(host + '.classList.contains("is-focused") && !' + globe + ".getClientRects().length");
+    assert.ok(Math.abs(await evaluate('document.querySelector(".hero").getBoundingClientRect().top')) < 120, "focused scene should start in view");
     assert.equal(await evaluate(visibleLabels), 0);
     await delay(250);
     const paused = await evaluate("window.__observedGlobeDraws");

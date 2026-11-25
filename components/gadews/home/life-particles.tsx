@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale } from "@/components/gadews/locale-provider";
 import { LIFE_STAGES, lifeMotionAllowed, lifePointCount, parseLifeManifest, type LifeManifest, type LifeStage } from "@/lib/gadews/life-visuals";
 import type { LifeParticleScene, LifeSceneOptions } from "./life-particle-scene";
@@ -73,7 +73,22 @@ export function LifeParticles({ sceneLoader = defaultLoader, manifestFetcher = f
   const active = lifeMotionAllowed({ reduced, visible, hidden, assistantOpen, mobile }) && !paused && !referenceOpen && !error;
   useEffect(() => { scene.current?.setActive(active); }, [active, ready]);
   function choose(next: LifeStage) { stageRef.current = next; setStage(next); autoRef.current = false; setAuto(false); scene.current?.setAuto(false); scene.current?.setStage(next, reduced); }
-  function toggleFocus() { const next = !focus; focusRef.current = next; setFocus(next); scene.current?.setFocus(next); host.current?.closest(".hero")?.scrollIntoView?.({ block: "start", behavior: "instant" }); }
+  useLayoutEffect(() => {
+    if (!focus) return;
+    const hero = host.current?.closest(".hero");
+    // Measure after the hero switches to its shorter, focused layout.
+    hero?.scrollIntoView?.({ block: "start", behavior: "instant" });
+  }, [focus]);
+  function toggleFocus() {
+    const next = !focus;
+    focusRef.current = next;
+    setFocus(next);
+    scene.current?.setFocus(next);
+    if (!next) {
+      const link = host.current?.closest(".hero")?.querySelector<HTMLAnchorElement>(".life-jump");
+      requestAnimationFrame(() => link?.focus());
+    }
+  }
   function startAutomatic() {
     autoRef.current = true;
     stageRef.current = 0;

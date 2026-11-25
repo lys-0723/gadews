@@ -109,6 +109,9 @@
 .ocean-home .life-description h2 { font-weight: 650; letter-spacing: -.025em; }
 .ocean-home .life-particles { --specimen-accent: #a4e6db; }
 .ocean-home .life-particles[data-life-stage="shrimp"] { --specimen-accent: #efc39c; }
+html:has(.life-particles.is-focused) { overflow-anchor: none; scroll-behavior: auto; }
+.ocean-home .hero:has(.life-particles.is-focused)::after { opacity: 0; }
+.ocean-home .life-particles.is-focused { z-index: 4; }
 .ocean-home .life-particles.is-focused .life-visual-stage {
   background: radial-gradient(ellipse at 50% 40%, #16434b 0, #0b2834 34%, #051724 73%);
 }
