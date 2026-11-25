@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "test": "npm run test:aquaculture && npm run test:restore && npm run test:calendar && npm run test:requests && npm run test:surveillance && npm run test:warning && npm run test:tilapia:conversion && npm run test:tilapia && npm run test:workbench && npm run test:monitoring && npm run test:experience && npm run test:assistant && npm run test:life && npm run test:ai-assessment",
+    "test": "npm run test:aquaculture && npm run test:restore && npm run test:calendar && npm run test:requests && npm run test:surveillance && npm run test:warning && npm run test:tilapia:conversion && npm run test:tilapia && npm run test:workbench && npm run test:monitoring && npm run test:experience && npm run test:assistant && npm run test:life && npm run test:ai-assessment && npm run test:accounts",
     "test:aquaculture": "tsx --test lib/aquaculture/rich-link-signature.test.ts lib/aquaculture/normalize.test.ts lib/aquaculture/config.test.ts lib/aquaculture/collector.test.ts",
     "fetch:nasa-power": "tsx scripts/fetch-nasa-power.ts",
     "db:init:aquaculture": "tsx scripts/init-aquaculture-db.ts",
@@ -34,11 +34,14 @@
     "data:verify:visuals": "node scripts/verify-ocean-assets.mjs",
     "test:assistant": "tsx --test lib/gadews/assistant/*.test.ts components/gadews/assistant/knowledge-assistant.test.tsx",
     "test:life": "tsx --test lib/gadews/life-visuals.test.ts scripts/publish-life-visuals.test.ts components/gadews/home/life-particles.test.tsx",
-    "test:ai-assessment": "tsx --test lib/gadews/ai-assessment/*.test.ts components/gadews/warning-tools/ai-assessment-panel.test.tsx components/gadews/warning-tools/ai-assessment-integration.test.tsx"
+    "test:ai-assessment": "tsx --test lib/gadews/ai-assessment/*.test.ts components/gadews/warning-tools/ai-assessment-panel.test.tsx components/gadews/warning-tools/ai-assessment-integration.test.tsx",
+    "accounts:init-admin": "tsx scripts/init-account-admin.ts",
+    "test:accounts": "tsx --test lib/accounts/accounts.test.ts"
   },
   "dependencies": {
     "@ai-sdk/openai": "4.0.105",
     "@hookform/resolvers": "^3.9.1",
+    "@libsql/client": "0.18.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
