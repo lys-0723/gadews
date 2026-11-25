@@ -72,7 +72,7 @@ export function LifeParticles({ sceneLoader = defaultLoader, manifestFetcher = f
   }, []);
   const active = lifeMotionAllowed({ reduced, visible, hidden, assistantOpen, mobile }) && !paused && !referenceOpen && !error;
   useEffect(() => { scene.current?.setActive(active); }, [active, ready]);
-  function choose(next: LifeStage) { stageRef.current = next; setStage(next); autoRef.current = false; setAuto(false); scene.current?.setAuto(false); scene.current?.setStage(next, reduced); }
+  function choose(next: LifeStage) { stageRef.current = next; setStage(next); autoRef.current = false; setAuto(false); scene.current?.setAuto(false); scene.current?.setStage(next, reduced); if (focusRef.current) host.current?.closest(".hero")?.scrollIntoView?.({ block: "start", behavior: "instant" }); }
   useLayoutEffect(() => {
     if (!focus) return;
     const hero = host.current?.closest(".hero");

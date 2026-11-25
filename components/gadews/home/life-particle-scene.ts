@@ -147,9 +147,9 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
     if (running) { elapsed += dt; hold += dt; progress = Math.min(1, progress + dt / 3.5); if (automatic && hold >= 12) choose(nextLifeStage(stage)); }
     const animal = stage < 2;
     // Fit the complete measured XY bounds, including fins and antennae, inside its own canvas.
-    const scale = focus ? (animal ? Math.min(width * .22, height * .28) : Math.min(width * .31, height * .29)) : Math.min(width * (animal ? .18 : .25), heroHeight * .18);
+    const scale = focus ? (animal ? Math.min(width * .22, height * .39) : Math.min(width * .31, height * .33)) : Math.min(width * (animal ? .18 : .25), heroHeight * .18);
     material.uniforms.scale.value = scale;
-    material.uniforms.center.value.set(width / 2, height * (focus ? .42 : .5));
+    material.uniforms.center.value.set(width / 2, height * .5);
     material.uniforms.focus.value = focus ? 1 : 0;
     material.uniforms.viewport.value.set(width, height); material.uniforms.time.value = elapsed; material.uniforms.morph.value = progress; material.uniforms.animal.value = animal ? 1 : 0;
     try { renderer.render(scene, camera); canvas.dataset.lifeFrames = String(++frames); canvas.dataset.lifeProgress = String(progress); canvas.dataset.lifeCount = String(options.count); }
