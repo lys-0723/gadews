@@ -8,10 +8,10 @@ import { comparisonRequestJson, comparisonSourceHref, parseComparisonReport } fr
 import { serializeComparisonReport } from "@/lib/gadews/ai-assessment/comparison-report";
 import type { AiAssessmentRequest, ComparisonReport } from "@/lib/gadews/ai-assessment/types";
 
-export function AiAssessmentPanel({request,active=true,revision=0}:{request:AiAssessmentRequest;active?:boolean;revision?:number}) {
+export function AiAssessmentPanel({request,active=true,revision=0,sampleAllowed=true}:{request:AiAssessmentRequest;active?:boolean;revision?:number;sampleAllowed?:boolean}) {
  const {locale,t}=useLocale();
  const [selected,setSelected]=useState(false),[standardRevision,setStandardRevision]=useState(0);
- const enabled=request.diseaseId==="wsd"||selected;
+ const enabled=sampleAllowed&&(request.diseaseId==="wsd"||selected);
  const fingerprint=comparisonRequestJson({diseaseId:request.diseaseId,standardId:request.standardId,input:request.input,context:request.context,revision,standardRevision});
  // A monotonic edit generation prevents A→B→A from reviving a cancelled request or report.
  const [identity,setIdentity]=useState({fingerprint,edit:0});
@@ -73,6 +73,8 @@ export function AiAssessmentPanel({request,active=true,revision=0}:{request:AiAs
  }
  return <section aria-label={t("规则与AI对照","Rule and AI comparison")} className="min-w-0 rounded-3xl border border-teal-100 bg-white p-5 shadow-sm sm:p-7" data-ai-assessment-state={busy?"requesting":outdated?"outdated":error?"error":report?.validation.state??"idle"}>
   <header className="flex flex-wrap items-start justify-between gap-4"><div><h3 className="flex items-center gap-2 text-xl font-bold"><ArrowRightLeft className="h-5 w-5 text-teal-700" aria-hidden="true"/>{t("规则与AI对照","Rule and AI comparison")}</h3><p className="mt-2 max-w-3xl text-base leading-7 text-slate-600">{t("按当前参数逐项核对分值与依据。点击后，必要参数会发送至已配置的模型服务。","Compare current inputs, points and reasons. Clicking sends the necessary parameters to the configured model service.")}</p></div></header>
+  {!sampleAllowed && <p className="mt-4 text-sm">{t("加载公开内置示例后可对照 AI；手工编辑的输入只在本机做规则评估。","Load the built-in public example for AI comparison. Edited inputs use local rules only.")}</p>}
+  <a href="/accounts" className="mt-3 inline-block text-teal-800 underline">{t("查看账号与模型授权","View account and model access")}</a>
   {request.diseaseId==="tilapia-streptococcosis"&&<label className="mt-5 flex min-h-11 cursor-pointer items-center gap-3 rounded-xl bg-slate-50 p-3 text-base font-semibold text-teal-900"><input type="checkbox" className="h-5 w-5 accent-teal-700" checked={selected} onChange={event=>{setSelected(event.target.checked);setStandardRevision(value=>value+1);}}/>{t("使用罗非鱼评分标准 v0.1","Use Tilapia scoring standard v0.1")}</label>}
   <div className="mt-5 flex flex-wrap gap-3">{busy?<button type="button" onClick={stop} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 py-2 font-semibold"><Square className="h-4 w-4" aria-hidden="true"/>{t("停止AI评估","Stop AI assessment")}</button>:<button type="button" disabled={!active||!enabled} onClick={()=>void evaluate()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-teal-800 px-5 py-3 text-base font-semibold text-white hover:bg-teal-900 disabled:opacity-50"><Sparkles className="h-4 w-4" aria-hidden="true"/>{error?t("重试AI评估","Retry AI assessment"):t("AI辅助评估","AI-assisted assessment")}</button>}
    {report&&<button type="button" disabled={outdated} onClick={download} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-teal-200 px-4 py-2 font-semibold text-teal-800 disabled:opacity-50"><Download className="h-4 w-4" aria-hidden="true"/>{t("下载对照 JSON","Download comparison JSON")}</button>}
