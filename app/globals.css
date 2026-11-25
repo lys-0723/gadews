@@ -156,10 +156,21 @@ button, input, select, textarea { font-family: inherit; }
 .site-desktop-nav a:after { content: ""; position: absolute; height: 2px; left: 0; right: 0; bottom: 5px; background: #25796e; transform: scaleX(0); transition: transform .2s; }
 .header-dark .site-desktop-nav a:after { background: #9ce9d7; }
 .site-desktop-nav a:hover:after,.site-desktop-nav a[aria-current=page]:after { transform: scaleX(1); }
-.site-language { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-shrink: 0; font-size: 14px; }
-.site-language button { padding: 9px 3px; color: inherit; background: transparent; opacity: 1; border-bottom: 1px solid transparent; font-size: 14px; min-height: 44px; }
-.site-language button[aria-pressed=true] { border-color: currentColor; font-weight: 650; }
-.site-language>span { margin: 0 3px; }
+.site-language {
+  --switch-active: #155249;
+  --switch-ink: #fff;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  padding: 2px;
+  border: 1px solid #839ba280;
+  border-radius: 12px;
+}
+.header-dark .site-language { --switch-active: #bde8dc; --switch-ink: #092b32; }
+.site-language button { min-height: 44px; padding: 6px 11px; border-radius: 9px; font-size: 14px; color: inherit; }
+.site-language button[aria-pressed=true] { background: var(--switch-active); color: var(--switch-ink); font-weight: 650; }
+.site-language button:focus-visible { outline-offset: 1px; position: relative; }
 .site-menu-trigger { display: none; background: transparent; color: inherit; padding: 9px; width: 44px; height: 44px; flex-shrink: 0; }
 .site-mobile-nav { position: absolute; top: 100%; left: 0; right: 0; padding: 18px clamp(22px,4.4vw,86px) 28px; background: var(--nav-bg); border-bottom: 1px solid #829aa650; max-height: calc(100svh - 94px); overflow-y: auto; }
 .site-mobile-nav a { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; font-size: 19px; border-bottom: 1px solid #829aa626; }
@@ -180,7 +191,7 @@ button, input, select, textarea { font-family: inherit; }
   html { scroll-padding-top: 92px; }
   .gadews-header,.gadews-header.header-map { height: 78px; gap: 12px; padding: 0 22px; }
   .site-brand { gap: 8px; }.site-brand svg { width: 31px; height: 34px; }.brand-name { font-size: 24px; }.site-brand small { display: none; }
-  .site-language { gap: 0; }.site-language button { font-size: 14px; padding: 8px 2px; }.site-language>span { margin: 0 2px; }
+  .site-language button { font-size: 13px; padding-inline: 7px; }
   .site-menu-trigger { width: 36px; padding: 6px; }.site-mobile-nav { max-height: calc(100svh - 78px); }
   .site-footer-top,.site-footer-note { flex-direction: column; }.site-footer-links { gap: 18px; }
   .ocean-page { padding-top: 78px; }.ocean-page-heading { padding-top: 46px; }.ocean-page-heading p { font-size: 17px; }

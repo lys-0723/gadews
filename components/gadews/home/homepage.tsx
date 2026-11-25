@@ -11,6 +11,7 @@ import { OceanFilm } from "./ocean-film";
 import { RecentSnapshotEvents } from "./recent-snapshot-events";
 import { useOceanNarrative } from "./ocean-atmosphere";
 import { HeroIntro, HeroTitle } from "./hero-intro";
+import { ArrowDown, ScanLine } from "lucide-react";
 import { LifeParticles } from "./life-particles";
 
 export function HomePage() {
@@ -31,6 +32,7 @@ export function HomePage() {
           <div className="hero-grain" aria-hidden="true" />
           <HeroIntro />
           <div className="hero-copy">
+            <p className="hero-product-name">{t("全球水产养殖疫病早期预警系统", "Global Aquaculture Disease Early Warning System")}</p>
             <HeroTitle
               lines={[
                 t("感知水域变化，", "A changing ocean."),
@@ -57,6 +59,11 @@ export function HomePage() {
                 </span>
               </a>
             </div>
+            <a className="life-jump" href="#life-observer">
+              <ScanLine size={18} aria-hidden="true" />
+              {t("观察生命粒子", "Explore life particles")}
+              <ArrowDown size={15} aria-hidden="true" />
+            </a>
             <p className="hero-disclaimer">
               {t(
                 "公开历史资料，非实时疫情。当前预警为规则与知识草案原型，未连接训练预测服务。",

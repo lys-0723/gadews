@@ -29,7 +29,11 @@ function createForms(pack: PhotoPointPack, count: number) {
     const sampled = sampleAnimalPoints(source, count);
     for (let i = 0; i < count; i++) {
       const j = i * 5, strength = sampled[j + 3], light = .20 + .80 * Math.pow(strength, .75), edge = sampled[j + 4] ? 1.07 : 1;
-      put(forms[stage], i, sampled[j], sampled[j + 1], sampled[j + 2], [(.28 + .38 * strength) * light * edge, (.62 + .32 * strength) * light * edge, (.76 + .10 * strength) * light]);
+      const tone = light * edge;
+      const color = stage === 0
+        ? [(.25 + .42 * strength) * tone, (.70 + .27 * strength) * tone, (.78 + .16 * strength) * tone]
+        : [(.77 + .22 * strength) * tone, (.48 + .37 * strength) * tone, (.32 + .38 * strength) * tone];
+      put(forms[stage], i, sampled[j], sampled[j + 1], sampled[j + 2], color);
     }
   }
   const sizes = new Float32Array(count), phases = new Float32Array(count);
@@ -104,11 +108,15 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
     vertexShader: `attribute vec3 target;attribute vec3 colorFrom;attribute vec3 colorTo;attribute float pointSize;attribute float phase;
       uniform float time,morph,scale,pixelRatio,animal,focus;uniform vec2 viewport,center,fadeY;uniform vec4 textRects[4];varying vec3 tint;varying float opacity;
       void main(){float e=morph*morph*(3.0-2.0*morph);vec3 p=mix(position,target,e);
+      vec2 travel = target.xy - position.xy;
+      float arc = 0.17 * sin(phase) * (4.0 * e * (1.0 - e));
+      p.xy += vec2(-travel.y, travel.x) * arc;
       float drift=sin(time*.45+phase)*.006;p+=mix(vec3(drift,cos(time*.36+phase)*.004,drift),vec3(sin(time*.35)*.002,cos(time*.3)*.002,drift*.25),animal);
       float angle=mix(.25+sin(time*.12)*.12,sin(time*.12)*.022,animal);mat2 r=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));p.xz=r*p.xz;
       float depth=mix(4.8/(4.8-p.z),1.0,animal);vec2 px=center+vec2(p.x,-p.y)*scale*depth;
       gl_Position=vec4(px.x/viewport.x*2.0-1.0,1.0-px.y/viewport.y*2.0,0.0,1.0);
-      gl_PointSize=clamp(pointSize*pixelRatio*depth*1.48,.85,3.1);tint=mix(colorFrom,colorTo,e)*(.67+depth*.26);opacity=mix(.12+.88*smoothstep(fadeY.x,fadeY.y,px.y),1.0,focus);
+      gl_PointSize=clamp(pointSize*pixelRatio*depth*1.48,.85,3.1);float gleam = 0.95 + 0.05 * sin(p.x * 4.0 - time * 0.75 + p.y);
+      tint=mix(colorFrom,colorTo,e)*(.69+depth*.26)*gleam;opacity=mix(.12+.88*smoothstep(fadeY.x,fadeY.y,px.y),1.0,focus);
       for(int j=0;j<4;j++){vec4 b=textRects[j];vec2 d=max(max(b.xy-px,px-b.zw),vec2(0.0));opacity*=mix(1.0,1.0-(1.0-smoothstep(0.0,30.0,length(d)))*.9,1.0-focus);}}`,
     fragmentShader: `varying vec3 tint;varying float opacity;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;gl_FragColor=vec4(tint,(1.0-smoothstep(.12,.5,r))*.70*opacity);}`,
   });
@@ -117,7 +125,16 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
   function choose(next: LifeStage, immediate = false) {
     if (disposed) return;
     const ease = progress * progress * (3 - 2 * progress);
-    for (let i = 0; i < from.length; i++) { from[i] += (forms[stage].p[i] - from[i]) * ease; fromColor[i] += (forms[stage].c[i] - fromColor[i]) * ease; }
+    // Retarget from the displayed curve when another form is selected mid-transition.
+    const envelope = .17 * 4 * ease * (1 - ease);
+    for (let i = 0; i < from.length; i += 3) {
+      const dx = target[i] - from[i], dy = target[i + 1] - from[i + 1];
+      const arc = envelope ? envelope * Math.sin(phases[i / 3]) : 0;
+      from[i] += dx * ease - dy * arc;
+      from[i + 1] += dy * ease + dx * arc;
+      from[i + 2] += (target[i + 2] - from[i + 2]) * ease;
+      for (let c = i; c < i + 3; c++) fromColor[c] += (targetColor[c] - fromColor[c]) * ease;
+    }
     stage = next; progress = immediate || !running ? 1 : 0; hold = 0;
     geometry.attributes.position.needsUpdate = true; geometry.attributes.colorFrom.needsUpdate = true;
     target.set(forms[stage].p); targetColor.set(forms[stage].c);

@@ -5,6 +5,8 @@ import { useLocale } from "@/components/gadews/locale-provider";
 import { LIFE_STAGES, lifeMotionAllowed, lifePointCount, parseLifeManifest, type LifeManifest, type LifeStage } from "@/lib/gadews/life-visuals";
 import type { LifeParticleScene, LifeSceneOptions } from "./life-particle-scene";
 import { readBoundedLifeResource } from "./life-particle-resources";
+import * as Toolbar from "@radix-ui/react-toolbar";
+import { Maximize2, Minimize2, Pause, Play, Repeat2 } from "lucide-react";
 import { PhotoReferenceDialog } from "./photo-reference-dialog";
 
 export type LifeSceneLoader = (canvas: HTMLCanvasElement, options: LifeSceneOptions) => Promise<LifeParticleScene>;
@@ -72,6 +74,14 @@ export function LifeParticles({ sceneLoader = defaultLoader, manifestFetcher = f
   useEffect(() => { scene.current?.setActive(active); }, [active, ready]);
   function choose(next: LifeStage) { stageRef.current = next; setStage(next); autoRef.current = false; setAuto(false); scene.current?.setAuto(false); scene.current?.setStage(next, reduced); }
   function toggleFocus() { const next = !focus; focusRef.current = next; setFocus(next); scene.current?.setFocus(next); host.current?.closest(".hero")?.scrollIntoView?.({ block: "start", behavior: "instant" }); }
+  function startAutomatic() {
+    autoRef.current = true;
+    stageRef.current = 0;
+    setAuto(true);
+    setStage(0);
+    scene.current?.setStage(0, reduced);
+    scene.current?.setAuto(true);
+  }
   const fallback = `/media/gadews/life/${LIFE_STAGES[stage]}-static.svg`;
   return <section ref={host} className={`life-particles${focus ? " is-focused" : ""}`} aria-label={t("养殖动物与微观生命", "Aquaculture animals and microscopic life")} data-life-stage={LIFE_STAGES[stage]} data-life-renderer={ready && !error ? "ready" : "static"}>
     <div className="life-visual-stage">
@@ -80,7 +90,30 @@ export function LifeParticles({ sceneLoader = defaultLoader, manifestFetcher = f
         <canvas key={reduced ? "static" : mobile ? "mobile" : "desktop"} ref={canvas} hidden={!ready || error} />
       </div>
     </div>
-    <div className="life-description"><h2>{titles[stage]}</h2><p>{stage < 2 ? t("真实照片的轮廓与纹理采样。", "Contour and texture sampled from a real photograph.") : t("形态示意，非显微照片或诊断结果。", "Morphology schematic, not micrography or diagnosis.")}</p>{error && <p role="status">{t("动态暂不可用，显示有来源的静态轮廓。", "Motion is unavailable; showing a sourced static outline.")}</p>}</div>
-    <div className="life-controls"><div className="life-shapes" role="group" aria-label={t("生命形态", "Life forms")}><button type="button" aria-pressed={auto} onClick={() => { autoRef.current = true; setAuto(true); stageRef.current = 0; setStage(0); scene.current?.setStage(0, reduced); scene.current?.setAuto(true); }}>{t("自动变形", "Auto morph")}</button>{labels.map((label, i) => <button type="button" key={i} aria-pressed={!auto && stage === i} onClick={() => choose(i as LifeStage)}>{label}</button>)}</div><div className="life-actions"><PhotoReferenceDialog stage={stage} source={manifest?.sources[stage === 1 ? 1 : 0]} open={referenceOpen} onOpenChange={setReferenceOpen} /><button type="button" aria-pressed={focus} onClick={toggleFocus}>{focus ? t("返回页面", "Show page") : t("聚焦形态", "Focus form")}</button>{!reduced && <button type="button" aria-pressed={paused} onClick={() => setPaused(value => !value)}>{paused ? t("继续", "Resume") : t("暂停", "Pause")}</button>}</div></div>
+    <div className="life-description" id="life-observer" tabIndex={-1}><h2>{titles[stage]}</h2><p>{stage < 2 ? t("真实照片的轮廓与纹理采样。", "Contour and texture sampled from a real photograph.") : t("形态示意，非显微照片或诊断结果。", "Morphology schematic, not micrography or diagnosis.")}</p>{error && <p role="status">{t("动态暂不可用，显示有来源的静态轮廓。", "Motion is unavailable; showing a sourced static outline.")}</p>}</div>
+    <div className="life-controls">
+      <Toolbar.Root className="life-shapes" aria-label={t("生命形态", "Life forms")} loop>
+        <Toolbar.Button aria-pressed={auto} onClick={startAutomatic}>
+          <Repeat2 size={15} aria-hidden="true" />{t("自动变形", "Auto morph")}
+        </Toolbar.Button>
+        {labels.map((label, i) => (
+          <Toolbar.Button key={LIFE_STAGES[i]} aria-pressed={!auto && stage === i}
+            data-current={stage === i} onClick={() => choose(i as LifeStage)}>
+            {label}
+          </Toolbar.Button>
+        ))}
+      </Toolbar.Root>
+      <div className="life-actions">
+        <PhotoReferenceDialog stage={stage} source={manifest?.sources[stage === 1 ? 1 : 0]} open={referenceOpen} onOpenChange={setReferenceOpen} />
+        <button type="button" aria-pressed={focus} onClick={toggleFocus}>
+          {focus ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+          {focus ? t("返回页面", "Show page") : t("聚焦形态", "Focus form")}
+        </button>
+        {!reduced && <button type="button" aria-pressed={paused} onClick={() => setPaused(value => !value)}>
+          {paused ? <Play size={15} aria-hidden="true" /> : <Pause size={15} aria-hidden="true" />}
+          {paused ? t("继续", "Resume") : t("暂停", "Pause")}
+        </button>}
+      </div>
+    </div>
   </section>;
 }
