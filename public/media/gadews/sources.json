@@ -1,0 +1,84 @@
+{
+  "purpose": "Geographic display and ecological context, not disease evidence or live observations",
+  "retrievedAt": "2026-10-29",
+  "items": [
+    {
+      "path": "/globe/earth-blue-marble.png",
+      "creator": "NASA Scientific Visualization Studio / Blue Marble, ID2915",
+      "page": "https://svs.gsfc.nasa.gov/2915/",
+      "download": "https://svs.gsfc.nasa.gov/vis/a000000/a002900/a002915/bluemarble-2048.png",
+      "license": "https://www.nasa.gov/nasa-brand-center/images-and-media/",
+      "dimensions": [
+        2048,
+        1024
+      ],
+      "use": "Factual educational geographic base texture; no endorsement implied",
+      "bytes": 1511379,
+      "sha256": "ae6214b078ed0864c96f74bcb10ae3021f6eb116f8059797efe0fa9ea8b89d35"
+    },
+    {
+      "path": "/globe/countries.json",
+      "creator": "Natural Earth contributors",
+      "page": "https://www.naturalearthdata.com/downloads/110m-cultural-vectors/110m-admin-0-countries/",
+      "download": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+      "license": "https://www.naturalearthdata.com/about/terms-of-use/",
+      "licenseSummary": "Public domain",
+      "transformation": "Keep geometry and ADMIN name only; original gzip preserved in data/geography",
+      "sourceSha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+      "featureCount": 177,
+      "bytes": 251702,
+      "sha256": "6e66dd961eaeb98845f1dd4f4ba923b4c69b0a6bb83403d92a767a65e7e11459"
+    },
+    {
+      "path": "/media/gadews/ocean-life.mp4",
+      "creator": "JUN HO LEE",
+      "page": "https://www.pexels.com/video/underwater-school-of-fish-in-motion-33924271/",
+      "download": "https://videos.pexels.com/video-files/33924271/14396238_1920_1080_60fps.mp4",
+      "license": "https://www.pexels.com/license/",
+      "transformation": "H264,1280x720,30fps,no audio,CRF25,faststart; unchanged ecological content",
+      "sourceSha256": "b676e72d004d68e707b1db55121b12f5e1ebb6b660133b542a501d60505158b2",
+      "durationSeconds": 12.629283,
+      "bytes": 3048758,
+      "sha256": "9b6e59092685e8734b8d0a546be4818089f66ece6a4d212be055e4d749664a34"
+    },
+    {
+      "path": "/media/gadews/ocean-life-poster.jpg",
+      "creator": "JUN HO LEE",
+      "page": "https://www.pexels.com/video/underwater-school-of-fish-in-motion-33924271/",
+      "license": "https://www.pexels.com/license/",
+      "transformation": "Frame extracted at2seconds from same video",
+      "bytes": 138185,
+      "sha256": "2a6612fb09774403590a7df65a929deb063183630e1e129f6146e7bb681bab35"
+    },
+    {
+      "path": "/images/pexels-pham-t-tri-139436170-16296413.jpg",
+      "creator": "Original project Pexels asset; author identifier preserved in filename",
+      "page": "https://www.pexels.com/photo/16296413/",
+      "license": "https://www.pexels.com/license/",
+      "source": "Pre-existing user project image, unchanged bytes",
+      "pageVerification": "Photo page unavailable during verification; do not invent author or location",
+      "bytes": 2480608,
+      "sha256": "21ee83edb6fb7bde88db4c86724002e9623c6e08f5842c75a6e39cd62be16243"
+    },
+    {
+      "path": "/images/pexels-nairodreyes-20712511.jpg",
+      "creator": "Original project Pexels asset; author identifier preserved in filename",
+      "page": "https://www.pexels.com/photo/20712511/",
+      "license": "https://www.pexels.com/license/",
+      "source": "Pre-existing user project image, unchanged bytes",
+      "pageVerification": "Photo page unavailable during verification; do not invent author or location",
+      "bytes": 2043690,
+      "sha256": "83c387a14f0f06c72b5b05f079388138bab2b9cde6d2bdca88151ffe8ed4f70a"
+    },
+    {
+      "path": "/images/pexels-andromeda99-36922184.jpg",
+      "creator": "Original project Pexels asset; author identifier preserved in filename",
+      "page": "https://www.pexels.com/photo/36922184/",
+      "license": "https://www.pexels.com/license/",
+      "source": "Pre-existing user project image, unchanged bytes",
+      "pageVerification": "Photo page unavailable during verification; do not invent author or location",
+      "bytes": 1586390,
+      "sha256": "183abf7fce0d56a98fc090cff13cd7f08530d8748db8ece377fe3afd6c3fcd05"
+    }
+  ]
+}

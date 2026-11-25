@@ -1,0 +1,38 @@
+[
+  {
+    "id": "demo-sensor-feed",
+    "name": "Synthetic Pond Sensor Feed",
+    "type": "sensor",
+    "status": "demo",
+    "last_updated": "2026-05-17T09:00:00+08:00",
+    "record_count": 4,
+    "completeness_percent": 100,
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional data for software UI demonstration only."
+  },
+  {
+    "id": "demo-weather-feed",
+    "name": "Synthetic Weather Timeseries",
+    "type": "weather",
+    "status": "demo",
+    "last_updated": "2026-05-17T09:00:00+08:00",
+    "record_count": 4,
+    "completeness_percent": 100,
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional data for software UI demonstration only."
+  },
+  {
+    "id": "demo-event-feed",
+    "name": "Synthetic Official Event Feed",
+    "type": "official_feed",
+    "status": "demo",
+    "last_updated": "2026-05-17T09:00:00+08:00",
+    "record_count": 2,
+    "completeness_percent": 100,
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional data for software UI demonstration only."
+  }
+]

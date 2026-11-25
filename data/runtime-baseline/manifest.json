@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "resources": [
+    {
+      "source": "data/runtime-baseline/qaad-regional-surveillance-summary.json.gz",
+      "target": "public/data/qaad-regional-surveillance-summary.json",
+      "rawBytes": 81268465,
+      "rawSha256": "338860b7e0f04cc51d5bf276275d52a848726fec65f26e3d12f90c0519ff414f",
+      "compressedSha256": "a0e31c603c7b0a94dace9fcefb0b3bddb1e728a776eca4c94b7e74c7d30692a5"
+    }
+  ]
+}

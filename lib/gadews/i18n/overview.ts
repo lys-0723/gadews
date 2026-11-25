@@ -1,0 +1,27 @@
+import type { BilingualCopy } from "./locale";
+
+export const overviewCopy = {
+  air: ["区域气温", "Regional air temp"],
+  precip: ["降水量", "Precipitation"],
+  range: ["气温日较差", "Air temp range"],
+  avgAir: ["区域平均气温", "Avg Regional Air Temp"],
+  maxRain: ["最大日降水量", "Max Precipitation"],
+  maxRange: ["最大气温日较差", "Max Air Temp Range"],
+  humidity: ["平均相对湿度", "Avg Relative Humidity"],
+  wind: ["平均风速", "Avg Wind Speed"],
+  eyebrow: ["环境背景指标", "Environmental Background Indicators"],
+  title: ["NASA POWER 每日气象快照", "NASA POWER Daily Weather Panel"],
+  intro: ["查看区域气温、降水与大气条件，为理解养殖环境提供背景。", "Regional air temperature, precipitation, and atmospheric context for aquaculture environmental pressure visualization."],
+  site: ["示范站点（气象快照）", "Demo Site"],
+  loading: ["正在加载 NASA POWER 每日数据…", "Loading NASA POWER daily data..."],
+  sourceUrl: ["打开来源", "Source URL"],
+  chart: ["区域气温与每日降水", "Regional Air Temperature & Daily Precipitation"],
+  notPond: ["T2M 是 NASA POWER 的区域 2 米气温，不是塘口水温。", "T2M is NASA POWER 2-meter regional air temperature, not pond water temperature."],
+  rangeTitle: ["气温日较差", "Air Temperature Range"],
+  rangeInfo: ["每日最高气温减去最低气温，仅作为环境背景指标。", "Daily max minus min air temperature as an environmental background indicator."],
+  selectSite: ["选择站点", "Select site"],
+  source: ["来源", "Source"],
+  records: ["条记录", "records"],
+  empty: ["此快照没有可用站点记录。", "No site records in this snapshot."],
+  missing: ["缺失值显示为 --，曲线在缺失处断开；统计只使用有效值。站点名称保留来源原文。", "Missing values display as -- and break the curve; statistics use valid values only. Site names retain their source language."],
+} satisfies BilingualCopy;

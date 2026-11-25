@@ -1,0 +1,251 @@
+{
+  "id": "tilapia-demo-score-v0.1",
+  "version": "0.1",
+  "title": "罗非鱼评分标准 v0.1",
+  "titleEn": "Tilapia scoring standard v0.1",
+  "status": "project-defined",
+  "scientificallyValidated": false,
+  "thresholds": {
+    "temperatureC": 30,
+    "oxygenLow": 3,
+    "oxygenHigh": 5
+  },
+  "items": [
+    {
+      "id": "TDS-TEMP",
+      "field": "waterTemperature",
+      "label": "水温线索",
+      "module": "environment",
+      "maxScore": 10,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-TEMP:below",
+          "label": "below",
+          "score": 0,
+          "condition": "waterTemperature < 30 °C"
+        },
+        {
+          "id": "TDS-TEMP:above",
+          "label": "above",
+          "score": 10,
+          "condition": "waterTemperature >= 30 °C"
+        }
+      ]
+    },
+    {
+      "id": "TDS-DO",
+      "field": "dissolvedOxygen",
+      "label": "溶氧线索",
+      "module": "environment",
+      "maxScore": 15,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-DO:normal",
+          "label": "normal",
+          "score": 0,
+          "condition": "DO >= 5 mg/L"
+        },
+        {
+          "id": "TDS-DO:middle",
+          "label": "middle",
+          "score": 8,
+          "condition": "3 <= DO < 5 mg/L"
+        },
+        {
+          "id": "TDS-DO:low",
+          "label": "low",
+          "score": 15,
+          "condition": "0 <= DO < 3 mg/L"
+        }
+      ]
+    },
+    {
+      "id": "TDS-FISH",
+      "field": "laboratory.fish_tissue",
+      "label": "鱼体检测",
+      "module": "pathogen",
+      "maxScore": 35,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-FISH:negative",
+          "label": "negative",
+          "score": 0,
+          "condition": "All selected targets have qualified negative findings, with no valid positive or unresolved conflicts"
+        },
+        {
+          "id": "TDS-FISH:positive",
+          "label": "positive",
+          "score": 35,
+          "condition": "At least one qualified unconflicted target positive; count once"
+        }
+      ]
+    },
+    {
+      "id": "TDS-ENV",
+      "field": "laboratory.environment",
+      "label": "环境检测",
+      "module": "pathogen",
+      "maxScore": 5,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-ENV:negative",
+          "label": "negative",
+          "score": 0,
+          "condition": "All selected targets have qualified negative findings, with no valid positive or unresolved conflicts"
+        },
+        {
+          "id": "TDS-ENV:positive",
+          "label": "positive",
+          "score": 5,
+          "condition": "At least one qualified unconflicted environmental target positive; count once"
+        }
+      ]
+    },
+    {
+      "id": "TDS-SIGN",
+      "field": "clinical.signsPresent",
+      "label": "异常表现",
+      "module": "clinical",
+      "maxScore": 10,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-SIGN:no",
+          "label": "no",
+          "score": 0,
+          "condition": "Explicit no"
+        },
+        {
+          "id": "TDS-SIGN:yes",
+          "label": "yes",
+          "score": 10,
+          "condition": "Explicit yes"
+        }
+      ]
+    },
+    {
+      "id": "TDS-PERSIST",
+      "field": "clinical.persistentAbnormality",
+      "label": "持续异常",
+      "module": "clinical",
+      "maxScore": 10,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-PERSIST:no",
+          "label": "no",
+          "score": 0,
+          "condition": "Explicit no"
+        },
+        {
+          "id": "TDS-PERSIST:yes",
+          "label": "yes",
+          "score": 10,
+          "condition": "Explicit yes"
+        }
+      ]
+    },
+    {
+      "id": "TDS-MORT",
+      "field": "mortality.abnormalityReported",
+      "label": "死亡异常",
+      "module": "mortality",
+      "maxScore": 10,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-MORT:no",
+          "label": "no",
+          "score": 0,
+          "condition": "Explicit no"
+        },
+        {
+          "id": "TDS-MORT:yes",
+          "label": "yes",
+          "score": 10,
+          "condition": "Explicit yes"
+        }
+      ]
+    },
+    {
+      "id": "TDS-MORT-PERSIST",
+      "field": "mortality.abnormalityPersistent",
+      "label": "死亡异常持续",
+      "module": "mortality",
+      "maxScore": 5,
+      "supported": true,
+      "sourceRefs": [
+        "tilapia-project-v0.1"
+      ],
+      "branches": [
+        {
+          "id": "TDS-MORT-PERSIST:no",
+          "label": "no",
+          "score": 0,
+          "condition": "Explicit no"
+        },
+        {
+          "id": "TDS-MORT-PERSIST:yes",
+          "label": "yes",
+          "score": 5,
+          "condition": "Explicit yes"
+        }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "environment",
+      "title": "环境",
+      "maxScore": 25
+    },
+    {
+      "id": "pathogen",
+      "title": "病原证据",
+      "maxScore": 40
+    },
+    {
+      "id": "clinical",
+      "title": "临床表现",
+      "maxScore": 20
+    },
+    {
+      "id": "mortality",
+      "title": "死亡异常",
+      "maxScore": 15
+    }
+  ],
+  "sources": [
+    {
+      "id": "tilapia-project-v0.1",
+      "title": "项目设定评分 v0.1",
+      "href": "/data/demo/tilapia-demo-score-v0.1.json"
+    }
+  ],
+  "hash": "c4a479d4a2becd567a29a28477a85f829bca238abcfae1fcb5fa1a33c71c8442"
+}

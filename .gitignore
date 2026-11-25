@@ -134,3 +134,22 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Restored from a verified lossless snapshot
+/public/data/qaad-regional-surveillance-summary.json
+
+# Private workspace materials and local agent state
+/doc/
+/openspec/
+/.superpowers/
+/.claude/
+.env*
+!.env.example
+.DS_Store
+__pycache__/
+*.pyc
+*.docx
+*.xlsx
+*.pptx
+*.xmind
+*.pdf

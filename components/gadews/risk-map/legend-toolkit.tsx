@@ -1,82 +1,28 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ZoomIn,
-  ZoomOut,
-  Locate,
-  Ruler,
-  Download,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { useCopy, useLocale } from "@/components/gadews/locale-provider";
+import { mapCopy } from "@/lib/gadews/i18n/map";
+import type { LayerStats } from "./woah-wahis-layer";
+import { PublicSourceStatus } from "./public-source-status";
 
-const LEGEND_ITEMS = [
-  { color: "#22c55e", label: "Safe / Low Risk" },
-  { color: "#eab308", label: "Warning / Moderate" },
-  { color: "#f97316", label: "Elevated Risk" },
-  { color: "#ef4444", label: "High Risk / Outbreak" },
-  { color: "#64748b", label: "Low Coverage Zone" },
-];
-
-const TOOLS = [
-  { icon: ZoomIn, label: "Zoom In" },
-  { icon: ZoomOut, label: "Zoom Out" },
-  { icon: Locate, label: "My Location" },
-  { icon: Ruler, label: "Measure" },
-  { icon: Download, label: "Export PDF" },
-];
-
-export function LegendToolkit() {
-  const [legendOpen, setLegendOpen] = useState(true);
-
-  return (
-    <div className="flex flex-col items-end gap-3">
-      {/* Legend card */}
-      <div className="glass-strong rounded-2xl shadow-2xl shadow-black/30" style={{ width: "200px" }}>
-        <button
-          onClick={() => setLegendOpen(!legendOpen)}
-          className="flex w-full items-center justify-between px-4 py-2.5"
-        >
-          <span className="text-xs font-bold tracking-wider text-foreground uppercase">
-            Legend
-          </span>
-          {legendOpen ? (
-            <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          )}
-        </button>
-        {legendOpen && (
-          <div className="space-y-2 border-t border-border/20 px-4 pb-3 pt-2.5">
-            {LEGEND_ITEMS.map((item) => (
-              <div key={item.label} className="flex items-center gap-2.5">
-                <span
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[11px] text-muted-foreground">
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Toolbar */}
-      <div className="glass-strong flex flex-col gap-1 rounded-2xl p-2 shadow-2xl shadow-black/30">
-        {TOOLS.map((tool) => (
-          <button
-            key={tool.label}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-all hover:bg-primary/15 hover:text-primary"
-            aria-label={tool.label}
-            title={tool.label}
-          >
-            <tool.icon className="h-4 w-4" />
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+function StatLine({ label, value }: { label: string; value: string | number }) {
+  return <div className="flex flex-wrap justify-between gap-2"><span>{label}</span><strong className="break-words">{value}</strong></div>;
+}
+export function LegendToolkit({ wahisStats, qaadStats }: { wahisStats?: LayerStats; qaadStats?: LayerStats }) {
+  const c = useCopy(mapCopy);
+  const { t } = useLocale();
+  const countries = new Set([...(wahisStats?.countries ?? []), ...(qaadStats?.countries ?? [])]);
+  return <section className="w-[300px] max-w-full space-y-4 rounded-2xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-800 shadow-xl" aria-label={c("reports")}>
+    <h2 className="text-lg font-bold text-slate-950">{c("reports")}</h2>
+    <p>{c("centroid")}</p><p>{c("scope")}</p>
+    <details open><summary className="cursor-pointer font-bold">{c("view")}</summary><div className="mt-3 space-y-3">
+      <StatLine label={c("wahisCount")} value={wahisStats?.recordsDisplayed ?? 0} />
+      <StatLine label={c("qaadCount")} value={qaadStats?.recordsDisplayed ?? 0} />
+      <StatLine label={c("countries")} value={countries.size} />
+      <StatLine label={c("top")} value={wahisStats?.topDisease !== "--" ? wahisStats?.topDisease ?? "--" : qaadStats?.topDisease ?? "--"} />
+      <PublicSourceStatus title="WOAH WAHIS" {...wahisStats} /><PublicSourceStatus title="NACA QAAD" {...qaadStats} />
+    </div></details>
+    <details><summary className="cursor-pointer font-bold">{t("WAHIS 病种颜色", "WAHIS disease colors")}</summary><ul className="mt-3 grid grid-cols-2 gap-2">{[["WSD", "#ef4444"], ["AHPND", "#f97316"], ["KHV", "#eab308"], ["TILV", "#22d3ee"], ["EUS", "#a855f7"], ["VHS", "#3b82f6"], ["IHN", "#14b8a6"], ["SVC", "#f43f5e"], [c("other"), "#94a3b8"]].map(([label,color]) => <li key={label} className="flex items-center gap-2"><span aria-hidden="true" className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />{label}</li>)}</ul></details>
+    <details><summary className="cursor-pointer font-bold">{c("status")}</summary><ul className="mt-3 space-y-2">{(["present_in_quarter", "historical_presence_in_report_year", "absent_in_quarter", "no_information", "unknown"] as const).map((key, index) => <li key={key} className="flex items-start gap-2"><span aria-hidden="true" className="mt-1.5 h-3 w-3 shrink-0 rounded-full" style={{backgroundColor:["#ef4444", "#f59e0b", "#22c55e", "#64748b", "#475569"][index]}} />{c(key)}</li>)}</ul></details>
+  </section>;
 }

@@ -1,0 +1,2182 @@
+.ocean-home {
+  --night: #051724;
+  --forest: #103d50;
+  --green: #9ce9d7;
+  --lime: #b7f0e2;
+  --paper: #eaf3f5;
+  --white: #f4f8fa;
+  --ink: #153d4c;
+  --muted: #526a77;
+  --edge: clamp(24px, 4.45vw, 86px);
+  --scroll: 0;
+  --trace: 0;
+}
+.ocean-home * {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 108px;
+}
+.ocean-home {
+  margin: 0;
+  background: var(--night);
+  color: var(--white);
+  font-family: var(--font-inter), "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-size: 18px;
+  line-height: 1.65;
+}
+.ocean-home a {
+  color: inherit;
+  text-decoration: none;
+}
+.ocean-home main button {
+  cursor: pointer;
+}
+.ocean-home button,
+.ocean-home a {
+  -webkit-tap-highlight-color: transparent;
+}
+.ocean-home button {
+  border: 0;
+}
+.ocean-home button:focus-visible,
+.ocean-home a:focus-visible {
+  outline: 3px solid #9ce9d7;
+  outline-offset: 6px;
+}
+.ocean-home button:disabled {
+  cursor: wait;
+}
+.ocean-home svg {
+  display: block;
+}
+.ocean-home img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ocean-home ::selection {
+  background: #9ce9d7;
+  color: #051724;
+}
+.ocean-home [hidden] {
+  display: none !important;
+}
+.ocean-home .page-progress {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: #9fd9eb;
+  transform: scaleX(var(--scroll));
+  transform-origin: left;
+  pointer-events: none;
+}
+.ocean-home .hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 850px;
+  height: 100svh;
+  max-height: 1180px;
+  overflow: clip;
+  background: #051724;
+}
+.ocean-home .hero:before {
+  content: "";
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 82% 44%, #16334666 0, transparent 52%),
+    radial-gradient(ellipse at 25% 94%, #1b3b502c, transparent 48%);
+}
+.ocean-home .hero:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, #051724 0%, transparent 16%),
+    linear-gradient(90deg, #051724 0%, #051724bb 24%, transparent 60%);
+  opacity: 0.4;
+}
+.ocean-home .hero-light {
+  position: absolute;
+  z-index: -1;
+  width: 550px;
+  height: 550px;
+  left: 0;
+  top: 0;
+  transform: translate(
+    calc(var(--pointer-x, 55vw) - 50%),
+    calc(var(--pointer-y, 40vh) - 50%)
+  );
+  background: radial-gradient(circle, #55819f30 0, transparent 65%);
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.ocean-home .hero-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  opacity: 0.035;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.94' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23fff' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E");
+}
+.ocean-home .hero-copy {
+  position: relative;
+  z-index: 5;
+  padding: clamp(196px, 23vh, 286px) 0 0 var(--edge);
+  width: min(760px, 56vw);
+  pointer-events: none;
+  transform: translateY(calc(var(--hero-shift, 0px) * 0.15));
+}
+.ocean-home .hero-copy a {
+  pointer-events: auto;
+}
+.ocean-home .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  color: #b5d4dd;
+  font-weight: 550;
+}
+.ocean-home .eyebrow:before {
+  content: "";
+  height: 7px;
+  width: 7px;
+  background: var(--green);
+  border-radius: 50%;
+  box-shadow: 0 0 18px #82d4ed70;
+}
+.ocean-home .hero h1 {
+  font-size: clamp(84px, 6.4vw, 106px);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.075em;
+  margin: 35px 0 30px;
+  white-space: nowrap;
+}
+.ocean-home .hero h1 span {
+  display: block;
+}
+.ocean-home .hero h1 .soft {
+  color: #a8dbea;
+}
+.ocean-home .hero-intro {
+  font-size: 20px;
+  line-height: 1.9;
+  max-width: 470px;
+  margin: 0;
+  color: #d2dcdf;
+  text-wrap: pretty;
+}
+.ocean-home .hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  margin-top: 38px;
+  flex-wrap: wrap;
+}
+.ocean-home .primary-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 33px;
+  min-height: 60px;
+  padding: 15px 24px;
+  color: #182833;
+  background: var(--lime);
+  font-size: 17px;
+  font-weight: 600;
+  transition:
+    background 0.25s,
+    transform 0.25s;
+}
+.ocean-home .primary-link:hover {
+  background: #c7f2ff;
+  transform: translateY(-3px);
+}
+.ocean-home .link-arrow {
+  font-size: 25px;
+  font-weight: 350;
+  line-height: 1;
+  transition: transform 0.25s;
+}
+.ocean-home .primary-link:hover .link-arrow {
+  transform: translate(3px, -3px);
+}
+.ocean-home .secondary-link {
+  font-size: 17px;
+  border-bottom: 1px solid #8da0ad;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 0;
+  line-height: 1.5;
+}
+.ocean-home .secondary-link:hover .link-arrow {
+  transform: translate(3px, -3px);
+}
+.ocean-home .hero-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: #b5c4c8;
+  font-size: 14px;
+  line-height: 1.85;
+  max-width: 475px;
+  margin-top: 36px;
+}
+.ocean-home .hero-disclaimer svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-top: 5px;
+  color: #bad3db;
+}
+.ocean-home .globe-stage {
+  position: absolute;
+  z-index: 1;
+  right: -120px;
+  top: calc(50% - 410px);
+  width: 820px;
+  height: 820px;
+  transform: translateY(calc(var(--hero-shift, 0px) * 0.06));
+  isolation: isolate;
+}
+.ocean-home .globe-stage:before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  z-index: -1;
+  background: #45718e25;
+  filter: blur(65px);
+  border-radius: 50%;
+}
+.ocean-home .globe-caption {
+  position: absolute;
+  z-index: 5;
+  right: var(--edge);
+  top: 156px;
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #a9bbc1;
+  max-width: 230px;
+  pointer-events: none;
+}
+.ocean-home .globe-caption strong {
+  display: block;
+  color: #d9e8ec;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+.ocean-home .hero-bottom {
+  position: absolute;
+  z-index: 6;
+  bottom: 31px;
+  left: var(--edge);
+  right: var(--edge);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  color: #b9cbd0;
+  font-size: 14px;
+}
+.ocean-home .scroll-cue {
+  display: inline-flex;
+  gap: 17px;
+  align-items: center;
+  white-space: nowrap;
+}
+.ocean-home .scroll-cue .scroll-line {
+  width: 1px;
+  height: 38px;
+  background: #90acbf40;
+  overflow: hidden;
+  position: relative;
+}
+.ocean-home .scroll-line:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -40px;
+  height: 30px;
+  background: #b5e1ef;
+  animation: scroll-line 2.6s ease infinite;
+}
+.ocean-home .hero-bottom .preview-state {
+  max-width: 530px;
+  text-align: right;
+  line-height: 1.7;
+}
+.ocean-home .section-inner {
+  padding-left: var(--edge);
+  padding-right: var(--edge);
+  max-width: 1600px;
+  margin: 0 auto;
+}
+.ocean-home .section-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 15px;
+  font-weight: 550;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+}
+.ocean-home .section-label:before {
+  content: "";
+  height: 1px;
+  width: 42px;
+  background: currentColor;
+  opacity: 0.6;
+}
+.ocean-home .section-label .chapter-number {
+  margin-right: 8px;
+  opacity: 0.65;
+}
+.ocean-home .section-heading {
+  font-size: clamp(50px, 5vw, 80px);
+  font-weight: 550;
+  letter-spacing: -0.065em;
+  line-height: 1.28;
+  margin: 31px 0 0;
+  text-wrap: balance;
+}
+.ocean-home .section-heading span {
+  display: block;
+}
+.ocean-home .section-intro {
+  font-size: 19px;
+  line-height: 1.95;
+  text-wrap: pretty;
+}
+.ocean-home .one-health {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 116px 0 110px;
+}
+.ocean-home .health-header {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 70px;
+  align-items: end;
+}
+.ocean-home .health-header .section-intro {
+  max-width: 410px;
+  margin: 0 0 8px;
+  color: #4c5b65;
+}
+.ocean-home .health-photos {
+  display: grid;
+  grid-template-columns: 1.28fr 0.72fr;
+  align-items: start;
+  gap: 58px;
+  margin-top: 72px;
+}
+.ocean-home .photo-block {
+  margin: 0;
+  position: relative;
+}
+.ocean-home .photo-clip {
+  position: relative;
+  overflow: hidden;
+  background: #788892;
+  isolation: isolate;
+}
+.ocean-home .photo-clip img {
+  height: 115%;
+  position: absolute;
+  left: 0;
+  top: -7.5%;
+  transform: translateY(var(--image-shift, 0px));
+  will-change: transform;
+  filter: saturate(0.77);
+}
+.ocean-home .photo-clip:after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, #081b2891 0, transparent 60%);
+  pointer-events: none;
+}
+.ocean-home .ocean-photo .photo-clip {
+  height: 570px;
+}
+.ocean-home .farm-photo {
+  margin-top: 140px;
+}
+.ocean-home .farm-photo .photo-clip {
+  height: 375px;
+}
+.ocean-home .photo-index {
+  position: absolute;
+  z-index: 2;
+  left: 26px;
+  top: 22px;
+  color: #e7f3f7;
+  font-size: 14px;
+  letter-spacing: 0.07em;
+}
+.ocean-home .photo-title {
+  position: absolute;
+  z-index: 2;
+  left: 27px;
+  right: 27px;
+  bottom: 26px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  color: #eaf3f6;
+}
+.ocean-home .photo-title h3 {
+  font-size: 35px;
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  margin: 0;
+}
+.ocean-home .photo-title span {
+  font-size: 15px;
+  line-height: 1.7;
+  text-align: right;
+  max-width: 180px;
+}
+.ocean-home .photo-block figcaption {
+  font-size: 17px;
+  color: #4c5b65;
+  line-height: 1.8;
+  margin-top: 22px;
+  max-width: 590px;
+}
+.ocean-home .health-foot {
+  margin-top: 75px;
+  padding-top: 30px;
+  border-top: 1px solid #8fa3b180;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+.ocean-home .health-connections {
+  display: flex;
+  align-items: center;
+  gap: 27px;
+  flex-wrap: wrap;
+}
+.ocean-home .health-connections span {
+  font-size: 24px;
+  font-weight: 450;
+  letter-spacing: -0.04em;
+}
+.ocean-home .health-connections i {
+  font-size: 21px;
+  font-style: normal;
+  color: #6a8190;
+}
+.ocean-home .health-foot p {
+  font-size: 16px;
+  line-height: 1.8;
+  max-width: 385px;
+  color: #52616b;
+  margin: 0;
+}
+.ocean-home .evidence {
+  position: relative;
+  background: #082337;
+  color: #dfeaee;
+  padding: 123px 0 60px;
+  overflow: clip;
+  isolation: isolate;
+}
+.ocean-home .evidence:before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -220px;
+  top: 350px;
+  width: 1000px;
+  height: 1000px;
+  background: radial-gradient(ellipse, #334c5d3d 0, transparent 65%);
+  pointer-events: none;
+}
+.ocean-home .evidence .section-label {
+  color: #9fc9d6;
+}
+.ocean-home .evidence-layout {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 90px;
+  align-items: start;
+  margin-top: 34px;
+}
+.ocean-home .evidence-stage {
+  position: sticky;
+  top: 135px;
+  padding: 0 0 60px;
+}
+.ocean-home .evidence h2 {
+  font-size: clamp(48px, 4.7vw, 72px);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 1.3;
+  margin: 0;
+}
+.ocean-home .evidence h2 span {
+  color: #a3d0de;
+  display: block;
+}
+.ocean-home .evidence-stage > p {
+  font-size: 18px;
+  line-height: 1.9;
+  max-width: 500px;
+  color: #b1c2c7;
+  margin: 27px 0 0;
+}
+.ocean-home .signal-diagram {
+  height: 290px;
+  position: relative;
+  margin-top: 35px;
+  max-width: 600px;
+  isolation: isolate;
+}
+.ocean-home .signal-diagram:before {
+  content: "";
+  position: absolute;
+  left: 14%;
+  top: 12%;
+  width: 70%;
+  height: 66%;
+  background: radial-gradient(ellipse, #4f82a421, transparent 70%);
+  filter: blur(12px);
+  z-index: -1;
+}
+.ocean-home .signal-diagram > svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.ocean-home .trace-base {
+  stroke: #53738845;
+  fill: none;
+  stroke-width: 1.4;
+}
+.ocean-home .trace-active {
+  fill: none;
+  stroke: #96d8ec;
+  stroke-width: 2;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: calc(1000 - var(--trace) * 1000);
+  transition: stroke-dashoffset 0.7s ease;
+}
+.ocean-home .signal-node circle {
+  fill: #101f29;
+  stroke: #466579;
+  stroke-width: 1.5;
+  transition:
+    fill 0.4s,
+    stroke 0.4s;
+}
+.ocean-home .signal-node.is-current circle {
+  fill: #97d4e6;
+  stroke: #c2f1ff;
+}
+.ocean-home .signal-node.is-current path,
+.ocean-home .signal-node.is-current line,
+.ocean-home .signal-node.is-current polyline,
+.ocean-home .signal-node.is-current rect {
+  stroke: #233948;
+}
+.ocean-home .signal-node path,
+.ocean-home .signal-node line,
+.ocean-home .signal-node polyline,
+.ocean-home .signal-node rect {
+  stroke: #9dc8d5;
+  stroke-width: 1.5;
+  fill: none;
+  transition: stroke 0.4s;
+}
+.ocean-home .signal-node text {
+  fill: #99b1c1;
+  font-size: 17px;
+  font-weight: 450;
+  text-anchor: middle;
+  letter-spacing: -0.03em;
+}
+.ocean-home .signal-node.is-current text {
+  fill: #cfedf6;
+}
+.ocean-home .signal-orbit {
+  stroke: #5d819935;
+  fill: none;
+  stroke-width: 1;
+  stroke-dasharray: 4 9;
+  transform-origin: 50% 50%;
+  animation: orbit 80s linear infinite;
+}
+.ocean-home .stage-status {
+  margin: 0;
+  font-size: 16px;
+  color: #aeccd5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ocean-home .stage-status:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #a2d6e6;
+  box-shadow: 0 0 18px #72d0ec80;
+}
+.ocean-home .prototype-note {
+  font-size: 16px !important;
+  color: #a0b5bb !important;
+  border-top: 1px solid #6c95b13d;
+  padding-top: 24px;
+  margin-top: 29px !important;
+  max-width: 530px !important;
+}
+.ocean-home .evidence-steps {
+  padding-top: 20px;
+}
+.ocean-home .evidence-step {
+  position: relative;
+  padding: 45px 0 66px 31px;
+  min-height: 340px;
+  border-top: 1px solid #7792a445;
+  opacity: 1;
+  transition: border-color 0.4s;
+}
+.ocean-home .evidence-step.is-current {
+  opacity: 1;
+  border-top-color: #9ce9d78c;
+}
+.ocean-home .evidence-step:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 54px;
+  height: 9px;
+  width: 9px;
+  background: #476376;
+  border-radius: 50%;
+  transition:
+    background 0.4s,
+    box-shadow 0.4s;
+}
+.ocean-home .evidence-step.is-current:before {
+  background: #ace2f2;
+  box-shadow: 0 0 24px #8edbf380;
+}
+.ocean-home .step-count {
+  font-size: 15px;
+  color: #85a3b7;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 17px;
+}
+.ocean-home .evidence-step h3 {
+  font-size: 33px;
+  line-height: 1.45;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  margin: 0 0 17px;
+  color: #deedf1;
+}
+.ocean-home .evidence-step p {
+  font-size: 18px;
+  line-height: 1.95;
+  color: #b0c5cb;
+  margin: 0;
+  max-width: 440px;
+}
+.ocean-home .step-detail {
+  font-size: 16px !important;
+  margin-top: 22px !important;
+  color: #8faec3 !important;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.ocean-home .step-detail:before {
+  content: "↳";
+  font-size: 24px;
+  font-weight: 300;
+  color: #83b0ce;
+}
+.ocean-home .reports {
+  background: #f3f7fa;
+  color: var(--ink);
+  padding: 118px 0 112px;
+}
+.ocean-home .reports .section-label {
+  color: #4c6678;
+}
+.ocean-home .reports-header {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 85px;
+  align-items: end;
+}
+.ocean-home .reports-header .section-intro {
+  max-width: 420px;
+  color: #596872;
+  margin: 0 0 5px;
+}
+.ocean-home .reports .section-heading {
+  font-size: clamp(48px, 4.7vw, 73px);
+}
+.ocean-home .reports-layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 64px;
+  margin-top: 66px;
+  align-items: start;
+}
+.ocean-home .report-list {
+  border-top: 1px solid #4c697c;
+}
+.ocean-home .list-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 19px 0 18px;
+  color: #617480;
+  font-size: 14px;
+  border-bottom: 1px solid #a8bfc6;
+}
+.ocean-home .report-row {
+  display: grid;
+  grid-template-columns: 1fr 36px;
+  gap: 18px;
+  align-items: center;
+  position: relative;
+  padding: 27px 0 28px;
+  border-bottom: 1px solid #b1c6cd;
+  transition:
+    padding 0.3s,
+    background 0.3s;
+}
+.ocean-home .report-row:hover {
+  padding-left: 18px;
+  padding-right: 13px;
+  background: #daeaef;
+}
+.ocean-home .report-row .report-type {
+  font-size: 14px;
+  color: #5e7280;
+  margin-bottom: 7px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.ocean-home .report-type:before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7aa1bb;
+}
+.ocean-home .report-row.eus .report-type:before {
+  background: #7c98aa;
+}
+.ocean-home .report-row h3 {
+  font-size: 24px;
+  line-height: 1.45;
+  font-weight: 500;
+  margin: 0 0 12px;
+  letter-spacing: -0.035em;
+}
+.ocean-home .report-row p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #5d7280;
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ocean-home .report-row .row-arrow {
+  font-size: 30px;
+  font-weight: 300;
+  transition: transform 0.3s;
+}
+.ocean-home .report-row:hover .row-arrow {
+  transform: translate(3px, -3px);
+}
+.ocean-home .reports-explainer {
+  font-size: 16px;
+  color: #5f7380;
+  line-height: 1.9;
+  margin: 24px 0 0;
+  max-width: 630px;
+}
+.ocean-home .source-link {
+  font-size: 17px;
+  color: #314a5b;
+  display: inline-flex;
+  gap: 17px;
+  align-items: center;
+  margin-top: 25px;
+  border-bottom: 1px solid #7698af;
+  padding-bottom: 6px;
+}
+.ocean-home .report-feature {
+  margin: 0;
+  padding-top: 47px;
+}
+.ocean-home .report-feature .photo-clip {
+  height: 465px;
+}
+.ocean-home .report-feature .photo-clip img {
+  object-position: 56% center;
+  filter: saturate(0.66);
+}
+.ocean-home .report-feature h3 {
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.45;
+  margin: 25px 0 12px;
+}
+.ocean-home .report-feature p {
+  font-size: 18px;
+  color: #5b6c78;
+  line-height: 1.9;
+  margin: 0;
+}
+.ocean-home .report-feature .image-label {
+  position: absolute;
+  z-index: 2;
+  bottom: 23px;
+  left: 25px;
+  right: 25px;
+  color: #d8ebf1;
+  font-size: 16px;
+  line-height: 1.8;
+}
+.ocean-home .report-sources {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+  padding-top: 34px;
+  margin-top: 64px;
+  border-top: 1px solid #b3c8cf;
+}
+.ocean-home .report-sources > span {
+  font-size: 15px;
+  color: #5e7280;
+}
+.ocean-home .source-names {
+  display: flex;
+  gap: 45px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.ocean-home .source-names a {
+  font-size: 21px;
+  font-weight: 550;
+  letter-spacing: -0.04em;
+  color: #4a6171;
+}
+.ocean-home .source-names a:hover {
+  color: #213c4e;
+}
+.ocean-home .source-names small {
+  display: block;
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #6d808c;
+  margin-top: 4px;
+}
+.ocean-home .closing {
+  position: relative;
+  isolation: isolate;
+  min-height: 690px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 100px var(--edge);
+}
+.ocean-home .closing:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, #07131bed 5%, #0a1a24b5 53%, #09192366),
+    linear-gradient(0deg, #051724, transparent 65%),
+    url("/files/coastal-aquaculture.jpg") center 55% / cover;
+}
+.ocean-home .closing-copy {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.ocean-home .closing .section-label {
+  color: #aed4e0;
+}
+.ocean-home .closing h2 {
+  font-size: clamp(52px, 5.1vw, 82px);
+  line-height: 1.32;
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  margin: 33px 0 27px;
+}
+.ocean-home .closing h2 span {
+  display: block;
+  color: #abdae8;
+}
+.ocean-home .closing p {
+  font-size: 19px;
+  color: #baccd2;
+  line-height: 1.95;
+  max-width: 600px;
+  margin: 0;
+}
+.ocean-home .closing .hero-actions {
+  margin-top: 36px;
+}
+.ocean-home .closing .secondary-link {
+  color: #cee3e9;
+}
+.ocean-home.has-js [data-reveal] {
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.95s cubic-bezier(0.2, 0.6, 0.2, 1),
+    transform 0.95s cubic-bezier(0.2, 0.6, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.ocean-home.has-js [data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@keyframes scroll-line {
+  0% {
+    transform: translateY(0);
+  }
+  60%,
+  100% {
+    transform: translateY(90px);
+  }
+}
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (min-width: 1600px) {
+  .ocean-home .globe-stage {
+    width: 940px;
+    height: 940px;
+    right: -115px;
+    top: calc(50% - 470px);
+  }
+  .ocean-home .hero-copy {
+    width: 850px;
+  }
+  .ocean-home .hero-intro {
+    max-width: 510px;
+  }
+  .ocean-home .globe-caption {
+    top: 175px;
+  }
+}
+@media (max-width: 1270px) {
+  .ocean-home .hero h1 {
+    font-size: 84px;
+  }
+  .ocean-home .hero-copy {
+    width: 680px;
+    padding-top: 220px;
+  }
+  .ocean-home .globe-stage {
+    width: 760px;
+    height: 760px;
+    right: -165px;
+    top: calc(50% - 380px);
+  }
+  .ocean-home .hero-intro {
+    font-size: 19px;
+    max-width: 420px;
+  }
+  .ocean-home .hero-actions {
+    gap: 22px;
+  }
+  .ocean-home .hero-disclaimer {
+    max-width: 430px;
+  }
+  .ocean-home .globe-caption {
+    right: 35px;
+    top: 144px;
+  }
+  .ocean-home .evidence-layout {
+    gap: 55px;
+  }
+  .ocean-home .health-photos {
+    gap: 38px;
+  }
+  .ocean-home .ocean-photo .photo-clip {
+    height: 500px;
+  }
+  .ocean-home .farm-photo .photo-clip {
+    height: 350px;
+  }
+  .ocean-home .photo-title h3 {
+    font-size: 31px;
+  }
+  .ocean-home .photo-title span {
+    font-size: 14px;
+    max-width: 150px;
+  }
+  .ocean-home .report-feature .photo-clip {
+    height: 420px;
+  }
+  .ocean-home .reports-layout {
+    gap: 43px;
+  }
+}
+@media (max-width: 1050px) {
+  .ocean-home .hero {
+    height: auto;
+    min-height: 1020px;
+  }
+  .ocean-home .hero-copy {
+    padding-top: 185px;
+    width: calc(100% - 60px);
+  }
+  .ocean-home .hero h1 {
+    font-size: clamp(68px, 8.5vw, 88px);
+  }
+  .ocean-home .hero-intro {
+    max-width: 440px;
+  }
+  .ocean-home .globe-stage {
+    width: 700px;
+    height: 700px;
+    right: -150px;
+    top: 310px;
+  }
+  .ocean-home .hero-disclaimer {
+    max-width: 400px;
+    margin-top: 30px;
+  }
+  .ocean-home .globe-caption {
+    top: 165px;
+    font-size: 13px;
+    max-width: 190px;
+  }
+  .ocean-home .globe-caption strong {
+    font-size: 15px;
+  }
+  .ocean-home .hero-bottom {
+    font-size: 13px;
+  }
+  .ocean-home .hero-bottom .preview-state {
+    max-width: 440px;
+  }
+  .ocean-home .health-header,
+  .ocean-home .reports-header {
+    gap: 45px;
+    grid-template-columns: 1.12fr 0.88fr;
+  }
+  .ocean-home .section-heading {
+    font-size: 56px;
+  }
+  .ocean-home .section-intro {
+    font-size: 18px;
+  }
+  .ocean-home .one-health {
+    padding-top: 95px;
+    padding-bottom: 85px;
+  }
+  .ocean-home .health-photos {
+    gap: 32px;
+    margin-top: 55px;
+  }
+  .ocean-home .ocean-photo .photo-clip {
+    height: 450px;
+  }
+  .ocean-home .farm-photo {
+    margin-top: 125px;
+  }
+  .ocean-home .farm-photo .photo-clip {
+    height: 315px;
+  }
+  .ocean-home .photo-title {
+    left: 22px;
+    right: 22px;
+  }
+  .ocean-home .photo-title span {
+    display: none;
+  }
+  .ocean-home .photo-block figcaption {
+    font-size: 16px;
+  }
+  .ocean-home .health-connections {
+    gap: 16px;
+  }
+  .ocean-home .health-connections span {
+    font-size: 21px;
+  }
+  .ocean-home .health-foot p {
+    max-width: 290px;
+  }
+  .ocean-home .evidence-layout {
+    gap: 40px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .ocean-home .evidence h2 {
+    font-size: 52px;
+  }
+  .ocean-home .evidence-stage {
+    top: 125px;
+  }
+  .ocean-home .evidence-stage > p {
+    font-size: 17px;
+  }
+  .ocean-home .evidence-step {
+    padding-left: 25px;
+    min-height: 350px;
+  }
+  .ocean-home .evidence-step h3 {
+    font-size: 29px;
+  }
+  .ocean-home .evidence-step p {
+    font-size: 17px;
+  }
+  .ocean-home .signal-diagram {
+    height: 260px;
+  }
+  .ocean-home .reports-header .section-heading {
+    font-size: 53px;
+  }
+  .ocean-home .reports-layout {
+    gap: 35px;
+    grid-template-columns: 1.1fr 0.9fr;
+  }
+  .ocean-home .report-row h3 {
+    font-size: 22px;
+  }
+  .ocean-home .report-row p {
+    font-size: 15px;
+  }
+  .ocean-home .report-feature h3 {
+    font-size: 28px;
+  }
+  .ocean-home .report-feature p {
+    font-size: 17px;
+  }
+  .ocean-home .report-feature .photo-clip {
+    height: 430px;
+  }
+  .ocean-home .source-names {
+    gap: 25px;
+  }
+  .ocean-home .source-names a {
+    font-size: 19px;
+  }
+  .ocean-home .closing h2 {
+    font-size: 58px;
+  }
+  .ocean-home .closing {
+    min-height: 650px;
+  }
+}
+html[lang="en"] .ocean-home .hero h1 {
+  font-size: clamp(62px, 4.75vw, 78px);
+  letter-spacing: -0.065em;
+  line-height: 1.22;
+}
+html[lang="en"] .ocean-home .hero-copy {
+  width: min(760px, 56vw);
+}
+@media (min-width: 761px) and (max-width: 1050px) {
+  .ocean-home .hero {
+    min-height: 1340px;
+  }
+  .ocean-home .hero-copy {
+    padding-top: 160px;
+    width: calc(100% - 60px);
+  }
+  .ocean-home .hero h1 {
+    font-size: 76px;
+  }
+  .ocean-home .hero-intro {
+    max-width: 540px;
+  }
+  .ocean-home .hero-disclaimer {
+    max-width: 520px;
+  }
+  .ocean-home .globe-stage {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 650px;
+    height: 650px;
+    margin: -5px -45px 0 auto;
+  }
+  .ocean-home .globe-caption {
+    top: auto;
+    bottom: 255px;
+  }
+  .ocean-home .hero-bottom {
+    bottom: 30px;
+  }
+  html[lang="en"] .ocean-home .hero-copy {
+    width: calc(100% - 60px);
+  }
+  html[lang="en"] .ocean-home .hero h1 {
+    font-size: 72px;
+  }
+}
+@media (max-width: 760px) {
+  .ocean-home {
+    --edge: 24px;
+  }
+  html {
+    scroll-padding-top: 90px;
+  }
+  .ocean-home {
+    font-size: 17px;
+  }
+  .ocean-home .hero {
+    min-height: 1080px;
+    height: auto;
+    max-height: none;
+  }
+  .ocean-home .hero-copy {
+    padding: 140px var(--edge) 0;
+    width: 100%;
+    transform: none;
+  }
+  .ocean-home .eyebrow {
+    font-size: 12px;
+    gap: 10px;
+    letter-spacing: 0.06em;
+  }
+  .ocean-home .hero h1 {
+    font-size: clamp(44px, 7.5vw, 58px);
+    line-height: 1.3;
+    letter-spacing: -0.065em;
+    margin: 26px 0 21px;
+  }
+  .ocean-home .hero-intro {
+    font-size: 18px;
+    line-height: 1.85;
+    max-width: 420px;
+  }
+  .ocean-home .hero-actions {
+    margin-top: 28px;
+    gap: 23px;
+  }
+  .ocean-home .primary-link {
+    font-size: 16px;
+    min-height: 55px;
+    padding: 13px 19px;
+    gap: 24px;
+  }
+  .ocean-home .secondary-link {
+    font-size: 16px;
+    gap: 12px;
+  }
+  .ocean-home .link-arrow {
+    font-size: 23px;
+  }
+  .ocean-home .hero-disclaimer {
+    font-size: 13px;
+    line-height: 1.8;
+    max-width: 420px;
+    margin-top: 25px;
+  }
+  .ocean-home .hero-disclaimer svg {
+    width: 15px;
+    height: 15px;
+    margin-top: 4px;
+  }
+  .ocean-home .globe-stage {
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 100%;
+    height: 410px;
+    margin-top: -5px;
+    transform: none;
+    z-index: 1;
+  }
+  .ocean-home .globe-stage:before {
+    inset: 7% 12%;
+  }
+  .ocean-home .hero:after {
+    background: linear-gradient(0deg, #051724 0, transparent 19%);
+    opacity: 0.5;
+  }
+  .ocean-home .globe-caption {
+    top: auto;
+    right: var(--edge);
+    bottom: 208px;
+    text-align: right;
+    max-width: 190px;
+    font-size: 12px;
+  }
+  .ocean-home .globe-caption strong {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .ocean-home .hero-bottom {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    padding: 26px var(--edge) 29px;
+    margin-top: 8px;
+    gap: 18px;
+    align-items: end;
+  }
+  .ocean-home .hero-bottom .scroll-cue {
+    font-size: 12px;
+    gap: 11px;
+  }
+  .ocean-home .scroll-cue .scroll-line {
+    height: 29px;
+  }
+  .ocean-home .hero-bottom .preview-state {
+    font-size: 12px;
+    line-height: 1.8;
+    max-width: 250px;
+  }
+  .ocean-home .hero-light {
+    display: none;
+  }
+  html[lang="en"] .ocean-home .hero-copy {
+    width: 100%;
+  }
+  html[lang="en"] .ocean-home .hero h1 {
+    font-size: clamp(37px, 7vw, 52px);
+    line-height: 1.25;
+    white-space: normal;
+  }
+  .ocean-home .one-health {
+    padding: 76px 0 66px;
+  }
+  .ocean-home .section-label {
+    font-size: 13px;
+    gap: 11px;
+    letter-spacing: 0.05em;
+  }
+  .ocean-home .section-label:before {
+    width: 28px;
+  }
+  .ocean-home .section-label .chapter-number {
+    margin-right: 2px;
+  }
+  .ocean-home .section-heading {
+    font-size: 45px;
+    line-height: 1.35;
+    margin-top: 24px;
+    letter-spacing: -0.065em;
+  }
+  .ocean-home .health-header,
+  .ocean-home .reports-header {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .ocean-home .health-header .section-intro,
+  .ocean-home .reports-header .section-intro {
+    font-size: 17px;
+    line-height: 1.9;
+    margin: 0;
+    max-width: 560px;
+  }
+  .ocean-home .health-photos {
+    grid-template-columns: 1fr;
+    gap: 39px;
+    margin-top: 39px;
+  }
+  .ocean-home .ocean-photo .photo-clip {
+    height: 400px;
+  }
+  .ocean-home .farm-photo {
+    margin-top: 0;
+    margin-left: 48px;
+  }
+  .ocean-home .farm-photo .photo-clip {
+    height: 330px;
+  }
+  .ocean-home .photo-title {
+    left: 22px;
+    right: 22px;
+    bottom: 22px;
+  }
+  .ocean-home .photo-title h3 {
+    font-size: 31px;
+  }
+  .ocean-home .photo-title span {
+    display: block;
+    font-size: 13px;
+    max-width: 160px;
+  }
+  .ocean-home .photo-index {
+    left: 22px;
+    top: 20px;
+    font-size: 13px;
+  }
+  .ocean-home .photo-block figcaption {
+    font-size: 16px;
+    line-height: 1.85;
+    margin-top: 17px;
+  }
+  .ocean-home .health-foot {
+    margin-top: 43px;
+    padding-top: 24px;
+    align-items: start;
+    flex-direction: column;
+    gap: 19px;
+  }
+  .ocean-home .health-connections {
+    gap: 14px;
+  }
+  .ocean-home .health-connections span {
+    font-size: 22px;
+  }
+  .ocean-home .health-connections i {
+    font-size: 18px;
+  }
+  .ocean-home .health-foot p {
+    font-size: 16px;
+    max-width: 500px;
+    line-height: 1.85;
+  }
+  .ocean-home .evidence {
+    padding: 77px 0 30px;
+  }
+  .ocean-home .evidence-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 26px;
+  }
+  .ocean-home .evidence-stage {
+    position: relative;
+    top: auto;
+    padding-bottom: 25px;
+  }
+  .ocean-home .evidence h2 {
+    font-size: 45px;
+    line-height: 1.32;
+  }
+  .ocean-home .evidence-stage > p {
+    font-size: 17px;
+    line-height: 1.9;
+    margin-top: 24px;
+    max-width: 550px;
+  }
+  .ocean-home .signal-diagram {
+    margin-top: 20px;
+    height: 230px;
+    max-width: 560px;
+  }
+  .ocean-home .stage-status {
+    font-size: 15px;
+  }
+  .ocean-home .prototype-note {
+    font-size: 16px !important;
+    margin-top: 25px !important;
+    padding-top: 22px;
+  }
+  .ocean-home .evidence-steps {
+    padding-top: 0;
+  }
+  .ocean-home .evidence-step {
+    min-height: 0;
+    padding: 29px 0 36px 25px;
+    opacity: 1;
+  }
+  .ocean-home .evidence-step:before {
+    top: 38px;
+    height: 7px;
+    width: 7px;
+  }
+  .ocean-home .step-count {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .ocean-home .evidence-step h3 {
+    font-size: 27px;
+    line-height: 1.5;
+    margin-bottom: 12px;
+  }
+  .ocean-home .evidence-step p {
+    font-size: 17px;
+    line-height: 1.9;
+    max-width: 600px;
+  }
+  .ocean-home .step-detail {
+    font-size: 16px !important;
+    margin-top: 17px !important;
+  }
+  .ocean-home .evidence-step:last-child {
+    padding-bottom: 42px;
+  }
+  .ocean-home .reports {
+    padding: 76px 0 68px;
+  }
+  .ocean-home .reports-header .section-heading {
+    font-size: 43px;
+    line-height: 1.35;
+  }
+  .ocean-home .reports-layout {
+    grid-template-columns: 1fr;
+    gap: 45px;
+    margin-top: 36px;
+  }
+  .ocean-home .list-label {
+    font-size: 13px;
+    padding: 17px 0;
+  }
+  .ocean-home .report-row {
+    padding: 23px 0;
+    gap: 15px;
+    grid-template-columns: 1fr 29px;
+  }
+  .ocean-home .report-row .report-type {
+    font-size: 13px;
+    margin-bottom: 7px;
+  }
+  .ocean-home .report-row h3 {
+    font-size: 23px;
+    line-height: 1.45;
+    margin-bottom: 10px;
+  }
+  .ocean-home .report-row p {
+    font-size: 15px;
+    gap: 5px 9px;
+  }
+  .ocean-home .report-row .row-arrow {
+    font-size: 27px;
+  }
+  .ocean-home .reports-explainer {
+    font-size: 16px;
+    line-height: 1.85;
+    margin-top: 20px;
+  }
+  .ocean-home .source-link {
+    font-size: 16px;
+    margin-top: 23px;
+  }
+  .ocean-home .report-feature {
+    padding-top: 0;
+  }
+  .ocean-home .report-feature .photo-clip {
+    height: 360px;
+  }
+  .ocean-home .report-feature h3 {
+    font-size: 30px;
+    margin-top: 23px;
+  }
+  .ocean-home .report-feature p {
+    font-size: 17px;
+    line-height: 1.9;
+  }
+  .ocean-home .report-feature .image-label {
+    font-size: 14px;
+    left: 22px;
+    bottom: 20px;
+  }
+  .ocean-home .report-sources {
+    margin-top: 43px;
+    padding-top: 27px;
+    align-items: start;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .ocean-home .report-sources > span {
+    font-size: 14px;
+  }
+  .ocean-home .source-names {
+    width: 100%;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .ocean-home .source-names a {
+    font-size: 18px;
+  }
+  .ocean-home .source-names small {
+    font-size: 12px;
+  }
+  .ocean-home .closing {
+    padding: 75px var(--edge) 81px;
+    min-height: 600px;
+  }
+  .ocean-home .closing:before {
+    background:
+      linear-gradient(90deg, #07131bed, #0a1a24a6),
+      linear-gradient(0deg, #051724, transparent 70%),
+      url("/files/coastal-aquaculture.jpg") 60% center/cover;
+  }
+  .ocean-home .closing h2 {
+    font-size: 43px;
+    line-height: 1.4;
+    margin: 27px 0 24px;
+    letter-spacing: -0.06em;
+  }
+  .ocean-home .closing p {
+    font-size: 17px;
+    line-height: 1.95;
+  }
+  .ocean-home .closing .hero-actions {
+    gap: 26px;
+    margin-top: 31px;
+  }
+  .ocean-home.has-js [data-reveal] {
+    transform: translateY(24px);
+  }
+}
+@media (max-width: 420px) {
+  .ocean-home {
+    --edge: 22px;
+  }
+  .ocean-home .hero-copy {
+    padding-top: 132px;
+  }
+  .ocean-home .hero h1 {
+    font-size: 48px;
+  }
+  .ocean-home .hero-intro {
+    font-size: 17px;
+  }
+  .ocean-home .hero-actions {
+    gap: 20px;
+    flex-wrap: nowrap;
+  }
+  .ocean-home .hero-actions .secondary-link {
+    font-size: 15px;
+    gap: 8px;
+  }
+  .ocean-home .primary-link {
+    gap: 18px;
+    padding: 13px 17px;
+  }
+  .ocean-home .hero-disclaimer {
+    font-size: 12px;
+    margin-top: 24px;
+  }
+  .ocean-home .globe-stage {
+    margin-top: 0;
+  }
+  .ocean-home .globe-caption {
+    bottom: 204px;
+    font-size: 12px;
+  }
+  .ocean-home .globe-caption strong {
+    font-size: 13px;
+  }
+  .ocean-home .hero-bottom .preview-state {
+    max-width: 216px;
+  }
+  .ocean-home .section-heading,
+  .ocean-home .evidence h2 {
+    font-size: 42px;
+  }
+  .ocean-home .ocean-photo .photo-clip {
+    height: 360px;
+  }
+  .ocean-home .farm-photo {
+    margin-left: 38px;
+  }
+  .ocean-home .farm-photo .photo-clip {
+    height: 310px;
+  }
+  .ocean-home .photo-title span {
+    display: none;
+  }
+  .ocean-home .health-connections {
+    gap: 12px;
+  }
+  .ocean-home .health-connections span {
+    font-size: 21px;
+  }
+  .ocean-home .signal-diagram {
+    height: 210px;
+  }
+  .ocean-home .reports-header .section-heading {
+    font-size: 41px;
+  }
+  .ocean-home .source-names {
+    gap: 15px;
+  }
+  .ocean-home .source-names a {
+    font-size: 16px;
+  }
+  .ocean-home .source-names small {
+    font-size: 12px;
+  }
+  .ocean-home .closing h2 {
+    font-size: 40px;
+  }
+  .ocean-home .closing .hero-actions {
+    flex-wrap: wrap;
+  }
+  .ocean-home .report-feature .photo-clip {
+    height: 330px;
+  }
+}
+@media (max-width: 359px) {
+  .ocean-home .hero h1 {
+    font-size: 44px;
+    letter-spacing: -0.105em;
+  }
+  .ocean-home .hero-actions {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .ocean-home .hero {
+    min-height: 1120px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .ocean-home *,
+  .ocean-home *:before,
+  .ocean-home *:after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .ocean-home.has-js [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+  .ocean-home .hero-copy,
+  .ocean-home .globe-stage {
+    transform: none;
+  }
+  .ocean-home .photo-clip img {
+    transform: none !important;
+  }
+  .ocean-home .trace-active {
+    stroke-dashoffset: 0;
+  }
+  .ocean-home .hero-light {
+    display: none;
+  }
+}
+
+.ocean-home .ocean-film {
+  position: relative;
+  isolation: isolate;
+  min-height: 610px;
+  height: 78svh;
+  max-height: 850px;
+  overflow: hidden;
+  background: #031829;
+  color: #f1f8fa;
+}
+.ocean-home .ocean-film video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+  filter: saturate(0.8);
+}
+.ocean-home .ocean-film:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, #031728e8 0, #03172888 50%, #03172826 90%),
+    linear-gradient(0deg, #061e2b88, transparent 80%);
+}
+.ocean-home .film-copy {
+  position: absolute;
+  left: var(--edge);
+  right: var(--edge);
+  bottom: 105px;
+  max-width: 1260px;
+  margin: auto;
+}
+.ocean-home .film-copy > span {
+  font-size: 14px;
+  letter-spacing: 0.13em;
+  color: #a9e9ef;
+}
+.ocean-home .film-copy h2 {
+  white-space: pre-line;
+  font-size: clamp(46px, 4.4vw, 72px);
+  font-weight: 550;
+  line-height: 1.3;
+  letter-spacing: -0.055em;
+  max-width: 800px;
+  margin: 23px 0;
+}
+.ocean-home .film-copy p {
+  font-size: 19px;
+  line-height: 1.9;
+  max-width: 590px;
+  margin: 0;
+  color: #d0e5ed;
+}
+.ocean-home .film-controls {
+  position: absolute;
+  left: var(--edge);
+  right: var(--edge);
+  bottom: 31px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: 13px;
+  color: #b5d9e7;
+}
+.ocean-home .film-controls a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.ocean-home .film-controls button {
+  border: 1px solid #b5d9e777;
+  color: #eaf8fc;
+  background: #062033a8;
+  padding: 10px 15px;
+  font-size: 15px;
+  min-height: 44px;
+  backdrop-filter: blur(10px);
+}
+.ocean-home .hero .hero-light {
+  opacity: 0.8;
+}
+.ocean-home .evidence {
+  background: linear-gradient(120deg, #071e32 0, #082c40 65%, #0a283c 100%);
+}
+.ocean-home .evidence:before {
+  background: radial-gradient(ellipse, #267bb52a 0, transparent 65%);
+}
+.ocean-home .ocean-film .film-caption {
+  max-width: 75%;
+  line-height: 1.6;
+}
+.ocean-home .photo-index {
+  padding: 4px 10px;
+  background: #051724cc;
+}
+@media (max-width: 760px) {
+  .ocean-home .ocean-film {
+    height: 650px;
+    min-height: 0;
+  }
+  .ocean-home .film-copy {
+    bottom: 144px;
+  }
+  .ocean-home .film-copy h2 {
+    white-space: pre-line;
+    font-size: 43px;
+  }
+  .ocean-home .film-copy p {
+    font-size: 17px;
+  }
+  .ocean-home .film-controls {
+    font-size: 12px;
+    align-items: flex-end;
+  }
+  .ocean-home .film-caption {
+    max-width: 60%;
+  }
+  .ocean-home .film-controls button {
+    font-size: 14px;
+    padding: 9px 11px;
+  }
+  .ocean-home .ocean-film video {
+    object-position: 60% center;
+  }
+}
+
+/* The approved visual composition with product controls and readable copy. */
+.ocean-home {
+  --edge: clamp(22px, 4.45vw, 86px);
+}
+.ocean-home .ocean-ambient {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.7;
+}
+.ocean-home .hero-disclaimer,
+.ocean-home .eyebrow,
+.ocean-home .globe-caption,
+.ocean-home .hero-bottom,
+.ocean-home .photo-index,
+.ocean-home .source-names small,
+.ocean-home .section-label,
+.ocean-home .step-count {
+  font-size: 14px;
+}
+.ocean-home .hero-disclaimer {
+  color: #bed0d9;
+}
+.ocean-home .photo-index {
+  background: #051724df;
+}
+.ocean-home .report-official-link {
+  display: inline-flex;
+  font-size: 16px;
+  margin-top: 14px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  color: #145666;
+}
+.ocean-home .report-row .report-source-name {
+  display: block;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 8px 0;
+}
+.ocean-home .recent-snapshot-events {
+  min-width: 0;
+}
+.ocean-home .report-row {
+  grid-template-columns: minmax(0, 1fr) 30px;
+}
+.ocean-home .report-row h3 {
+  overflow-wrap: anywhere;
+}
+.ocean-home .film-copy {
+  padding: 20px 24px;
+  margin-left: -24px;
+  width: fit-content;
+  max-width: 720px;
+  background: #051724bd;
+  border-left: 2px solid #9ce9d7;
+}
+.ocean-home .film-controls {
+  color: #e2f0f5;
+  font-size: 14px;
+}
+.ocean-home .film-caption {
+  background: #051724d9;
+  padding: 7px 10px;
+}
+.ocean-home .signal-node text {
+  fill: #b9d6e3;
+}
+.ocean-home .has-js [data-reveal],
+.ocean-home.has-js [data-reveal] {
+  will-change: opacity, transform;
+}
+@media (max-width: 1050px) {
+  .ocean-home .hero {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding-bottom: 0;
+  }
+  .ocean-home .globe-stage {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    height: auto;
+    min-height: 600px;
+    margin: 28px 0 0;
+    transform: none;
+  }
+  .ocean-home .globe-caption {
+    position: relative;
+    top: auto;
+    bottom: auto;
+    right: auto;
+    margin: 12px var(--edge) 0;
+    max-width: none;
+    text-align: left;
+  }
+  .ocean-home .hero-bottom {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    padding: 26px var(--edge) 30px;
+    margin-top: 0;
+  }
+}
+@media (max-width: 760px) {
+  .ocean-home .hero-disclaimer {
+    font-size: 14px;
+  }
+  .ocean-home .film-copy {
+    max-width: calc(100% - 2 * var(--edge));
+    left: var(--edge);
+    right: auto;
+    padding: 16px;
+    margin-left: 0;
+  }
+  .ocean-home .film-copy p {
+    font-size: 17px;
+  }
+  .ocean-home .film-controls,
+  .ocean-home .film-controls button {
+    font-size: 14px;
+  }
+  .ocean-home .film-caption {
+    max-width: 58%;
+  }
+  .ocean-home .source-names small {
+    font-size: 14px;
+  }
+}
+
+.ocean-home .report-row > div {
+  min-width: 0;
+}
+.ocean-home .report-type,
+.ocean-home .report-source-name {
+  overflow-wrap: anywhere;
+}
+
+.ocean-home .globe-access-slot {
+  position: absolute;
+  right: var(--edge);
+  bottom: 22px;
+  width: min(520px, 46vw);
+  z-index: 6;
+  min-height: 54px;
+}
+.ocean-home .globe-access-slot .globe-caption {
+  position: static;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  max-width: none;
+  text-align: left;
+}
+.ocean-home .globe-access-slot .globe-caption strong {
+  display: inline;
+  font-size: 14px;
+  margin-right: 14px;
+}
+.ocean-home .globe-access-slot .globe-caption > span {
+  font-size: 14px;
+}
+.ocean-home .hero-bottom {
+  pointer-events: none;
+}
+.ocean-home .hero-bottom a {
+  pointer-events: auto;
+}
+.ocean-home .report-globe-access {
+  color: #d6e8ef;
+  font-size: 14px;
+}
+.ocean-home .report-globe-access-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  border-top: 1px solid #6e97a770;
+  padding-top: 15px;
+}
+.ocean-home .report-globe-access-row p {
+  margin: 0;
+  color: #b9d3df;
+}
+.ocean-home .report-globe-access-row button {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 4px 0;
+  font-size: 16px;
+  border: 0;
+  background: transparent;
+  color: #b7f0e2;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.ocean-home .report-globe-access .report-globe-fallback {
+  margin-top: 8px;
+}
+.ocean-home .report-globe[data-renderer="ready"] .report-globe-canvas {
+  animation: ocean-earth-entry 1150ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
+}
+.ocean-home
+  .hero:has(.hero-opening[data-intro-state="running"])
+  .report-globe-label {
+  visibility: hidden !important;
+  pointer-events: none;
+}
+@keyframes ocean-earth-entry {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (min-width: 1051px) {
+  .ocean-home .hero {
+    min-height: 1000px;
+  }
+  .ocean-home .globe-stage {
+    top: 100px;
+    height: calc(100% - 250px);
+    max-height: 880px;
+  }
+}
+@media (max-width: 1050px) {
+  .ocean-home .globe-stage {
+    min-height: 410px;
+  }
+  .ocean-home .globe-access-slot {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    margin: 20px var(--edge) 0;
+  }
+}
+@media (max-width: 420px) {
+  .ocean-home .report-globe-access-row {
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+}
+
+.ocean-home .globe-caption {
+  background: #051724ed;
+  padding: 10px 15px;
+  border-left: 1px solid #7abdad;
+  max-width: 280px;
+  color: #cfdee6;
+}
+@media (max-width: 1050px) {
+  .ocean-home .globe-caption {
+    margin: 18px var(--edge) 0;
+    max-width: calc(100% - 2 * var(--edge));
+  }
+}

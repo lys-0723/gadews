@@ -13,8 +13,8 @@ import {
 const ALERTS = [
   {
     id: 1,
-    type: "Salinity Crash",
-    detail: "> 5ppt drop in 24h",
+    type: "Salinity Crash → WSSV Risk Elevated",
+    detail: "Salinity drop > 5 ppt in 24h — WSSV latent activation probability 84%",
     location: "Mekong Delta, Vietnam",
     status: "High Risk",
     statusColor: "text-red-400",
@@ -25,8 +25,8 @@ const ALERTS = [
   },
   {
     id: 2,
-    type: "Temp Fluctuation",
-    detail: "> 3°C swing in 6h",
+    type: "Temp < 27°C — WSSV Risk Window",
+    detail: "Water temp dropped to 26.3°C (+3°C swing in 6h) — optimal for WSSV replication",
     location: "Guangdong, China",
     status: "Warning",
     statusColor: "text-orange-400",
@@ -37,8 +37,8 @@ const ALERTS = [
   },
   {
     id: 3,
-    type: "Dissolved O2 Drop",
-    detail: "Below 3.5 mg/L threshold",
+    type: "Dissolved O₂ Critical — DO < 3.5 mg/L",
+    detail: "DO at 2.8 mg/L, below critical threshold — hypoxic stress elevates host susceptibility",
     location: "East Java, Indonesia",
     status: "High Risk",
     statusColor: "text-red-400",
@@ -49,8 +49,8 @@ const ALERTS = [
   },
   {
     id: 4,
-    type: "pH Anomaly",
-    detail: "pH dropped to 6.8",
+    type: "pH Anomaly — AHPND Trigger Detected",
+    detail: "pH dropped to 6.8; Vibrio parahaemolyticus proliferates at pH < 7.0 (AHPND risk)",
     location: "Guayaquil, Ecuador",
     status: "Warning",
     statusColor: "text-orange-400",
@@ -61,8 +61,8 @@ const ALERTS = [
   },
   {
     id: 5,
-    type: "Algal Bloom Alert",
-    detail: "Chlorophyll-a > 50 µg/L",
+    type: "Algal Bloom — Hypoxia Risk",
+    detail: "Chlorophyll-a > 50 µg/L; nocturnal DO crash expected — pre-outbreak watch activated",
     location: "Nha Trang, Vietnam",
     status: "Monitoring",
     statusColor: "text-yellow-400",
@@ -70,6 +70,18 @@ const ALERTS = [
     icon: Waves,
     iconColor: "text-emerald-400",
     time: "2h ago",
+  },
+  {
+    id: 6,
+    type: "Rainfall Surge — Salinity Dilution",
+    detail: "Monthly rainfall +180%; pond salinity falling toward 8 ppt — WSSV convergence model triggered",
+    location: "Sóc Trăng, Vietnam",
+    status: "High Risk",
+    statusColor: "text-red-400",
+    statusBg: "bg-red-400/10 border-red-400/30",
+    icon: Droplets,
+    iconColor: "text-blue-400",
+    time: "1.5h ago",
   },
 ];
 
@@ -96,7 +108,7 @@ export function TriggerAlertFeed() {
             <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
           </span>
           <span className="text-[10px] font-semibold tracking-wider text-red-400 uppercase">
-            5 Active
+            6 Active
           </span>
         </span>
       </div>

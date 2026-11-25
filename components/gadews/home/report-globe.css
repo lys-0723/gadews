@@ -1,0 +1,337 @@
+.report-globe {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  isolation: isolate;
+  color: #edf8fa;
+  font-size: 14px;
+}
+.report-globe-canvas {
+  position: absolute;
+  inset: 0;
+}
+.report-globe-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+  cursor: grab;
+}
+.report-globe-canvas canvas:active {
+  cursor: grabbing;
+}
+.report-globe-static {
+  position: absolute;
+  inset: 7% 7% 16%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.report-globe-static svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #52788a;
+  border-radius: 12px;
+  box-shadow: 0 0 36px #77d8f22b;
+  background: #071d2d;
+}
+.report-globe-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.report-globe-label {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: auto;
+  padding: 7px 10px;
+  border: 1px solid #6baba1;
+  border-radius: 6px;
+  background: #092a32;
+  color: #f0fcfa;
+  font: inherit;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px #02121c44;
+}
+.report-globe button,
+.report-globe select,
+.report-globe-dialog button,
+.report-globe-dialog select {
+  font: inherit;
+}
+.report-globe-dialog-nav button,
+.report-globe-dialog-nav select,
+.report-globe-filter select {
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid #668392;
+  border-radius: 6px;
+  color: #f1fbfd;
+  background: #123342;
+  cursor: pointer;
+}
+.report-globe :is(button, select, summary):focus-visible,
+.report-globe-dialog :is(button, select, a):focus-visible {
+  outline: 3px solid #9ce9d7;
+  outline-offset: 3px;
+}
+.report-globe-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+}
+.report-globe-count,
+.report-globe-help,
+.report-globe-instruction,
+.report-globe-fallback {
+  margin: 0;
+  line-height: 1.5;
+  color: #daeef2;
+  font-size: 14px;
+}
+.report-globe .report-globe-help {
+  display: block;
+  position: static;
+  right: auto;
+  bottom: auto;
+  max-width: none;
+  color: #e7f5f8;
+  pointer-events: auto;
+}
+.report-globe-instruction {
+  color: #c5dce4;
+}
+.report-globe-source {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.report-globe-source summary {
+  width: fit-content;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.report-globe-source[open] {
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 9px;
+  border: 1px solid #627e8b;
+  border-radius: 6px;
+  background: #0b2635;
+}
+.report-globe-source p {
+  margin: 5px 0;
+}
+.report-globe-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1299;
+  background: #01101dd9;
+}
+.report-globe-dialog {
+  position: fixed;
+  z-index: 1300;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(1000px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 26px;
+  border: 1px solid #536f7d;
+  border-radius: 16px;
+  background: #f2f7f8;
+  color: #102b3e;
+  font-size: 17px;
+  line-height: 1.6;
+  box-shadow: 0 30px 100px #0008;
+}
+.report-globe-dialog-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.report-globe-dialog-nav a,
+.report-globe-detail a {
+  color: #075964;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 650;
+}
+.report-globe-dialog h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 750;
+}
+.report-globe-dialog h2 + p {
+  margin: 6px 0 18px;
+}
+.report-globe-dialog > .report-globe-filter {
+  margin-bottom: 18px;
+  font-size: 16px;
+}
+.report-globe-dialog-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 22px;
+  align-items: start;
+}
+.report-globe-report-list {
+  max-height: 390px;
+  overflow-y: auto;
+  display: grid;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid #b1c5cd;
+  border-radius: 8px;
+}
+.report-globe-report-list button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #a6bec8;
+  border-radius: 6px;
+  text-align: left;
+  color: #153446;
+  background: #fff;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.report-globe-report-list button[aria-pressed="true"] {
+  background: #d8f1ec;
+  border-color: #176f72;
+  box-shadow: inset 4px 0 #176f72;
+}
+.report-globe-report-list button span {
+  font-size: 14px;
+}
+.report-globe-detail {
+  min-width: 0;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #a9c1ca;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.report-globe-detail h3 {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+.report-globe-detail p {
+  margin: 4px 0 12px;
+}
+.report-globe-detail dl {
+  margin: 20px 0;
+}
+.report-globe-detail dl div {
+  padding: 10px 0;
+  border-bottom: 1px solid #bfd0d6;
+}
+.report-globe-detail dt {
+  font-size: 14px;
+  color: #365466;
+}
+.report-globe-detail dd {
+  margin: 2px 0 0;
+}
+.report-globe-dialog-source {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #b1c5cd;
+  font-size: 14px;
+  color: #294b5d;
+}
+.report-globe-dialog-source p {
+  margin: 5px 0;
+}
+@media (max-width: 1050px) {
+  .report-globe {
+    height: auto;
+  }
+  .report-globe-canvas {
+    position: relative;
+    inset: auto;
+    height: 410px;
+  }
+  .report-globe-labels {
+    bottom: auto;
+    height: 410px;
+  }
+  .report-globe-static {
+    inset: 8px 8% auto;
+    height: 370px;
+  }
+  .report-globe-instruction {
+    display: none;
+  }
+}
+@media (max-width: 540px) {
+  .report-globe-dialog {
+    width: calc(100% - 16px);
+    max-height: calc(100dvh - 16px);
+    padding: 18px 14px;
+    font-size: 17px;
+  }
+  .report-globe-dialog-body {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .report-globe-report-list {
+    max-height: 200px;
+  }
+  .report-globe-detail {
+    padding: 16px;
+  }
+  .report-globe-dialog-nav {
+    gap: 8px;
+  }
+  .report-globe-dialog-nav button,
+  .report-globe-dialog-nav select {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .report-globe *,
+  .report-globe-dialog * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.report-globe-location-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.report-globe-location-summary p {
+  margin: 0;
+}
+.report-globe-location-summary button {
+  padding: 6px 12px;
+  border: 1px solid #176f72;
+  border-radius: 6px;
+  color: #075964;
+  background: #d8f1ec;
+  cursor: pointer;
+}
+
+.report-globe[data-renderer="loading"] .report-globe-canvas::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #1b5366, #051724 72%);
+  box-shadow: 0 0 36px #75cbe52b;
+  pointer-events: none;
+}

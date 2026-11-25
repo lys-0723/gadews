@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "pointFile": "photo-points.bin",
+  "pointFormat": "GLF1 / int16-xy8192-z32767 / uint8-intensity-edge / little-endian",
+  "sources": [
+    {
+      "nameZh": "尼罗罗非鱼",
+      "nameEn": "Nile tilapia",
+      "scientificName": "Oreochromis niloticus",
+      "photo": "tilapia-reference.jpg",
+      "sourceFile": "OreoniloticusMax.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:OreoniloticusMax.jpg",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "credit": "Max Taub / FishBase, via Wikimedia Commons",
+      "stride": 5,
+      "count": 30000,
+      "originalPhoto": "tilapia-original.jpg",
+      "cropPixels": [
+        10,
+        48,
+        729,
+        510
+      ],
+      "analysisImageSize": [
+        740,
+        523
+      ],
+      "sourceSha256": "01c37e193f96e7a19ccda6d7ed6ae0f70148fec34bab17e1fc624857ae31fddf",
+      "maskPixels": 168149,
+      "normalization": "Photo XY retained; full contour width 4.0; Y up; shallow illustrative Z only, not recovered anatomy",
+      "processing": "Source photograph ROI, foreground segmentation/tracing, sampled actual pixels and contour/texture edges. No generated anatomy or hand-built fish/shrimp geometry.",
+      "id": "tilapia",
+      "fallback": "tilapia-static.svg"
+    },
+    {
+      "nameZh": "凡纳滨对虾（幼虾）",
+      "nameEn": "Whiteleg shrimp (juvenile)",
+      "scientificName": "Penaeus vannamei",
+      "photo": "shrimp-reference.jpg",
+      "sourceFile": "Penaeus_vannamei_01.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Penaeus_vannamei_01.jpg",
+      "license": "Public domain · USDA ARS",
+      "licenseUrl": "https://commons.wikimedia.org/wiki/File:Penaeus_vannamei_01.jpg#Licensing",
+      "credit": "USDA Agricultural Research Service · Image K3507-12",
+      "cropNote": "Only the upper actual juvenile is sampled; the lower reflected image and background are excluded. Antennae and appendages follow visible photographic paths.",
+      "stride": 5,
+      "count": 30000,
+      "originalPhoto": "shrimp-original.jpg",
+      "cropPixels": [
+        90,
+        65,
+        985,
+        590
+      ],
+      "analysisImageSize": [
+        1350,
+        893
+      ],
+      "sourceSha256": "c7ac3e79ac9f249fe95f4d1a30478b0226afe8a4c3f87103ba5f4d20c141e274",
+      "maskPixels": 111999,
+      "normalization": "Photo XY retained; full contour width 4.0; Y up; shallow illustrative Z only, not recovered anatomy",
+      "processing": "Source photograph ROI, foreground segmentation/tracing, sampled actual pixels and contour/texture edges. No generated anatomy or hand-built fish/shrimp geometry.",
+      "id": "shrimp",
+      "fallback": "shrimp-static.svg"
+    }
+  ],
+  "stages": [
+    "tilapia",
+    "shrimp",
+    "cell",
+    "pathogen"
+  ],
+  "microscopic": {
+    "purpose": "Procedural schematic, not a micrograph or diagnosis",
+    "references": [
+      "https://ictv.global/report/chapter/nimaviridae/nimaviridae",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC1828557/"
+    ]
+  },
+  "inputSha256": "33d94ddefea22f7747c9e74ec261c5b1d9ceaf02a625260b1d3024cf4064aa9c",
+  "files": [
+    {
+      "path": "photo-points.bin",
+      "bytes": 480016,
+      "sha256": "4cf04c8b51838195603f79103eab7f91c7260c0940d72a68f282ae2ecee9ea87"
+    },
+    {
+      "path": "tilapia-original.jpg",
+      "bytes": 75708,
+      "sha256": "01c37e193f96e7a19ccda6d7ed6ae0f70148fec34bab17e1fc624857ae31fddf"
+    },
+    {
+      "path": "tilapia-reference.jpg",
+      "bytes": 130000,
+      "sha256": "fc5a71ee6a2bbab4a25106739e08d76d0c8911e7aba6b2b35da58688d565ae43"
+    },
+    {
+      "path": "tilapia-static.svg",
+      "bytes": 359508,
+      "sha256": "d46d68e5542c37780daa17147c1b06782656de523dd7813cfd4617bb79cc1928"
+    },
+    {
+      "path": "shrimp-original.jpg",
+      "bytes": 1000281,
+      "sha256": "c7ac3e79ac9f249fe95f4d1a30478b0226afe8a4c3f87103ba5f4d20c141e274"
+    },
+    {
+      "path": "shrimp-reference.jpg",
+      "bytes": 156190,
+      "sha256": "f5f86b007663000ffeb55ed321fd9c506d2f1779945d17520ee5e32731f47669"
+    },
+    {
+      "path": "shrimp-static.svg",
+      "bytes": 356692,
+      "sha256": "f3ac514feaa6ac11454ab914c5a53fba5ab87826d045ee410d32be3a9e949e8f"
+    },
+    {
+      "path": "cell-static.svg",
+      "bytes": 1206,
+      "sha256": "ab7fddebcc7201261d8db2cd420e9b926acc1d0f9e595dd069ce0039657a4f46"
+    },
+    {
+      "path": "pathogen-static.svg",
+      "bytes": 1118,
+      "sha256": "d0024c81692242a594b50f76998ec8496ac810a843d5d0a40058226ddd091db9"
+    }
+  ]
+}

@@ -1,0 +1,273 @@
+/* No fixed overlay, interaction lock, external resource, or persistent animation. */
+.ocean-home .hero-opening {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: none;
+  overflow: clip;
+  pointer-events: none;
+  user-select: none;
+  contain: paint;
+}
+.ocean-home .hero-opening[data-intro-state="running"] {
+  display: block;
+}
+.ocean-home .hero-opening-scene {
+  position: absolute;
+  left: 76%;
+  top: 47%;
+  width: min(69vw, 960px);
+  aspect-ratio: 1.35;
+  transform: translate(-50%, -50%);
+}
+.ocean-home .hero-opening-horizon {
+  position: absolute;
+  inset: 18% -20% 6%;
+  border-radius: 50%;
+  background:
+    radial-gradient(
+      ellipse at 48% 56%,
+      #8be4e955,
+      #207e9b26 33%,
+      transparent 65%
+    ),
+    linear-gradient(173deg, transparent 43%, #94e1e51c 49%, transparent 53%);
+  filter: blur(12px);
+  animation: hero-opening-water 1450ms ease-out both;
+}
+.ocean-home .hero-opening-orbit {
+  position: absolute;
+  inset: 28% 4%;
+  border: 1px solid #97e2e578;
+  border-radius: 50%;
+  box-shadow:
+    0 0 22px #5eb7ce20,
+    inset 0 0 20px #5eb7ce12;
+  animation: hero-opening-orbit 1450ms cubic-bezier(0.17, 0.63, 0.36, 1) both;
+}
+.ocean-home .hero-opening-orbit-outer {
+  inset: 19% -4%;
+  border-color: #78b5d035;
+  animation-delay: 80ms;
+}
+.ocean-home .hero-opening-sweep {
+  position: absolute;
+  inset: 8% -15%;
+  background: linear-gradient(
+    111deg,
+    transparent 44%,
+    #baf6ef0d 47%,
+    #baf6efcc 50%,
+    #baf6ef16 52%,
+    transparent 55%
+  );
+  clip-path: ellipse(48% 1.2% at 50% 53%);
+  animation: hero-opening-sweep 1450ms cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+.ocean-home .hero-opening-particles {
+  position: absolute;
+  inset: 0;
+}
+.ocean-home .hero-opening-particles i {
+  position: absolute;
+  left: var(--particle-x);
+  top: var(--particle-y);
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #c6faf1;
+  box-shadow: 0 0 11px #8bcbd6;
+  animation: hero-opening-particle 1000ms ease-out both;
+}
+.ocean-home .hero-opening-brand {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  text-align: center;
+  transform: translate(-50%, -50%);
+  color: #e8f9fa;
+  animation: hero-opening-brand 1450ms linear both;
+}
+.ocean-home .hero-opening-wordmark {
+  display: flex;
+  gap: 0.035em;
+  font-size: clamp(48px, 5.2vw, 80px);
+  font-weight: 450;
+  line-height: 1;
+  letter-spacing: 0.025em;
+}
+.ocean-home .hero-opening-wordmark span {
+  animation: hero-opening-letter 440ms cubic-bezier(0.2, 0.75, 0.3, 1) both;
+}
+.ocean-home .hero-opening-health {
+  margin-top: 22px;
+  color: #aedfdf;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  white-space: nowrap;
+  animation: hero-opening-letter 600ms 350ms ease-out both;
+}
+
+/* Full lines determine wrapping and height throughout the character reveal. */
+.ocean-home .hero h1.hero-title .hero-title-line {
+  position: relative;
+  display: block;
+}
+.ocean-home .hero h1.hero-title .hero-title-full,
+.ocean-home .hero h1.hero-title .hero-title-letters {
+  white-space: break-spaces;
+}
+.ocean-home .hero h1.hero-title .hero-title-letters {
+  position: absolute;
+  inset: 0;
+  display: none;
+  user-select: none;
+}
+.ocean-home .hero h1.hero-title[data-intro-state="running"] .hero-title-full {
+  color: transparent;
+}
+.ocean-home
+  .hero
+  h1.hero-title[data-intro-state="running"]
+  .hero-title-letters {
+  display: block;
+}
+.ocean-home .hero h1.hero-title .hero-title-character {
+  display: inline;
+}
+.ocean-home
+  .hero
+  h1.hero-title[data-intro-state="running"]
+  .hero-title-character {
+  animation: hero-title-character-in 90ms steps(1, end) both;
+}
+
+@keyframes hero-opening-water {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) rotate(-12deg);
+  }
+  28% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.18) rotate(-3deg);
+  }
+}
+@keyframes hero-opening-orbit {
+  0% {
+    opacity: 0;
+    transform: rotate(-20deg) scale(0.35);
+  }
+  25% {
+    opacity: 0.8;
+  }
+  60% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-9deg) scale(1.2);
+  }
+}
+@keyframes hero-opening-sweep {
+  0% {
+    opacity: 0;
+    transform: translateX(-42%) rotate(-11deg) scaleX(0.5);
+  }
+  25% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(38%) rotate(-6deg) scaleX(1.25);
+  }
+}
+@keyframes hero-opening-particle {
+  0% {
+    opacity: 0;
+    transform: translate(16px, 12px) scale(0.2);
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-10px, -18px) scale(0.7);
+  }
+}
+@keyframes hero-opening-brand {
+  0%,
+  65% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes hero-opening-letter {
+  from {
+    opacity: 0;
+    transform: translateY(0.22em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes hero-title-character-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1050px) {
+  .ocean-home .hero-opening-scene {
+    left: 50%;
+    top: 890px;
+    width: min(95vw, 800px);
+  }
+}
+@media (max-width: 760px) {
+  .ocean-home .hero-opening-scene {
+    top: 690px;
+    width: 125%;
+  }
+  .ocean-home .hero-opening-wordmark {
+    font-size: 42px;
+  }
+  .ocean-home .hero-opening-health {
+    margin-top: 16px;
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-home .hero-opening[data-intro-state="running"] {
+    display: none;
+  }
+  .ocean-home .hero h1.hero-title[data-intro-state="running"] .hero-title-full {
+    color: inherit;
+  }
+  .ocean-home
+    .hero
+    h1.hero-title[data-intro-state="running"]
+    .hero-title-letters {
+    display: none;
+  }
+  .ocean-home .hero-opening *,
+  .ocean-home .hero h1.hero-title .hero-title-character {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "id": "demo-site-001",
+    "name": "Fictional Delta Pond Cluster A",
+    "region": "Demo Delta Region",
+    "country": "Demo Country",
+    "latitude": 21.315,
+    "longitude": 110.428,
+    "species": ["Demo shrimp group A"],
+    "site_type": "pond",
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional site for software UI demonstration only."
+  },
+  {
+    "id": "demo-site-002",
+    "name": "Fictional Coastal Station B",
+    "region": "Demo Coastal Region",
+    "country": "Demo Country",
+    "latitude": 20.875,
+    "longitude": 111.19,
+    "species": ["Demo shrimp group B"],
+    "site_type": "research_station",
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional site for software UI demonstration only."
+  }
+]
