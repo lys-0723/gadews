@@ -41,6 +41,8 @@ export function AiAssessmentPanel({request,active=true,revision=0}:{request:AiAs
   finally{if(generation.current===current)controller.current=null;}
  }
  function errorText(code:string){
+  if(code==="login_required"||code==="model_denied")return t("请在账号管理中登录并确认模型授权。","Sign in under Accounts and check your model grants.");
+  if(code==="sample_required")return t("在线对照仅使用预置示例；授权记录请在账号管理中运行。","Online comparisons use the built-in example. Run assigned records under Accounts.");
   if(code==="not_configured")return t("站点管理员尚未配置模型。","The site administrator has not configured the model.");
   if(code==="cancelled")return t("AI评估已停止，可重新发起。","AI assessment stopped. You can retry.");
   if(code==="timeout")return t("AI评估超时，请重试。","AI assessment timed out. Please retry.");

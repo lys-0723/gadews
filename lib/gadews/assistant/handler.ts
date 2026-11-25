@@ -8,6 +8,7 @@ import type { AssistantErrorCode, AssistantRequest, AssistantSource } from "./ty
 
 const requestSchema = z.object({ locale: z.enum(["zh-CN", "en"]), messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(2000).refine((text) => text.trim().length > 0) }).strict()).min(1).max(12) }).strict().refine((value) => value.messages.at(-1)?.role === "user" && value.messages.reduce((sum, message) => sum + message.content.length, 0) <= 12000);
 const messages: Record<AssistantErrorCode, string> = {
+  login_required: "Sign in to use the model.", model_denied: "Model access has not been granted.",
   invalid_request: "问题格式无效，请缩短内容后重试。 Invalid request; shorten the conversation.",
   body_too_large: "请求过大。 Request exceeds 64 KiB.",
   forbidden: "仅接受本站发起的请求。 Same-origin requests required.",

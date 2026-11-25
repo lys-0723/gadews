@@ -114,6 +114,7 @@ export function KnowledgeAssistant() {
   function showFull() { clearReveal(); setVisible(Infinity); setPhase("idle"); }
   function errorText(code: AssistantErrorCode) {
     switch (code) {
+      case "login_required": case "model_denied": return t("请在账号管理中登录并确认知识助手使用权。","Sign in under Accounts and check your knowledge assistant grant.");
       case "not_configured": return t("本站管理员尚未配置知识助手。请稍后再试，无需在浏览器提供密钥。", "The site administrator has not configured the assistant. No API key is needed in your browser.");
       case "cancelled": return t("请求已停止。可以重试或提出新问题。", "Request stopped. Retry or ask a new question.");
       case "timeout": return t("回答超时，请稍后重试。", "The answer timed out. Please retry.");
@@ -140,7 +141,7 @@ export function KnowledgeAssistant() {
       const body = await response.json();
       if (currentRequest !== requestId.current) return;
       if (!response.ok) {
-        const allowed: AssistantErrorCode[] = ["not_configured", "invalid_request", "body_too_large", "forbidden", "rate_limited", "busy", "cancelled", "timeout", "invalid_answer", "upstream_error"];
+        const allowed: AssistantErrorCode[] = ["login_required","model_denied","not_configured", "invalid_request", "body_too_large", "forbidden", "rate_limited", "busy", "cancelled", "timeout", "invalid_answer", "upstream_error"];
         const code: AssistantErrorCode = allowed.includes(body?.error?.code) ? body.error.code : "upstream_error";
         setTurns((current) => current.map((turn) => turn.id === id ? { ...turn, error: code } : turn));
         setPhase("idle"); return;
