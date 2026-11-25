@@ -5,7 +5,7 @@ Convert WSD risk early warning model Excel workbook to Chinese-first frontend JS
 
 Usage:
   python convert_wsd_warning_model.py \
-    --input "../知识库/白斑病/WSD风险预警模型v1.0.xlsx" \
+    --input "../知识库/白斑病/原网站版本/WSD风险预警模型v1.0.xlsx" \
     --output "public/data/models/wsd-warning-model.json"
 
 Install dependency if needed:
@@ -630,7 +630,7 @@ def main() -> None:
         "--input",
         "-i",
         type=Path,
-        default=Path("../知识库/白斑病/WSD风险预警模型v1.0.xlsx"),
+        default=Path("../知识库/白斑病/原网站版本/WSD风险预警模型v1.0.xlsx"),
         help="WSD风险预警模型Excel文件路径。",
     )
     parser.add_argument(
