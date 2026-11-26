@@ -60,7 +60,7 @@ test("satellite imagery supports only a readable centre and its actual time stam
   f.series=[];
   f.imageryTime=today+"T09:00:00Z";
   f.frames=[{site:"zhanjiang",url:"https://example.org/image",png:"iVBOR",rate:null}];
-  assert.equal(regionalEvidence(snapshot(f),"zhanjiang",today,asOf).gaps.find(g=>g.id==="imerg")?.reason,"missing");
+  assert.equal(regionalEvidence(snapshot(f),"zhanjiang",today,asOf).gaps.find(g=>g.id==="imerg")?.reason,"no-rate-class");
   f.frames[0].rate=["Rain Rate",0.1,0.2];
   assert.equal(regionalEvidence(snapshot(f),"zhanjiang",today,asOf).readings[0].interval,true);
   assert.equal(regionalEvidence(snapshot(f),"zhanjiang","2026-11-27",asOf).readings.length,0);
@@ -75,4 +75,40 @@ test("a missing selected metric does not hide other valid same-day variables", (
   const result = regionalEvidence(snapshot(f), "guangzhou", today, asOf);
   assert.equal(result.state,"dated");
   assert.equal(result.readings[0].variable,"temperature_2m");
+});
+
+test("same-day past evidence is distinguished from a future daily forecast or a missing future day", () => {
+  const source = makeFeed("weather", "guangzhou", ["2026-11-25", today, "2026-11-27"], [1, 2, 3]);
+  const data = snapshot(source);
+  assert.equal(regionalEvidence(data,"guangzhou","2026-11-25",asOf).state,"archived");
+  assert.equal(regionalEvidence(data,"guangzhou","2026-11-27",asOf).state,"forecast");
+  assert.equal(regionalEvidence(data,"guangzhou","2026-11-29",asOf).state,"insufficient");
+});
+
+test("daily gap on a monthly forecast date retains the outlook's full period and value", () => {
+  const daily = makeFeed("marine","offshore",[today],[25]);
+  const monthly = makeFeed("heatwave","offshore",["2026-11-01","2026-12-01"],[20,75]);
+  monthly.issueMonth = "2026-11-01";
+  const data = snapshot(daily, monthly);
+  const result = regionalEvidence(data,"offshore","2026-12-31",asOf);
+  assert.equal(result.state,"outlook");
+  assert.equal(result.readings.length,0);
+  assert.deepEqual(result.outlooks.map(r => [r.first,r.last,r.low]), [["2026-12-01","2026-12-31",75]]);
+  assert.equal(regionalEvidence(data,"offshore","2027-01-01",asOf).state,"insufficient");
+  monthly.state = "retained";
+  assert.equal(regionalEvidence(data,"offshore","2026-12-31",asOf).state,"insufficient");
+});
+
+test("weekly outlooks cover exactly seven days and cannot cross locations", () => {
+  const weekly = makeFeed("ec46","guangzhou",["2026-11-30"],[0]);
+  assert.equal(regionalEvidence(snapshot(weekly),"guangzhou","2026-12-06",asOf).outlooks[0].low,0);
+  assert.equal(regionalEvidence(snapshot(weekly),"guangzhou","2026-12-07",asOf).outlooks.length,0);
+  assert.equal(regionalEvidence(snapshot(weekly),"andhra","2026-12-06",asOf).outlooks.length,0);
+});
+
+test("time span for a value omits empty leading and trailing slots", () => {
+  const times = ["00:00","01:00","02:00","03:00"].map(h => today + "T" + h);
+  const s = makeFeed("weather","guangzhou",times,[null,0,2,null]);
+  const [reading] = regionalEvidence(snapshot(s),"guangzhou",today,asOf).readings;
+  assert.deepEqual([reading.first,reading.last,reading.count,reading.total],[times[1],times[2],2,4]);
 });

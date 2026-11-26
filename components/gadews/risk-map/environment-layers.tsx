@@ -7,6 +7,7 @@ import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "reac
 import { useLocale } from "../locale-provider";
 import { nativeCellHalfWidth } from "@/lib/gadews/environment/map-range";
 import { gridBreaks, gridPalette } from "@/lib/gadews/environment/ocean-legend";
+import { numberText, unitText } from "@/lib/gadews/environment/format";
 import {
   station,
   siteIds,
@@ -20,6 +21,7 @@ import {
   type Feed,
 } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentMaps {
+  focusRevision?: number;
   onSiteChange?: (site: Site) => void;
   day?: string;
   heatMonth: number;
@@ -49,11 +51,11 @@ function ReferenceDetail({ site, feeds, now, day }: { site: Site; feeds: Feed[];
               {f ? t(...names[f.id]) : id} · {t("资料不足", "Insufficient data")}
             </p>
           );
-        const i = day ? s.times.findIndex(time => time.slice(0, 10) === day) : timeIndex(s.times, now);
+        const field = s.fields.find((v) => v.key === "precipitation") ?? s.fields[0];
+        const matching = day ? s.times.flatMap((time, i) => time.slice(0, 10) === day ? [i] : []) : [];
+        const i = day ? (matching.find(index => field.values[index] !== null) ?? matching[0] ?? -1) : timeIndex(s.times, now);
         if (i < 0) return <p key={id}>{t(...names[f.id])} · {t("所选日无资料", "No data for this day")}</p>;
-        const
-          field = s.fields.find((v) => v.key === "precipitation") ?? s.fields[0],
-          value = field.values[i];
+        const value = field.values[i];
         return (
           <p key={id}>
             <a href={s.source} target="_blank" rel="noreferrer">
@@ -61,7 +63,7 @@ function ReferenceDetail({ site, feeds, now, day }: { site: Site; feeds: Feed[];
             </a>
             <br />
             {variables[field.key] ? t(...variables[field.key]) : field.key} ·{" "}
-            {value === null ? t("缺测", "Missing") : Number(value.toFixed(3)) + " " + field.unit} ·{" "}
+            {value === null ? t("缺测", "Missing") : numberText(value) + " " + unitText(field.unit)} ·{" "}
             {s.times[i]} UTC {overdue(f, now) && t("（超期/待更新）", " (stale/pending)")}
           </p>
         );
@@ -112,12 +114,12 @@ function MarineTiles({
     </>
   );
 }
-export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, day, onSiteChange }: EnvironmentMaps) {
+export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, day, onSiteChange, focusRevision }: EnvironmentMaps) {
   const map = useMap(),
     { t } = useLocale();
   useEffect(() => {
     if (site) map.setView([station[site][2], station[site][3]], site === "offshore" ? 7 : 6);
-  }, [map, site]);
+  }, [map, site, focusRevision]);
   const feeds = delivery?.snapshot.feeds ?? [],
     f = feeds.find((s) => s.id === layer);
   return (

@@ -10,7 +10,7 @@
 .rail > section + section, .rail > details { margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccd9d6; }
 .rail select { width: 100%; }
 .map { position: relative; min-height: 0; isolation: isolate; }
-.map :global(.leaflet-bottom.leaflet-right) { margin-bottom: 46px; }
+.map :global(.leaflet-bottom.leaflet-right) { margin-bottom: 90px; }
 .rail :global(.regional-demo-panel) { display: block; margin: 0; padding: 10px; }
 .rail :global(.regional-demo-selects) { display: flex; flex-wrap: wrap; }
 .rail :global(.regional-demo-summary) { margin-top: 8px; }
@@ -25,3 +25,5 @@
   .rail { overflow: visible; padding: 18px 16px 96px; border-right: 0; }
   .map :global(.leaflet-bottom.leaflet-right) { margin-bottom: 0; }
 }
+
+.demoNotice { position: absolute; z-index: 2; top: 8px; left: 8px; max-width: 85%; display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 7px 10px; background: white; color: #30444c; border: 1px solid #c8d2d0; border-radius: 5px; font-size: 13px; }

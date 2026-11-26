@@ -9,7 +9,7 @@ import {
   type Snapshot,
 } from "./snapshot";
 
-const periodProducts: readonly FeedId[] = ["heatwave", "ec46", "seas5"];
+const periodProducts = new Set<FeedId>(["heatwave", "ec46", "seas5"]);
 const primaryFields: Partial<Record<FeedId, string>> = {
   weather: "precipitation",
   gefs: "precipitation_sum_p50",
@@ -17,7 +17,7 @@ const primaryFields: Partial<Record<FeedId, string>> = {
 };
 
 function applicableOnDay(id: FeedId, site: Site) {
-  return sitesFor(id).includes(site) && !periodProducts.includes(id);
+  return sitesFor(id).includes(site) && !periodProducts.has(id);
 }
 
 function utcDay(asOf: number) {
@@ -46,7 +46,7 @@ export function regionalLayerTime(feed: Feed | undefined, day: string) {
   return time?.slice(0, 10) === day ? time : undefined;
 }
 
-type Gap = { id: FeedId; reason: "unavailable" | "date" | "missing"; lastDay?: string };
+type Gap = { id: FeedId; reason: "unavailable" | "date" | "missing" | "no-rate-class"; lastDay?: string };
 export type EvidenceReading = {
   id: FeedId;
   variable: string;
@@ -65,9 +65,39 @@ export type EvidenceReading = {
   old: boolean;
 };
 
+/** Outlook values belong to the full forecast week or month, even when a single day is selected. */
+function periodOutlooks(snapshot: Snapshot, site: Site, day: string, asOf: number) {
+  const outlooks: EvidenceReading[] = [];
+  for (const feed of snapshot.feeds) {
+    if (!periodProducts.has(feed.id) || feed.state === "unavailable") continue;
+    const series = feed.series.find(s => s.site === site);
+    if (!series) continue;
+    for (const [index, time] of series.times.entries()) {
+      const start = time.slice(0, 10);
+      if (start > day) continue;
+      const next = new Date(start + "T00:00:00Z");
+      if (feed.id === "ec46") next.setUTCDate(next.getUTCDate() + 7);
+      else next.setUTCMonth(next.getUTCMonth() + 1, 1);
+      if (day >= utcDay(next.getTime())) continue;
+      const end = utcDay(next.getTime() - 86400000);
+      for (const field of series.fields) {
+        const value = field.values[index];
+        if (value == null) continue;
+        outlooks.push({id: feed.id, variable: field.key, unit: field.unit, low: value, high: value,
+          count: 1, total: 1, first: start, last: end, lat: series.lat, lon: series.lon, depth: series.depthM,
+          source: series.source, old: overdue(feed, asOf)});
+      }
+      break;
+    }
+  }
+  return outlooks;
+}
+
 export function regionalEvidence(snapshot: Snapshot, site: Site, day: string, asOf: number) {
   const readings: EvidenceReading[] = [];
   const gaps: Gap[] = [];
+  const today = utcDay(asOf);
+  const outlooks = periodOutlooks(snapshot, site, day, asOf);
   let hasEarlier = false;
   for (const id of feedIds.filter(key => applicableOnDay(key, site))) {
     const f = snapshot.feeds.find(feed => feed.id === id);
@@ -86,7 +116,7 @@ export function regionalEvidence(snapshot: Snapshot, site: Site, day: string, as
       const imageDay = stamp.slice(0, 10);
       if (frame.rate && imageDay < day) hasEarlier = true;
       if (imageDay !== day || !frame.rate) {
-        gaps.push({id, reason: imageDay === day ? "missing" : "date", lastDay: imageDay});
+        gaps.push({id, reason: imageDay === day ? "no-rate-class" : "date", lastDay: imageDay});
         continue;
       }
       const [phase, low, high] = frame.rate;
@@ -104,7 +134,8 @@ export function regionalEvidence(snapshot: Snapshot, site: Site, day: string, as
     const preferred = series.fields.find(v => v.key === primaryFields[id]);
     const field = preferred && indices.some(i => preferred.values[i] !== null)
       ? preferred : series.fields.find(v => indices.some(i => v.values[i] !== null));
-    const values = field ? indices.map(i => field.values[i]).filter((v): v is number => v !== null) : [];
+    const validIndices = field ? indices.filter(i => field.values[i] !== null) : [];
+    const values = validIndices.map(i => field!.values[i]!);
     if (series.times.some((time,i) => time.slice(0, 10) < day && series.fields.some(v => v.values[i] !== null))) hasEarlier = true;
     if (!field || !values.length) {
       gaps.push({id, reason: indices.length ? "missing" : "date", lastDay: series.times.at(-1)?.slice(0,10)});
@@ -112,14 +143,16 @@ export function regionalEvidence(snapshot: Snapshot, site: Site, day: string, as
     }
     readings.push({
       id, variable: field.key, unit: field.unit, low: Math.min(...values), high: Math.max(...values),
-      count: values.length, total: indices.length, first: series.times[indices[0]],
-      last: series.times[indices[indices.length - 1]], lat: series.lat, lon: series.lon, depth: series.depthM,
+      count: values.length, total: indices.length, first: series.times[validIndices[0]],
+      last: series.times[validIndices[validIndices.length - 1]], lat: series.lat, lon: series.lon, depth: series.depthM,
       source: series.source, old,
     });
   }
   const valid = readings.filter(row => !row.old).length;
-  const state = day < utcDay(asOf)
-    ? (readings.length || hasEarlier ? "historical" : "insufficient")
-    : valid ? "dated" : hasEarlier && !readings.length ? "historical" : "insufficient";
-  return {readings, gaps, state, valid} as const;
+  let state: "archived" | "forecast" | "dated" | "outlook" | "historical" | "insufficient" = "insufficient";
+  if (day < today && readings.length) state = "archived";
+  else if (valid) state = day > today ? "forecast" : "dated";
+  else if (outlooks.some(row => !row.old)) state = "outlook";
+  else if (day <= today && hasEarlier && !readings.length) state = "historical";
+  return {readings, gaps, outlooks, state, valid} as const;
 }
