@@ -152,8 +152,14 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
       )}
       <aside className="border-l-2 border-teal-600 pl-3 text-sm leading-6 text-slate-700">
         {feed.id === "weather" || feed.id === "marine" || feed.id === "flood"
-          ? t("复核时先对齐预报的地点与时段，再查同期公开通告或本场记录。", "Match the forecast footprint and time before checking notices or local observations.")
-          : t("复核时先对齐空间尺度与资料期；单个海域格点、历史气象或国家报告不能定位到具体塘口。", "Match spatial scale and dates. An ocean grid cell, historical weather or a country report cannot identify a particular pond.")}
+          ? t(
+              "复核时先对齐预报的地点与时段，再查同期公开通告或本场记录。",
+              "Match the forecast footprint and time before checking notices or local observations.",
+            )
+          : t(
+              "复核时先对齐空间尺度与资料期；单个海域格点、历史气象或国家报告不能定位到具体塘口。",
+              "Match spatial scale and dates. An ocean grid cell, historical weather or a country report cannot identify a particular pond.",
+            )}
       </aside>
       <p className="text-sm text-slate-600">
         {t("同步检查（UTC）", "Sync check (UTC)")} {feed.checkedAt} · {t("此版取得时间", "Version retrieved")}{" "}
@@ -273,7 +279,9 @@ export function EnvironmentOverview() {
             {t("快照版本", "Snapshot version")} {data.snapshot.publishedAt} ·{" "}
             {data.origin === "published"
               ? t("已发布更新", "Published update")
-              : t("随站快照", "Bundled snapshot")}
+              : data.origin === "cached"
+                ? t("已验证缓存", "Last validated cache")
+                : t("随站快照", "Bundled snapshot")}
           </p>
           <details className="mt-6 rounded-xl border border-slate-300 bg-white p-4">
             <summary className="cursor-pointer font-semibold">

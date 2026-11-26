@@ -89,6 +89,11 @@ export function OceanControls({
         </p>
       )}
       {layer !== "off" && (
+        <p>
+          {t("点选格网以查看像元、单位和资料期。", "Select a grid cell for its value, unit and valid time.")}
+        </p>
+      )}
+      {layer !== "off" && (
         <div className="space-y-1 rounded-lg bg-slate-50 p-2">
           <p>
             {layer === "oisst"
@@ -117,8 +122,12 @@ export function OceanControls({
                       (current?.series[0]?.depthM?.toFixed(2) ?? "—") +
                       " m"}
           </p>
-          {current?.grid && <button type="button" className="text-teal-800 underline" onClick={()=>onSite("offshore")}>{t("定位近海样区","Locate offshore subset")}</button>}
-        {current?.grid && (
+          {current?.grid && (
+            <button type="button" className="text-teal-800 underline" onClick={() => onSite("offshore")}>
+              {t("定位近海样区", "Locate offshore subset")}
+            </button>
+          )}
+          {current?.grid && (
             <div className="flex flex-wrap gap-2">
               {(layer === "oisst" ? ["<20", "20–25", "25–30", "≥30"] : ["<0.3", "0.3–1", "1–3", "≥3"]).map(
                 (v, i) => (

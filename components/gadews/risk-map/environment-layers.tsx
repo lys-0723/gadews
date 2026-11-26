@@ -1,4 +1,5 @@
 "use client";
+import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
@@ -113,6 +114,7 @@ export function EnvironmentLayers({ delivery, layer, points, site }: Environment
   return (
     <>
       {f?.raster && <MarineTiles key={f.raster.layer + f.raster.time} raster={f.raster} />}
+      {f?.raster && <EnvironmentPixel key={f.id + f.raster.time} id={f.id} time={f.raster.time} />}
       {f?.grid &&
         f.grid.points.map(([lat, lon, value]) => {
           if (value === null) return null;

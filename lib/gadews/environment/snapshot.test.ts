@@ -27,3 +27,23 @@ test("satellite gaps, interpolated products and stale snapshots remain separate"
   assert.equal(overdue(l4, utcMillis(l4.checkedAt) + 15 * 86400000), true);
   assert.equal(sitesFor("chl-l3").includes("mekong"), false);
 });
+
+import { featureUrl, pixelQuery } from "./pixel";
+test("global WMTS queries pin the published version, time, depth and EPSG:3857 pixel", () => {
+  const url = new URL(
+    featureUrl(20.5, 111.5, {
+      layer: "product/dataset/o2",
+      style: "cmap:test",
+      time: "2026-11-26T00:00:00Z",
+      elevation: "-0.49",
+    }),
+  );
+  assert.equal(url.host, "wmts.marine.copernicus.eu");
+  assert.deepEqual(
+    ["TILEROW", "TILECOL", "I", "J"].map((k) => url.searchParams.get(k)),
+    ["56", "103", "164", "140"],
+  );
+  assert.equal(url.searchParams.get("elevation"), "-0.49");
+  assert.equal(url.searchParams.get("time"), "2026-11-26T00:00:00Z");
+  assert.equal(pixelQuery.safeParse({ lat: 90, lon: 0, time: "2026-11-26", layer: "ph" }).success, false);
+});

@@ -147,4 +147,4 @@ export function overdue(f: Feed, now: number) {
   if (f.id === "oisst-final") return ageDays > 24;
   return ageDays > (f.id === "weather" || f.id === "marine" || f.id === "flood" ? 1 : 4);
 }
-export type Delivery = { snapshot: Snapshot; asOf: number; origin: "bundled" | "published" };
+export type Delivery = { snapshot: Snapshot; asOf: number; origin: "bundled" | "cached" | "published" };
