@@ -55,6 +55,8 @@ test("NOAA grid wraps longitude and keeps missing distinct from zero probability
   assert.equal(heatColumn(360), 0);
   assert.equal(heatRow(-90), 0);
   assert.equal(heatRow(90), 180);
+  assert.equal(heatRow(20.5), 110);
+  assert.equal(heatColumn(111.5), 111);
   assert.equal(heatClass(100), 3);
   assert.equal(heatClass(0), 0);
   const { feeds } = schema.parse(snapshot);
