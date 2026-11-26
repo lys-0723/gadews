@@ -47,3 +47,33 @@ test("map filters retain stable values while accessible labels switch language",
     assert.ok(screen.getByText(/not outbreak events/));
   } finally { cleanup(); }
 });
+
+test("reversed event dates keep the active report results until corrected or reset", async () => {
+  const React = await import("react");
+  const { render, screen, fireEvent, cleanup } = await import("@testing-library/react");
+  const { LocaleProvider } = await import("../locale-provider");
+  const { HistoryFilters } = await import("./history-filters");
+  const { allHistory } = await import("@/lib/gadews/history-reports");
+  function Example() {
+    const [scope, setScope] = React.useState(allHistory);
+    return <><HistoryFilters scope={scope} countries={[]} years={[]} diseases={[]} onChange={setScope} onReset={() => setScope(allHistory)} />
+      <output data-testid="effective">{scope.from}–{scope.to}</output></>;
+  }
+  try {
+    render(<LocaleProvider initialLocale="zh-CN"><Example /></LocaleProvider>);
+    const from = screen.getByLabelText("自"), to = screen.getByLabelText("至");
+    const change = (el: HTMLElement, value: string) => fireEvent.change(el, {target: {value}});
+    change(from, "2016-07-27");
+    change(to, "2016-07-26");
+    assert.match(screen.getByRole("alert").textContent ?? "", /上一次有效日期/);
+    assert.equal(screen.getByTestId("effective").textContent, "2016-07-27–");
+    change(to, "2016-07-27");
+    assert.equal(screen.queryByRole("alert"), null);
+    assert.equal(screen.getByTestId("effective").textContent, "2016-07-27–2016-07-27");
+    change(from, "2025-01-01");
+    fireEvent.click(screen.getByRole("button", {name: "重置报告筛选"}));
+    assert.equal((from as HTMLInputElement).value, "");
+    assert.equal((to as HTMLInputElement).value, "");
+    assert.equal(screen.getByTestId("effective").textContent, "–");
+  } finally { cleanup(); }
+});

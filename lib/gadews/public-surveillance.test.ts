@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { allHistory, matchesWahisScope, matchesQaadScope, qaadMarkerKey } from "./history-reports";
 import {
   parseWahis, parseQaad, hasCoordinates, latestWahisEvents,
   filterWahis, filterQaad, computeLayerStats, DISEASE_FILTERS, QAAD_FILTERS,
@@ -69,6 +70,11 @@ test("real snapshots preserve every row and all existing disease/status filter c
   assert.equal(w.records.length, 371); assert.equal(w.rejectedCount, 0);
   assert.equal(q.records.length, 1789); assert.equal(q.rejectedCount, 0);
   assert.equal(new Set(q.records.map((r) => r.summary_id)).size, 1784);
+  assert.equal(new Set(q.records.map(qaadMarkerKey)).size, q.records.length);
+  const duplicates = q.records.filter(r => r.summary_id === "QAAD-2025-Q4-Philippines-WSD");
+  assert.equal(duplicates.length, 2);
+  const stable = filterQaad(q.records, "WSD", "priority").filter(r => r.summary_id === duplicates[0].summary_id);
+  assert.deepEqual(stable.map(qaadMarkerKey), duplicates.map(qaadMarkerKey));
   const highlighted = ["WSD", "AHPND", "KHV", "TILV", "EUS", "VHS", "IHN", "SVC"];
   for (const disease of DISEASE_FILTERS) for (const status of QAAD_FILTERS) {
     const expected = qaad.filter((r) => (disease === "all" || (disease === "other" ? !highlighted.includes(String(r.disease_id).toUpperCase()) : String(r.disease_id).toUpperCase() === disease)) && (status === "all" || (status === "priority" ? ["present_in_quarter", "historical_presence_in_report_year"].includes(String(r.status_summary)) : r.status_summary === status)));
@@ -85,4 +91,21 @@ test("real snapshots preserve every row and all existing disease/status filter c
     const expected = wahis.filter((r) => disease === "all" || (disease === "other" ? !highlighted.includes(String(r.disease_id).toUpperCase()) : String(r.disease_id).toUpperCase() === disease));
     assert.deepEqual(filterWahis(w.records, disease).map((r) => r.event_id), expected.map((r) => r.event_id));
   }
+});
+
+test("historical scope keeps event dates, published quarters and annual-only reports distinct", () => {
+  const scope = { ...allHistory, country: "China", year: "2025", quarter: "4" };
+  const events = parseWahis(["2025-09-30", "2025-10-01", "2025-12-31", null].map(event_start_date => ({ ...event, event_start_date }))).records;
+  assert.deepEqual(events.filter(row => matchesWahisScope(row, scope)).map(row => row.event_start_date), ["2025-10-01", "2025-12-31"]);
+  assert.deepEqual(events.filter(row => matchesWahisScope(row, { ...scope, from: "2025-12-31", to: "2025-12-31" })).map(row => row.event_start_date), ["2025-12-31"]);
+  assert.equal(events.filter(row => matchesWahisScope(row, { ...scope, country: "India" })).length, 0);
+  assert.equal(events.filter(row => matchesWahisScope(row, allHistory)).length, 4);
+  const records = parseQaad([
+    { ...summary, year: 2025, quarter: null, report_period: "2025" },
+    { ...summary, year: 2025, quarter: 4, report_period: "2025 Q4", status_summary: "absent_in_report_year" },
+    { ...summary, year: 2025, quarter: 3, report_period: "2025 Q3" },
+  ]).records;
+  assert.deepEqual(records.filter(row => matchesQaadScope(row, scope)).map(row => row.status_summary), ["absent_in_report_year"]);
+  assert.equal(records.filter(row => matchesQaadScope(row, { ...scope, quarter: "", from: "2023-01-01", to: "2023-06-15" })).length, 3);
+  assert.equal(filterQaad(records, `source:${summary.disease_id}`, "all").length, 3);
 });

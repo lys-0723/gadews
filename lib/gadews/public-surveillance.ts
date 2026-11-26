@@ -2,7 +2,8 @@ import { z } from "zod";
 
 export const DISEASE_FILTERS = ["all", "WSD", "AHPND", "KHV", "TILV", "EUS", "VHS", "IHN", "SVC", "other"] as const;
 export type DiseaseFilter = typeof DISEASE_FILTERS[number];
-export const QAAD_FILTERS = ["priority", "all", "present_in_quarter", "historical_presence_in_report_year", "absent_in_quarter", "no_information", "unknown"] as const;
+export type MapDiseaseFilter = DiseaseFilter | `source:${string}`;
+export const QAAD_FILTERS = ["priority", "all", "present_in_quarter", "historical_presence_in_report_year", "absent_in_quarter", "absent_in_report_year", "no_information", "unknown"] as const;
 export type QaadStatusFilter = typeof QAAD_FILTERS[number];
 export type PublicSource = "wahis" | "qaad";
 export type LoadState = "idle" | "loading" | "success" | "empty" | "error";
@@ -40,7 +41,7 @@ const wahisSchema = z.object({
 }).passthrough();
 const qaadSchema = z.object({
   summary_id: z.string().min(1), country_or_territory: z.string().min(1), disease_id: z.string().min(1), disease_name: z.string().min(1),
-  region: text, year: z.number().int().optional(), quarter: z.union([z.string(), z.number()]).optional(),
+  region: text, year: z.number().int().nullable().optional(), quarter: z.union([z.string(), z.number()]).nullable().optional(),
   report_period: text, status_summary: text, positive_months: textList, absent_months: textList,
   no_information_months: textList, positive_months_all_year: textList,
   diagnosis_levels: z.union([z.string(), z.array(z.string())]).nullable().optional(),
@@ -115,12 +116,13 @@ export function latestWahisEvents(records: WahisRecord[]): WahisRecord[] {
 }
 export const normalizeDiseaseId = (value?: string | null) => value?.trim().toUpperCase() || "OTHER";
 export const normalizeStatus = (value?: string | null) => value?.trim() || "unknown";
-function diseaseMatches(record: { disease_id: string }, filter: DiseaseFilter) {
+function diseaseMatches(record: { disease_id: string }, filter: MapDiseaseFilter) {
   const id = normalizeDiseaseId(record.disease_id);
+  if (filter.startsWith("source:")) return id === filter.slice(7);
   return filter === "all" || (filter === "other" ? !DISEASE_FILTERS.slice(1, -1).includes(id as DiseaseFilter) : id === filter);
 }
-export function filterWahis(records: WahisRecord[], disease: DiseaseFilter): WahisRecord[] { return records.filter((r) => hasCoordinates(r) && diseaseMatches(r, disease)); }
-export function filterQaad(records: QaadDisplayRecord[], disease: DiseaseFilter, status: QaadStatusFilter): QaadDisplayRecord[] {
+export function filterWahis(records: WahisRecord[], disease: MapDiseaseFilter): WahisRecord[] { return records.filter((r) => hasCoordinates(r) && diseaseMatches(r, disease)); }
+export function filterQaad(records: QaadDisplayRecord[], disease: MapDiseaseFilter, status: QaadStatusFilter): QaadDisplayRecord[] {
   return records.filter((r) => hasCoordinates(r) && diseaseMatches(r, disease) && (status === "all" || (status === "priority" ? ["present_in_quarter", "historical_presence_in_report_year"].includes(normalizeStatus(r.status_summary)) : normalizeStatus(r.status_summary) === status)));
 }
 export function computeLayerStats(records: Array<WahisRecord | QaadDisplayRecord>, source: PublicSource): LayerStats {

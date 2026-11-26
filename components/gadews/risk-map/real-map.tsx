@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMapEvents, ZoomControl } from "react-leaflet";
+import type { HistoryScope } from "@/lib/gadews/history-reports";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, useMapEvents, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useLocale } from "@/components/gadews/locale-provider";
@@ -22,6 +23,8 @@ L.Icon.Default.mergeOptions({
 import { EnvironmentLayers, type EnvironmentMaps } from "./environment-layers";
 
 export interface MapProps {
+  history?: HistoryScope;
+  reportCenter?: [number, number];
   environment?: EnvironmentMaps;
   regionalDemo?: RegionalDemoSummary;
   showHeatmap?: boolean;
@@ -49,7 +52,24 @@ function PopupEvents({ onChange }: { onChange?: (visible: boolean) => void }) {
   return null;
 }
 
+function ReportFocus({ country, center }: { country?: string; center?: [number, number] }) {
+  const map = useMap();
+  const wasFocused = useRef(false);
+  const lat = center?.[0], lon = center?.[1];
+  useEffect(() => {
+    if (country && lat !== undefined && lon !== undefined) {
+      map.setView([lat, lon], 4);
+      wasFocused.current = true;
+    } else if (!country && wasFocused.current) {
+      map.setView([12, 18], 2);
+      wasFocused.current = false;
+    }
+  }, [map, country, lat, lon]);
+  return null;
+}
+
 export default function RealMap({
+  history, reportCenter,
   environment,
   regionalDemo,
   showCases,
@@ -64,15 +84,15 @@ export default function RealMap({
 }: MapProps) {
   const { t, locale } = useLocale();
   return (
-    // MapContainer 是真实地图的容器，中心点设置在亚洲/中国南海附近
     <MapContainer
       className="gadews-map"
-      center={[20.0, 110.0]}
-      zoom={5}
+      center={[12, 18]}
+      zoom={2}
       zoomControl={false} // 隐藏默认的加减号，保持界面干净
       style={{ height: "100%", width: "100%", zIndex: 0 }}
     >
       <ZoomControl key={locale} position="bottomright" zoomInTitle={t("放大地图", "Zoom in")} zoomOutTitle={t("缩小地图", "Zoom out")} />
+      <ReportFocus country={history?.country} center={reportCenter} />
       <PopupEvents onChange={onPopupVisibilityChange} />
       {/* OpenStreetMap global basemap */}
       <TileLayer
@@ -97,11 +117,13 @@ export default function RealMap({
       <WoahWahisLayer
         visible={!!showWahis}
         diseaseFilter={diseaseFilter}
+        history={history}
         onStatsChange={onWahisStatsChange}
       />
       <QaadSurveillanceLayer
         visible={!!showQaad}
         diseaseFilter={diseaseFilter}
+        history={history}
         statusFilter={qaadStatusFilter}
         onStatsChange={onQaadStatsChange}
       />
