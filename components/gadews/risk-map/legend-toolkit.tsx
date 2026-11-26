@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { HistoryEntry, HistoryScope } from "@/lib/gadews/history-reports";
-import { QAAD_FILTERS, type QaadStatusFilter } from "@/lib/gadews/public-surveillance";
+import { QAAD_FILTERS, type MapDiseaseFilter, type QaadStatusFilter } from "@/lib/gadews/public-surveillance";
 import { useCopy, useLocale } from "@/components/gadews/locale-provider";
 import { mapCopy } from "@/lib/gadews/i18n/map";
 import type { LayerStats } from "./woah-wahis-layer";
@@ -31,8 +31,10 @@ function ReportList({ title, entries }: { title: string; entries: HistoryEntry[]
   </details>;
 }
 
-export function LegendToolkit({ scope, wahisStats, qaadStats, enabled = { wahis: true, qaad: true } }: {
+export function LegendToolkit({ scope, diseaseFilter, qaadStatusFilter, wahisStats, qaadStats, enabled = { wahis: true, qaad: true } }: {
   scope?: HistoryScope;
+  diseaseFilter: MapDiseaseFilter;
+  qaadStatusFilter: QaadStatusFilter;
   wahisStats?: LayerStats;
   qaadStats?: LayerStats;
   enabled?: { wahis: boolean; qaad: boolean };
@@ -44,13 +46,20 @@ export function LegendToolkit({ scope, wahisStats, qaadStats, enabled = { wahis:
     {id: "wahis", name: "WOAH WAHIS", title: c("wahisCount"), list: t("WAHIS 事件明细", "WAHIS event details"), visible: enabled.wahis, stats: wahisStats},
     {id: "qaad", name: "NACA QAAD", title: c("qaadCount"), list: t("QAAD 监测明细", "QAAD surveillance details"), visible: enabled.qaad, stats: qaadStats},
   ];
-  const countries = new Set(sources.filter(s => s.visible).flatMap(s => s.stats?.countries ?? []));
-  const loaded = sources.some(s => s.visible && (s.stats?.state === "success" || s.stats?.state === "empty"));
+  const visible = sources.filter(s => s.visible);
+  const readySources = visible.filter(s => s.stats?.state === "success" || s.stats?.state === "empty");
+  const countries = new Set(readySources.flatMap(s => s.stats?.countries ?? []));
+  const originalId = diseaseFilter.slice("source:".length);
+  const diseaseLabel = diseaseFilter === "all" || diseaseFilter === "other" ? c(diseaseFilter)
+    : diseaseFilter.startsWith("source:")
+      ? qaadStats?.options?.diseases.get(originalId) ?? wahisStats?.options?.diseases.get(originalId) ?? originalId
+      : diseaseFilter;
   return <section className="w-[300px] max-w-full space-y-4 rounded-2xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-800 shadow-xl" aria-label={c("reports")}>
     <h2 className="text-lg font-bold text-slate-950">{c("reports")}</h2>
     <div className="border-l-2 border-teal-700 pl-3">
       <p className="font-semibold">{scope?.country || t("全球历史记录", "Worldwide historical records")}</p>
-      <p>{period}</p>
+      <p>{period} · {diseaseLabel}</p>
+      {enabled.qaad && <p>{c("status")} · {c(qaadStatusFilter === "all" ? "allStatuses" : qaadStatusFilter)}</p>}
       {(scope?.from || scope?.to) && <p>WAHIS · {scope.from || "…"} — {scope.to || "…"}</p>}
     </div>
     {sources.map(s => {
@@ -62,7 +71,9 @@ export function LegendToolkit({ scope, wahisStats, qaadStats, enabled = { wahis:
           : <ReportList title={s.list} entries={s.stats?.entries ?? []} />)}
       </div>;
     })}
-    <StatLine label={c("countries")} value={loaded ? countries.size : "—"} />
+    <StatLine label={readySources.length > 0 && readySources.length < visible.length
+      ? t("已加载来源覆盖国家或地区", "Countries/territories in available sources") : c("countries")}
+      value={readySources.length ? countries.size : "—"} />
     <details><summary className="cursor-pointer font-bold">{t("资料期与来源", "Snapshot coverage and sources")}</summary>
       <p>{c("centroid")}</p><p>{c("scope")}</p>
       {sources.filter(s => s.visible).map(s => <PublicSourceStatus key={s.id} title={s.name} {...s.stats} />)}

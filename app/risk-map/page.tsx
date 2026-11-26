@@ -181,7 +181,7 @@ export default function RiskMapPage() {
               layers={sources} onToggle={(key, value) => setSources(prev => ({...prev,[key]:value}))}
               diseaseFilter={diseaseFilter} onDiseaseFilterChange={setDiseaseFilter}
               qaadStatusFilter={qaadStatusFilter} onQaadStatusFilterChange={setQaadStatusFilter}
-            /> : <LegendToolkit scope={history} wahisStats={wahisStats} qaadStats={qaadStats} enabled={sources} />}
+            /> : <LegendToolkit scope={history} diseaseFilter={diseaseFilter} qaadStatusFilter={qaadStatusFilter} wahisStats={wahisStats} qaadStats={qaadStats} enabled={sources} />}
           </>}
         </aside>
         <div className={styles.map} data-map-controls-space>
