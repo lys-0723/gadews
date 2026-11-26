@@ -5,6 +5,7 @@ import { AccountError, catalog } from "@/lib/accounts/policy";
 import { accountDb } from "@/lib/accounts/storage";
 import {
   approve,
+  reviewApplication,
   systemGrant,
   assign,
   authorize,
@@ -23,7 +24,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 65;
 const envelope = z
   .object({
-    action: z.enum(["register", "login", "logout", "approve", "systemGrant", "assign", "detail", "preview", "ai"]),
+    action: z.enum(["register", "login", "logout", "approve", "reject", "reopen", "systemGrant", "assign", "detail", "preview", "ai"]),
     input: z.unknown().optional(),
   })
   .strict();
@@ -64,6 +65,10 @@ export async function POST(request: Request) {
     }
     if (action === "approve") {
       await approve(db, token, input);
+      return reply({ ok: true });
+    }
+    if (action === "reject" || action === "reopen") {
+      await reviewApplication(db, token, action, input);
       return reply({ ok: true });
     }
     if (action === "systemGrant") {

@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { createClient } from "@libsql/client";
 import { initAccounts } from "./storage";
 import { AccountError } from "./policy";
-import { approve, assign, systemGrant, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
+import { approve, assign, reviewApplication, systemGrant, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
 import { previewScore, sampleRequest } from "./samples";
 import { catalog } from "./policy";
 import { evaluatePassword } from "./password-strength";
@@ -229,4 +229,61 @@ test("system can approve all roles, delegate ownership or directly override acco
   assert.equal(moved.self.role, "region");
   await assert.rejects(assign(db, movedSession, { id: east.id, enabled: true, models: [], records: [] }),
     rejected("out_of_scope"));
+});
+
+test("only the system reviewer can reject and reopen pending registrations without granting access", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "gadews-review-test-"));
+  const db = await initAccounts(createClient({ url: "file:" + join(dir, "review.db") }));
+  t.after(async () => { db.close(); await rm(dir, { recursive: true, force: true }); });
+  const password = "Q_" + randomBytes(16).toString("hex");
+  const denied = (code: string) => (err: unknown) => err instanceof AccountError && err.code === code;
+  await bootstrap(db, { username: "owner", password });
+  const owner = await login(db, { username: "owner", password });
+  await register(db, { username: "manager", password, requested: "country", country: "A", region: "east" });
+  const manager = await login(db, { username: "manager", password });
+  await approve(db, owner, { id: (await sessionAccount(manager)).id });
+
+  async function sessionAccount(token: string) { return (await dashboard(db, token)).self; }
+  await register(db, { username: "applicant", password, requested: "region", country: "A", region: "west" });
+  const session = await login(db, { username: "applicant", password });
+  const { id } = await sessionAccount(session);
+  const staleGrant = { id, role: "region", country: "A", region: "west", enabled: true, models: [], records: [] };
+  await assert.rejects(reviewApplication(db, manager, "reject", { id }), denied("out_of_scope"));
+  await assert.rejects(reviewApplication(db, session, "reject", { id }), denied("out_of_scope"));
+  await assert.rejects(reviewApplication(db, owner, "reopen", { id }), denied("approval_processed"));
+  await reviewApplication(db, owner, "reject", { id });
+  const review = await dashboard(db, owner);
+  assert.equal(review.directory.find((a) => a.id === id)?.status, "rejected");
+  assert.ok(!review.approvals.some((a) => a.id === id));
+  assert.ok(!review.systemAccounts.some((a) => a.id === id));
+  const applicant = await dashboard(db, session);
+  assert.equal(applicant.self.status, "rejected");
+  assert.equal(applicant.self.requested, "region");
+  assert.equal(applicant.active, false);
+  assert.deepEqual(applicant.models, []);
+  assert.deepEqual(applicant.records, []);
+  assert.equal((await sessionIdentity(db, await login(db, { username: "applicant", password }))).status, "rejected");
+  await assert.rejects(authorize(db, session, "wsd-v1.0"), denied("model_denied"));
+  await assert.rejects(reviewApplication(db, owner, "reject", { id }), denied("approval_processed"));
+  await assert.rejects(approve(db, owner, { id }), denied("approval_processed"));
+  await assert.rejects(systemGrant(db, owner, staleGrant), denied("approval_processed"));
+  await assert.rejects(assign(db, manager, { id, enabled: true, models: [], records: [] }), denied("out_of_scope"));
+  await assert.rejects(reviewApplication(db, manager, "reopen", { id }), denied("out_of_scope"));
+  await reviewApplication(db, owner, "reopen", { id });
+  assert.equal((await sessionIdentity(db, session)).active, false);
+  assert.equal((await sessionAccount(session)).status, "pending");
+  assert.ok((await dashboard(db, manager)).approvals.some((a) => a.id === id));
+  await approve(db, manager, { id });
+  await assert.rejects(reviewApplication(db, owner, "reject", { id }), denied("approval_processed"));
+  assert.equal((await sessionAccount(session)).status, "active");
+
+  await register(db, { username: "racecheck", password, requested: "member", country: "A", region: "east" });
+  const race = (await dashboard(db, owner)).approvals.find((a) => a.username === "racecheck")!;
+  const decisions = await Promise.allSettled([
+    approve(db, owner, { id: race.id }),
+    reviewApplication(db, owner, "reject", { id: race.id }),
+  ]);
+  assert.equal(decisions.filter((decision) => decision.status === "fulfilled").length, 1);
+  const outcome = (await dashboard(db, owner)).directory.find((a) => a.id === race.id);
+  assert.equal(outcome?.status, decisions[0].status === "fulfilled" ? "active" : "rejected");
 });

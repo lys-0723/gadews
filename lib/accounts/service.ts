@@ -24,7 +24,8 @@ export const registration = newCredentials
     region: z.enum(["east", "west", "north"]),
   })
   .refine((v) => (areas[v.country] as readonly string[]).includes(v.region));
-const approval = z.object({ id: z.string().uuid(), parentId: z.string().uuid().optional() }).strict();
+const applicationId = z.object({ id: z.string().uuid() }).strict();
+const approval = applicationId.extend({ parentId: z.string().uuid().optional() });
 export const assignment = z
   .object({
     id: z.string().uuid(),
@@ -137,7 +138,8 @@ export async function dashboard(db: Client, token: string) {
   const { all, self, rights } = await identity(db, token);
   const directory =
     self.role === "system" && rights.active
-      ? all.map(({ username, role, status, country, region, requested }) => ({
+      ? all.map(({ id, username, role, status, country, region, requested }) => ({
+          id,
           username,
           role,
           status,
@@ -156,7 +158,7 @@ export async function dashboard(db: Client, token: string) {
   return {
     engine,
     directory,
-    systemAccounts: self.role === "system" && rights.active ? all.filter((a) => a.role !== "system") : [],
+    systemAccounts: self.role === "system" && rights.active ? all.filter((a) => a.role !== "system" && a.status !== "rejected") : [],
     approvals: rights.active ? all.filter((a) => canApprove(self, a)) : [],
     approvalParents: rights.active && self.role === "system"
       ? activeApprovalParents(all).map(({ id, username, role, country, region }) => ({ id, username, role, country, region }))
@@ -203,6 +205,22 @@ export async function approve(db: Client, token: string, input: unknown) {
   });
 }
 
+export async function reviewApplication(db: Client, token: string, action: "reject" | "reopen", input: unknown) {
+  const { id } = applicationId.parse(input);
+  await inWrite(db, async (tx) => {
+    const { self, rights, all } = await identity(tx, token);
+    const applicant = all.find((a) => a.id === id);
+    if (!rights.active || self.role !== "system" || !applicant || applicant.role === "system")
+      throw new AccountError(403, "out_of_scope");
+    const [from, to] = action === "reject" ? ["pending", "rejected"] : ["rejected", "pending"];
+    const result = await tx.execute({
+      sql: "UPDATE accounts SET status=?, role='member', parent=NULL, models='[]', records='[]' WHERE id=? AND status=?",
+      args: [to, id, from],
+    });
+    if (!result.rowsAffected) throw new AccountError(409, "approval_processed");
+  });
+}
+
 const revokeBranchSessions = `
   WITH RECURSIVE branch(id) AS (
     SELECT id FROM accounts WHERE id=? UNION ALL SELECT a.id FROM accounts a JOIN branch b ON a.parent=b.id
@@ -222,6 +240,7 @@ export async function systemGrant(db: Client, token: string, input: unknown) {
     if (!rights.active || self.role !== "system" || !target || target.role === "system" ||
         !recordsInScope(v.records, v.role, v)) throw new AccountError(403, "out_of_scope");
 
+    if (target.status === "rejected") throw new AccountError(409, "approval_processed");
     const scopeChanged = target.role !== v.role || target.country !== v.country || target.region !== v.region;
     // Preserve a pending applicant's session so it can observe the initial approval.
     if (!v.enabled || (scopeChanged && target.status !== "pending"))

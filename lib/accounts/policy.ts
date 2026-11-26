@@ -18,7 +18,7 @@ export interface Account {
   region: string;
   role: Role;
   requested: Role;
-  status: "pending" | "active" | "disabled";
+  status: "pending" | "active" | "disabled" | "rejected";
   parent: string | null;
   models: Model[];
   records: string[];
@@ -49,7 +49,7 @@ export function canApprove(actor: Account, applicant: Account) {
     (actor.role === "system" || isApprovalParent(actor, applicant));
 }
 export function canManage(actor: Account, target: Account) {
-  if (actor.id === target.id || !childRole(actor.role) || !sameArea(actor, target)) return false;
+  if (target.status === "rejected" || actor.id === target.id || !childRole(actor.role) || !sameArea(actor, target)) return false;
   return target.status === "pending"
     ? target.requested === childRole(actor.role)
     : target.parent === actor.id && (actor.role === "system" || childRole(actor.role) === target.role);
