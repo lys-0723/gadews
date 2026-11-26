@@ -31,6 +31,7 @@ export function HomePage() {
           <div className="hero-grain" aria-hidden="true" />
           <HeroIntro />
           <div className="hero-copy">
+            <p className="hero-product-name">{t("全球水产养殖疫病早期预警系统", "Global Aquaculture Disease Early Warning System")}</p>
             <HeroTitle
               lines={[
                 t("感知水域变化，", "A changing ocean."),
@@ -77,7 +78,6 @@ export function HomePage() {
               </span>
             </div>
           </div>
-          <LifeParticles />
         </section>
         <section
           className="one-health"
@@ -247,10 +247,11 @@ export function HomePage() {
                   <p>{c("h025")}</p>
                   <p className="step-detail">{c("h026")}</p>
                 </article>
-                <article className="evidence-step" data-step="1">
+                <article className="evidence-step" data-step="1" id="life-observer">
                   <h3>{c("h027")}</h3>
                   <p>{c("h028")}</p>
                   <p className="step-detail">{c("h029")}</p>
+                  <LifeParticles />
                 </article>
                 <article className="evidence-step" data-step="2">
                   <h3>{c("h030")}</h3>

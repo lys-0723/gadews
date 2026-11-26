@@ -26,7 +26,7 @@ export function Brand({ dark = false }: { dark?: boolean }) {
 
 export function LanguageSwitch() {
   const { locale, setLocale } = useLocale();
-  return <div className="site-language" aria-label="Chinese / English"><button type="button" aria-pressed={locale === "zh-CN"} onClick={() => setLocale("zh-CN")}>Chinese</button><span aria-hidden="true">/</span><button type="button" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>English</button></div>;
+  return <div className="site-language" role="group" aria-label="Chinese / English"><button type="button" aria-pressed={locale === "zh-CN"} onClick={() => setLocale("zh-CN")}>Chinese</button><button type="button" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>English</button></div>;
 }
 
 export function StickyHeader({ variant = "light" }: { variant?: "light" | "dark" | "map" }) {
