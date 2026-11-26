@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { useLocale } from "../locale-provider";
 import { names, siteIds, station, variables, type Delivery, type FeedId, type Site } from "@/lib/gadews/environment/snapshot";
@@ -40,6 +40,42 @@ function Reading({ reading, site }: {reading: EvidenceReading; site: Site}) {
         {reading.depth !== null && ` · ${t("深度", "Depth")} ${reading.depth.toFixed(2)} m`}</p>
       <Link className={link} href={overview(site, id)}>{t("查看该产品全部变量", "Inspect all product variables")}</Link>
       {" · "}<a className={link} href={reading.source} target="_blank" rel="noreferrer">{t("原始来源", "Source")}</a>
+    </div>
+  </details>;
+}
+
+function ExampleAssessment() {
+  const { t } = useLocale();
+  const [scenario, setScenario] = useState("notice");
+  const outcomes = {
+    notice: [
+      t("Ⅳ · 高关注", "IV · High attention"),
+      t("示例海湾有当日有效的防护行动通告，范围与该水域相符。", "A protective-action notice covers the fictional bay on the selected day."),
+      t("复核发布方、边界和有效期，按通告要求监测；通告解除后重新评估。", "Check the issuer, boundary and validity. Follow the notice and reassess when it expires."),
+    ],
+    past: [
+      t("仅有历史背景", "Historical context only"),
+      t("有国家尺度的以往记录，示例海湾当日没有可用证据。", "Past national records exist, without evidence for the bay on that day."),
+      t("保留原报告期，优先核对该海湾的当期监测。", "Keep the original reporting period and seek current monitoring for the bay."),
+    ],
+    gap: [
+      t("资料不足", "Insufficient evidence"),
+      t("示例地区的天气值在常规范围，所需水域监测已过期。", "Weather is within its usual range, but the required water monitoring is out of date."),
+      t("补查最新水域资料和通告；缺项期间保留资料不足状态。", "Check recent water observations and notices; keep the insufficient-evidence status until coverage is adequate."),
+    ],
+  };
+  const selected = outcomes[scenario as keyof typeof outcomes];
+  return <details className="border-t border-slate-200 pt-2">
+    <summary className="cursor-pointer font-medium">{t("复核情景演示（虚构）", "Example review sequence (fictional)")}</summary>
+    <div className="mt-2 space-y-2 rounded-md border border-dashed border-slate-300 p-3">
+      <label className="block">{t("固定示例", "Illustrative scenario")}
+        <select className={control} value={scenario} onChange={e => setScenario(e.target.value)}>
+          <option value="notice">{t("有效海湾通告", "Active bay advisory")}</option>
+          <option value="past">{t("只有国家历史报告", "National historical reports only")}</option>
+          <option value="gap">{t("当期关键来源缺失", "Required current source missing")}</option>
+        </select>
+      </label>
+      <div aria-live="polite" className="space-y-1"><strong>{selected[0]}</strong><p>{selected[1]}</p><p>{selected[2]}</p></div>
     </div>
   </details>;
 }
@@ -127,14 +163,7 @@ export function RegionalEvidencePanel({ delivery, failed, retry, site, onSiteCha
       </details>
       <p className="text-xs text-slate-600">{t("快照发布", "Snapshot published")} · {timeText(delivery.snapshot.publishedAt)} UTC
         {" · "}<Link className={link} href={`/overview?site=${site}#environment-catalog`}>{t("全部环境资料", "All environmental products")}</Link></p>
-      <details className="border-t border-slate-200 pt-2">
-        <summary className="cursor-pointer font-medium">{t("复核情景演示（虚构）", "Example review sequence (fictional)")}</summary>
-        <ol className="mt-2 list-decimal space-y-1 pl-5 text-xs">
-          <li>{t("示例海湾收到注明边界与有效期的主管部门通告。", "A fictional bay receives an official notice with a boundary and validity period.")}</li>
-          <li>{t("核实水域和时段均匹配后，按通告要求加强监测。", "Once the area and dates match, intensify monitoring as directed by the notice.")}</li>
-          <li>{t("通告解除后，复查其余有效证据并记录变化。", "When the notice expires, review the remaining evidence and record the change.")}</li>
-        </ol>
-      </details>
+      <ExampleAssessment />
     </>}
   </section>;
 }
