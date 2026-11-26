@@ -36,7 +36,7 @@ test("account header reflects the approved session, pending access and expiry", 
   try {
     render(<LocaleProvider initialLocale="zh-CN"><StickyHeader /></LocaleProvider>);
     assert.ok(await screen.findByRole("button", { name: "待审批" }));
-    assert.equal(screen.queryByText("区域管理员"), null);
+    assert.ok(!screen.queryByText("区域管理员"));
     identity = { ...user, status: "active", active: true };
     fireEvent(window, new window.Event("gadews:session-changed"));
     const role = await screen.findByRole("button", { name: /区域管理员.*示例国甲 · 东区/ });
@@ -47,7 +47,7 @@ test("account header reflects the approved session, pending access and expiry", 
 
     identity = null;
     fireEvent(window, new window.Event("gadews:session-changed"));
-    await waitFor(() => assert.equal(screen.queryByText("demo.reader"), null));
+    await waitFor(() => assert.ok(!screen.queryByText("demo.reader")));
     assert.equal(screen.getByRole("link", { name: "普通用户登录" }).getAttribute("href"), "/login?entry=user");
     assert.equal(screen.getByRole("link", { name: "管理员登录" }).getAttribute("href"), "/login?entry=admin");
   } finally {
