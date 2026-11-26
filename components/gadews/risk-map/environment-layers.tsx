@@ -1,4 +1,5 @@
 "use client";
+import { HeatwaveGrid } from "./heatwave-grid";
 import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
@@ -17,6 +18,7 @@ import {
   type Feed,
 } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentMaps {
+  heatMonth: number;
   delivery: Delivery | null;
   layer: OceanLayer;
   points: boolean;
@@ -104,7 +106,7 @@ function MarineTiles({
     </>
   );
 }
-export function EnvironmentLayers({ delivery, layer, points, site }: EnvironmentMaps) {
+export function EnvironmentLayers({ delivery, layer, points, site, heatMonth }: EnvironmentMaps) {
   const map = useMap(),
     { t } = useLocale();
   useEffect(() => {
@@ -114,6 +116,7 @@ export function EnvironmentLayers({ delivery, layer, points, site }: Environment
     f = feeds.find((s) => s.id === layer);
   return (
     <>
+      {f?.heatMaps && <HeatwaveGrid encoded={f.heatMaps[heatMonth]} month={f.series[0].times[heatMonth]}/>}
       {f?.raster && <MarineTiles key={f.raster.layer + f.raster.time} raster={f.raster} />}
       {f?.raster && <EnvironmentPixel key={f.id + f.raster.time} id={f.id} time={f.raster.time} />}
       {f?.grid &&

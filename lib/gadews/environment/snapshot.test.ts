@@ -47,3 +47,26 @@ test("global WMTS queries pin the published version, time, depth and EPSG:3857 p
   assert.equal(url.searchParams.get("time"), "2026-11-26T00:00:00Z");
   assert.equal(pixelQuery.safeParse({ lat: 90, lon: 0, time: "2026-11-26", layer: "ph" }).success, false);
 });
+
+import { heatClass, heatColumn, heatRow } from "./heat-grid";
+
+test("NOAA grid wraps longitude and keeps missing distinct from zero probability", () => {
+  assert.equal(heatColumn(-1), 359);
+  assert.equal(heatColumn(360), 0);
+  assert.equal(heatRow(-90), 0);
+  assert.equal(heatRow(90), 180);
+  assert.equal(heatClass(100), 3);
+  assert.equal(heatClass(0), 0);
+  const { feeds } = schema.parse(snapshot);
+  const f = feeds.find(x => x.id === "heatwave")!;
+  if (f.heatMaps) {
+    const s = f.series[0];
+    const i = heatRow(s.lat) * 360 + heatColumn(s.lon);
+    for (const [lead, encoded] of f.heatMaps.entries()) {
+      const value = s.fields[0].values[lead];
+      const decoded = Buffer.from(encoded, "base64")[i];
+      if (value === null) assert.equal(decoded, 255);
+      else assert.ok(Math.abs(value - decoded) <= 0.51);
+    }
+  }
+});

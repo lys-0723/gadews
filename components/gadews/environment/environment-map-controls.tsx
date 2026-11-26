@@ -10,8 +10,11 @@ import {
   overdue,
 } from "@/lib/gadews/environment/snapshot";
 
+import { heatColors } from "@/lib/gadews/environment/heat-grid";
 import { oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentControls {
+  heatMonth: number;
+  onHeatMonth: (month: number) => void;
   delivery: Delivery | null;
   failed: boolean;
   retry: () => void;
@@ -23,7 +26,7 @@ export interface EnvironmentControls {
   onSite: (v: Site | null) => void;
 }
 export function OceanControls({
-  delivery,
+  heatMonth, onHeatMonth, delivery,
   failed,
   retry,
   layer,
@@ -35,7 +38,7 @@ export function OceanControls({
 }: EnvironmentControls) {
   const { t } = useLocale();
   const current = delivery?.snapshot.feeds.find((f) => f.id === layer);
-  const day = current?.grid?.time ?? current?.raster?.time;
+  const day = current?.heatMaps ? current.series[0].times[heatMonth] : current?.grid?.time ?? current?.raster?.time;
   const control = "mt-1 block w-full rounded-lg border border-slate-400 bg-white px-2 py-2";
   return (
     <fieldset className="space-y-2 border-t border-slate-200 pt-2">
@@ -85,7 +88,9 @@ export function OceanControls({
       {layer !== "off" && (
         <div className="space-y-1 rounded-lg bg-slate-50 p-2">
           <p>
-            {layer === "oisst"
+            {layer === "heatwave"
+              ? t("全球 1° 海洋热浪概率（研究性预报），起报月份 ", "Global 1° experimental marine heatwave probability, initial month ") + (current?.issueMonth?.slice(0,7) ?? "—")
+              : layer === "oisst"
               ? t("近海样区 · 0.25° 日海温格网（°C）", "Offshore subset · 0.25° daily SST (°C)")
               : layer === "viirs"
                 ? t(
@@ -111,6 +116,15 @@ export function OceanControls({
                       (current?.series[0]?.depthM?.toFixed(2) ?? "—") +
                       " m"}
           </p>
+          {current?.heatMaps && <>
+            <label className="block">{t("预报月份", "Forecast month")}
+              <select className={control} value={heatMonth} onChange={e => onHeatMonth(Number(e.target.value))}>
+                {current.series[0].times.map((v,i) => <option key={v} value={i}>{v.slice(0,7)}</option>)}
+              </select>
+            </label>
+            <p>{["0–24%", "25–49%", "50–74%", "75–100%"].map((label,i) => <span key={label} className="mr-2 inline-block"><i className="mr-1 inline-block h-3 w-3" style={{background: heatColors[i]}}/>{label}</span>)}</p>
+            <p>{t("空白为陆地或缺测；概率取整至 1%。", "Blank cells are land or missing. Probabilities rounded to 1%.")}</p>
+          </>}
           {current?.grid && (
             <button type="button" className="text-teal-800 underline" onClick={() => onSite("offshore")}>
               {t("定位近海样区", "Locate offshore subset")}

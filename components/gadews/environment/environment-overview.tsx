@@ -1,4 +1,5 @@
 "use client";
+import { RainFrame, EnsoOutlook } from "./climate-evidence";
 import { CountryReports } from "./country-reports";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
@@ -40,7 +41,7 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
   const [key, setKey] = useState(series.fields[0].key);
   const field = series.fields.find((f) => f.key === key) ?? series.fields[0];
   const periodLabel = (time: string) => {
-    if (feed.id === "seas5") return time.slice(0, 7);
+    if (feed.id === "seas5" || feed.id === "heatwave") return time.slice(0, 7);
     if (feed.id === "ec46") {
       const end = new Date(time + "T00:00:00Z");
       end.setUTCDate(end.getUTCDate() + 6);
@@ -161,7 +162,10 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
         </p>
       )}
       <aside className="border-l-2 border-teal-600 pl-3 text-sm leading-6 text-slate-700">
-        {feed.id === "gefs" ? t(
+        {feed.id === "heatwave" ? t(
+          "NOAA 研究性月度预报，保留长期增暖趋势。概率表示该海域月海温超过热浪阈值的可能性。起报月份 ",
+          "NOAA experimental monthly outlook including the warming trend. Probability of SST exceeding the marine heatwave threshold. Initial month ",
+        ) + feed.issueMonth?.slice(0,7) : feed.id === "gefs" ? t(
           "每天汇总 31 个集合成员。P50 是中位数，P10 至 P90 表示成员预测的中间 80% 范围。成员缺值时该指标留空。",
           "Each day summarizes 31 members. P50 is the median. P10–P90 spans the central 80% of member forecasts. Incomplete ensembles are left blank.",
         ) : feed.id === "ec46" || feed.id === "seas5" ? t(
@@ -235,14 +239,16 @@ export function EnvironmentOverview() {
         )}
       </p>
       <nav aria-label={t("天气与气候预报", "Weather and climate forecasts")} className="mb-5 flex flex-wrap gap-x-5 gap-y-2">
-        {(["weather", "gefs", "ec46", "seas5"] as const).map((id) => (
+        {(["weather", "gefs", "ec46", "seas5", "imerg", "heatwave"] as const).map((id) => (
           <button type="button" key={id} className={linkClass} onClick={() => {
-            if (site === "offshore") setSite("zhanjiang");
+            if (id === "heatwave") setSite("offshore");
+            else if (site === "offshore") setSite("zhanjiang");
             setSelected(id);
           }}>
             {t(...names[id])}
           </button>
         ))}
+        <a href="#enso-outlook" className={linkClass}>{t(...names.enso)}</a>
       </nav>
       <div className="mb-4 grid gap-4 sm:grid-cols-2">
         <label>
@@ -280,7 +286,7 @@ export function EnvironmentOverview() {
           (series ? (
             <SeriesPanel key={key + site + feed.retrievedAt} series={series} feed={feed} asOf={data!.asOf} />
           ) : (
-            <SourceStatus feed={feed} asOf={data!.asOf} />
+            <><SourceStatus feed={feed} asOf={data!.asOf} />{key === "imerg" && <RainFrame feed={feed} site={site}/>}</>
           ))}
         {site !== "offshore" && (
           <p className="mt-4 text-sm">
@@ -308,6 +314,12 @@ export function EnvironmentOverview() {
       </div>
       {data && (
         <>
+          {data.snapshot.feeds.filter(f => f.id === "enso").map(f => (
+            <section id="enso-outlook" key={f.id} className="my-6 scroll-mt-24 rounded-xl border bg-white p-5">
+              <h3 className="text-xl font-semibold">{t(...names.enso)}</h3>
+              <SourceStatus feed={f} asOf={data.asOf} /><EnsoOutlook feed={f} />
+            </section>
+          ))}
           <p className="my-3 text-sm">
             {t("快照版本", "Snapshot version")} {data.snapshot.publishedAt} ·{" "}
             {data.origin === "published"
@@ -378,7 +390,7 @@ export function EnvironmentOverview() {
         <Link href="https://open-meteo.com/en/terms" className={linkClass}>
           Open-Meteo (CC BY 4.0)
         </Link>{" "}
-        · ECMWF EC46 / SEAS5 · NOAA GEFS · NASA POWER · NOAA CoastWatch / OISST · E.U. Copernicus Marine Service · GloFAS / Copernicus EMS ·
+        · ECMWF EC46 / SEAS5 · NOAA GEFS · NASA GPM / GIBS · NOAA PSL / CPC · NASA POWER · NOAA CoastWatch / OISST · E.U. Copernicus Marine Service · GloFAS / Copernicus EMS ·
         GDACS · INCOIS
       </p>
     </section>
