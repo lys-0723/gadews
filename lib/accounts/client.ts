@@ -3,6 +3,10 @@ export const accountMessages: Record<string, [string, string]> = {
     "请核对用户名、密码、辖区或输入格式。",
     "Check the username, password, jurisdiction or input.",
   ],
+  password_policy: [
+    "请使用 7–128 个字符，包含大写英文字母（A–Z）和特殊字符（如 _ 或 !）。",
+    "Use 7–128 characters, including an uppercase letter (A–Z) and a special character such as _ or !.",
+  ],
   invalid_login: ["用户名、密码有误或账号已停用。", "Invalid credentials or disabled account."],
   name_taken: ["此用户名已使用。", "This username is already in use."],
   login_required: ["请重新登录。", "Please sign in."],

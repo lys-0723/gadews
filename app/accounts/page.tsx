@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { areaNames, roleNames } from "@/lib/accounts/display";
+import { evaluatePassword } from "@/lib/accounts/password-strength";
 import { accountApi as api, accountMessages as messages } from "@/lib/accounts/client";
 import { AccessPreview } from "./access-preview";
 import { StickyHeader } from "@/components/gadews/sticky-header";
@@ -37,16 +38,15 @@ const secondary =
 const field = "mt-1 block w-full rounded-lg border border-slate-400 bg-white px-3 py-2.5 text-slate-950";
 type Act = (action: string, input?: unknown) => Promise<void>;
 
+const strengthLevels = {
+  weak: { label: ["弱", "Weak"], bars: 1, fill: "bg-orange-700" },
+  medium: { label: ["中", "Medium"], bars: 2, fill: "bg-teal-600" },
+  strong: { label: ["强", "Strong"], bars: 3, fill: "bg-teal-900" },
+} as const;
+
 function Credentials({ act, busy }: { act: Act; busy: boolean }) {
   const { t } = useLocale();
   const signup = useSearchParams().get("mode") === "register";
-  const [country, setCountry] = useState<Country>("A");
-  async function submit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const input = Object.fromEntries(new FormData(form));
-    await act("register", input);
-  }
   if (!signup) return (
     <section className={card}>
       <h2 className="text-xl font-bold">{t("登录账号", "Sign in")}</h2>
@@ -57,6 +57,33 @@ function Credentials({ act, busy }: { act: Act; busy: boolean }) {
       <Link href="/accounts?mode=register" className="text-teal-800 underline">{t("注册账号", "Create an account")}</Link>
     </section>
   );
+  return <RegistrationForm act={act} busy={busy} />;
+}
+
+function RegistrationForm({ act, busy }: { act: Act; busy: boolean }) {
+  const { t } = useLocale();
+  const [country, setCountry] = useState<Country>("A");
+  const [password, setPassword] = useState("");
+  const checks = evaluatePassword(password);
+  const strength = strengthLevels[checks.strength];
+  const missing = [
+    !checks.longEnough && t("至少 7 个字符", "at least 7 characters"),
+    !checks.withinLimit && t("最多 128 个字符", "at most 128 characters"),
+    !checks.hasUppercase && t("一个大写英文字母（A–Z）", "an uppercase letter (A–Z)"),
+    !checks.hasSpecial && t("一个特殊字符（如 _ 或 !）", "a special character such as _ or !"),
+  ].filter(Boolean);
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const input = Object.fromEntries(new FormData(form));
+    const enteredPassword = String(input.password ?? "");
+    if (!evaluatePassword(enteredPassword).valid) {
+      setPassword(enteredPassword);
+      form.querySelector<HTMLInputElement>('[name="password"]')?.focus();
+      return;
+    }
+    await act("register", input);
+  }
   return (
     <section className={card}>
       <h2 className="text-xl font-bold">{t("创建账号", "Create an account")}</h2>
@@ -75,8 +102,8 @@ function Credentials({ act, busy }: { act: Act; busy: boolean }) {
         </label>
         <p className="text-sm text-slate-600">
           {t(
-            "用户名使用 3–40 个英文字母、数字、点、下划线或短横线；密码至少 10 个字符。",
-            "Use 3–40 letters, digits, dots, underscores or hyphens; choose a password of at least 10 characters.",
+            "用户名可用 3–40 个英文字母、数字、点、下划线或短横线。",
+            "Use 3–40 letters, digits, dots, underscores or hyphens for your username.",
           )}
         </p>
         <label className="block">
@@ -86,11 +113,37 @@ function Credentials({ act, busy }: { act: Act; busy: boolean }) {
             name="password"
             type="password"
             required
-            minLength={10}
+            minLength={7}
             maxLength={128}
             autoComplete="new-password"
+            onChange={(event) => setPassword(event.currentTarget.value)}
+            aria-describedby="password-strength"
+            aria-invalid={password.length > 0 && !checks.valid}
           />
         </label>
+        <div id="password-strength" aria-live="polite" aria-atomic="true" className="space-y-2 text-sm text-slate-700">
+          {password && (
+            <div className="flex items-center gap-3">
+              <span className="font-medium">{t("密码强度", "Password strength")} · {t(strength.label[0], strength.label[1])}</span>
+              <span aria-hidden="true" className="flex w-24 gap-1">
+                {[1, 2, 3].map((bar) => (
+                  <span key={bar} className={`h-1 flex-1 rounded-full ${bar <= strength.bars ? strength.fill : "bg-slate-200"}`} />
+                ))}
+              </span>
+            </div>
+          )}
+          <p>
+            {!password
+              ? t("使用 7–128 个字符，至少包含一个大写英文字母（A–Z）和一个特殊字符（如 _ 或 !）。",
+                "Use 7–128 characters, including an uppercase letter (A–Z) and a special character such as _ or !.")
+              : !checks.valid
+                ? t("还需满足", "Still needed") + " · " + missing.join(t("、", ", "))
+                : checks.strength === "medium"
+                  ? t("已符合注册要求。若要达到“强”，使用至少 12 个字符，并包含小写字母和数字。",
+                    "You can register with this password. For a strong rating, use at least 12 characters and include a lowercase letter and a digit.")
+                  : t("已符合注册要求。", "Registration requirements met.")}
+          </p>
+        </div>
         <label className="block">
           {t("申请身份", "Requested role")}
           <select className={field} name="requested" defaultValue="member">
