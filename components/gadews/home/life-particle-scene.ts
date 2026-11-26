@@ -4,10 +4,6 @@ import { readBoundedLifeResource } from "./life-particle-resources";
 
 export interface LifeParticleScene {
   setActive: (active: boolean) => void;
-  setStage: (stage: LifeStage, immediate?: boolean) => void;
-  setAuto: (automatic: boolean) => void;
-  setFocus: (focus: boolean) => void;
-  redraw: () => void;
   dispose: () => void;
 }
 export interface LifeSceneOptions {
@@ -92,8 +88,8 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
   const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.setClearColor(0x051724, 0);
-  let stage = options.initialStage, progress = 1, elapsed = 0, hold = 0, previous = 0, running = false, automatic = true, focus = false, disposed = false, frames = 0;
-  let width = 1, height = 1, heroHeight = 1;
+  let stage = options.initialStage, progress = 1, elapsed = 0, hold = 0, previous = 0, running = false, disposed = false, frames = 0;
+  let width = 1, height = 1;
   const from = new Float32Array(forms[stage].p), fromColor = new Float32Array(forms[stage].c);
   const target = new Float32Array(forms[stage].p), targetColor = new Float32Array(forms[stage].c);
   const geometry = new THREE.BufferGeometry();
@@ -104,9 +100,9 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
   geometry.setAttribute("pointSize", new THREE.BufferAttribute(sizes, 1));
   geometry.setAttribute("phase", new THREE.BufferAttribute(phases, 1));
   const material = new THREE.ShaderMaterial({ transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
-    uniforms: { time: { value: 0 }, morph: { value: 1 }, viewport: { value: new THREE.Vector2() }, fadeY: { value: new THREE.Vector2() }, scale: { value: 1 }, center: { value: new THREE.Vector2() }, pixelRatio: { value: renderer.getPixelRatio() }, animal: { value: stage < 2 ? 1 : 0 }, focus: { value: 0 }, textRects: { value: Array.from({ length: 4 }, () => new THREE.Vector4(-1000, -1000, -1000, -1000)) } },
+    uniforms: { time: { value: 0 }, morph: { value: 1 }, viewport: { value: new THREE.Vector2() }, waveCenter: { value: new THREE.Vector2() }, waveStrength: { value: 0 }, scale: { value: 1 }, center: { value: new THREE.Vector2() }, pixelRatio: { value: renderer.getPixelRatio() }, animal: { value: stage < 2 ? 1 : 0 } },
     vertexShader: `attribute vec3 target;attribute vec3 colorFrom;attribute vec3 colorTo;attribute float pointSize;attribute float phase;
-      uniform float time,morph,scale,pixelRatio,animal,focus;uniform vec2 viewport,center,fadeY;uniform vec4 textRects[4];varying vec3 tint;varying float opacity;
+      uniform float time,morph,scale,pixelRatio,animal,waveStrength;uniform vec2 viewport,center,waveCenter;varying vec3 tint;varying float opacity;
       void main(){float e=morph*morph*(3.0-2.0*morph);vec3 p=mix(position,target,e);
       vec2 travel = target.xy - position.xy;
       float arc = 0.17 * sin(phase) * (4.0 * e * (1.0 - e));
@@ -114,61 +110,98 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
       float drift=sin(time*.45+phase)*.006;p+=mix(vec3(drift,cos(time*.36+phase)*.004,drift),vec3(sin(time*.35)*.002,cos(time*.3)*.002,drift*.25),animal);
       float angle=mix(.25+sin(time*.12)*.12,sin(time*.12)*.022,animal);mat2 r=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));p.xz=r*p.xz;
       float depth=mix(4.8/(4.8-p.z),1.0,animal);vec2 px=center+vec2(p.x,-p.y)*scale*depth;
+      vec2 offset = px - waveCenter;
+      float distancePx = length(offset);
+      float radius = clamp(viewport.x * .16, 90.0, 155.0);
+      float falloff = 1.0 - smoothstep(0.0, radius, distancePx);
+      float wave = sin(distancePx * .10 - time * 5.0) * falloff * waveStrength;
+      px += (offset / max(distancePx, 1.0)) * wave * 10.0;
       gl_Position=vec4(px.x/viewport.x*2.0-1.0,1.0-px.y/viewport.y*2.0,0.0,1.0);
       gl_PointSize=clamp(pointSize*pixelRatio*depth*1.48,.85,3.1);float gleam = 0.95 + 0.05 * sin(p.x * 4.0 - time * 0.75 + p.y);
-      tint=mix(colorFrom,colorTo,e)*(.69+depth*.26)*gleam;opacity=mix(.12+.88*smoothstep(fadeY.x,fadeY.y,px.y),1.0,focus);
-      for(int j=0;j<4;j++){vec4 b=textRects[j];vec2 d=max(max(b.xy-px,px-b.zw),vec2(0.0));opacity*=mix(1.0,1.0-(1.0-smoothstep(0.0,30.0,length(d)))*.9,1.0-focus);}}`,
+      tint=mix(colorFrom,colorTo,e)*(.69+depth*.26)*gleam*(1.0+.18*wave);
+      opacity=1.0; }`,
     fragmentShader: `varying vec3 tint;varying float opacity;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;gl_FragColor=vec4(tint,(1.0-smoothstep(.12,.5,r))*.70*opacity);}`,
   });
   const scene = new THREE.Scene(), camera = new THREE.Camera(), points = new THREE.Points(geometry, material);
   points.frustumCulled = false; scene.add(points);
-  function choose(next: LifeStage, immediate = false) {
-    if (disposed) return;
-    const ease = progress * progress * (3 - 2 * progress);
-    // Retarget from the displayed curve when another form is selected mid-transition.
-    const envelope = .17 * 4 * ease * (1 - ease);
-    for (let i = 0; i < from.length; i += 3) {
-      const dx = target[i] - from[i], dy = target[i + 1] - from[i + 1];
-      const arc = envelope ? envelope * Math.sin(phases[i / 3]) : 0;
-      from[i] += dx * ease - dy * arc;
-      from[i + 1] += dy * ease + dx * arc;
-      from[i + 2] += (target[i + 2] - from[i + 2]) * ease;
-      for (let c = i; c < i + 3; c++) fromColor[c] += (targetColor[c] - fromColor[c]) * ease;
-    }
-    stage = next; progress = immediate || !running ? 1 : 0; hold = 0;
+  // Automatic transitions start after the previous form has settled.
+  function advance() {
+    from.set(target);
+    fromColor.set(targetColor);
+    stage = nextLifeStage(stage);
+    progress = 0;
+    hold = 0;
     geometry.attributes.position.needsUpdate = true; geometry.attributes.colorFrom.needsUpdate = true;
     target.set(forms[stage].p); targetColor.set(forms[stage].c);
     geometry.attributes.target.needsUpdate = true; geometry.attributes.colorTo.needsUpdate = true;
-    options.onStage(stage); loop.redraw();
+    options.onStage(stage);
   }
+  const pointer = new THREE.Vector2();
+  let hovering = false;
+  const hero = canvas.closest(".hero");
+  function releasePointer() { hovering = false; }
+  function movePointer(event: PointerEvent) {
+    if (!running || event.pointerType !== "mouse" ||
+        (event.target instanceof Element && event.target.closest("a, button, .globe-stage"))) {
+      releasePointer();
+      return;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const x = event.clientX - rect.left, y = event.clientY - rect.top;
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height) { releasePointer(); return; }
+    pointer.set(x, y);
+    if (!hovering && material.uniforms.waveStrength.value < .01) material.uniforms.waveCenter.value.copy(pointer);
+    hovering = true;
+  }
+  const surface = hero instanceof HTMLElement ? hero : canvas;
+  surface.addEventListener("pointermove", movePointer, { passive: true });
+  surface.addEventListener("pointerleave", releasePointer);
+  surface.addEventListener("pointercancel", releasePointer);
+  window.addEventListener("blur", releasePointer);
+  window.addEventListener("scroll", releasePointer, { passive: true });
+
   function render(time: number) {
     if (disposed) return;
-    const dt = previous ? Math.min(.06, (time - previous) / 1000) : 0; previous = time;
-    if (running) { elapsed += dt; hold += dt; progress = Math.min(1, progress + dt / 3.5); if (automatic && hold >= 12) choose(nextLifeStage(stage)); }
+    const dt = previous ? Math.min(.25, (time - previous) / 1000) : 0;
+    previous = time;
+    if (running) {
+      elapsed += dt;
+      hold += dt;
+      progress = Math.min(1, progress + dt / 2.5);
+      if (hold >= 8) advance();
+    }
+    const ease = 1 - Math.exp(-dt * 9);
+    const wave = material.uniforms.waveStrength;
+    wave.value += ((hovering ? 1 : 0) - wave.value) * ease;
+    material.uniforms.waveCenter.value.lerp(pointer, ease);
     const animal = stage < 2;
-    // Fit the complete measured XY bounds, including fins and antennae, inside its own canvas.
-    const scale = focus ? (animal ? Math.min(width * .22, height * .39) : Math.min(width * .31, height * .33)) : Math.min(width * (animal ? .18 : .25), heroHeight * .18);
-    material.uniforms.scale.value = scale;
-    material.uniforms.center.value.set(width / 2, height * .5);
-    material.uniforms.focus.value = focus ? 1 : 0;
+    material.uniforms.scale.value = animal ? Math.min(width * .23, height * .39) : Math.min(width * .30, height * .34);
+    material.uniforms.center.value.set(width / 2, height / 2);
     material.uniforms.viewport.value.set(width, height); material.uniforms.time.value = elapsed; material.uniforms.morph.value = progress; material.uniforms.animal.value = animal ? 1 : 0;
     try { renderer.render(scene, camera); canvas.dataset.lifeFrames = String(++frames); canvas.dataset.lifeProgress = String(progress); canvas.dataset.lifeCount = String(options.count); }
     catch { fail(); }
   }
   const loop = createLifeFrameLoop({ request: callback => window.requestAnimationFrame(callback), cancel: id => window.cancelAnimationFrame(id) }, render);
-  const stageElement = canvas.closest(".life-visual-stage");
-  function fit() { if (disposed) return; const rect = canvas.getBoundingClientRect();
-    const stageBox = stageElement?.getBoundingClientRect() ?? rect;
-    heroHeight = Math.max(1, stageBox.height);
-    const offsetY = rect.top - stageBox.top;
-    material.uniforms.fadeY.value.set(heroHeight * .4 - offsetY, heroHeight * .64 - offsetY);
-    [".hero-copy", ".globe-access-slot", ".life-description", ".life-controls"].forEach((selector, i) => { const element = canvas.closest(".hero")?.querySelector(selector); const r = element?.getBoundingClientRect(); material.uniforms.textRects.value[i].set(r ? r.left - rect.left - 3 : -1000, r ? r.top - rect.top - 3 : -1000, r ? r.right - rect.left + 3 : -1000, r ? r.bottom - rect.top + 3 : -1000); }); width = Math.max(1, rect.width); height = Math.max(1, rect.height); renderer.setSize(width, height, false); loop.redraw(); }
+  function fit() {
+    if (disposed) return;
+    const rect = canvas.getBoundingClientRect();
+    width = Math.max(1, rect.width); height = Math.max(1, rect.height);
+    releasePointer();
+    renderer.setSize(width, height, false);
+    loop.redraw();
+  }
   const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(fit);
-  resize?.observe(canvas); if (stageElement) resize?.observe(stageElement); window.addEventListener("resize", fit);
+  resize?.observe(canvas);
+  window.addEventListener("resize", fit);
   function contextLost(event: Event) { event.preventDefault(); fail(); }
   canvas.addEventListener("webglcontextlost", contextLost);
   function dispose() {
     if (disposed) return; disposed = true; running = false; loop.dispose(); resize?.disconnect(); window.removeEventListener("resize", fit); canvas.removeEventListener("webglcontextlost", contextLost); options.signal.removeEventListener("abort", dispose);
+    surface.removeEventListener("pointermove", movePointer);
+    surface.removeEventListener("pointerleave", releasePointer);
+    surface.removeEventListener("pointercancel", releasePointer);
+    window.removeEventListener("blur", releasePointer);
+    window.removeEventListener("scroll", releasePointer);
     geometry.dispose(); material.dispose(); scene.clear(); renderer.dispose(); renderer.forceContextLoss();
   }
   function fail() { if (disposed) return; dispose(); options.onError(); }
@@ -176,5 +209,14 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
   options.signal.addEventListener("abort", dispose, { once: true });
   if (options.signal.aborted) { dispose(); throw new DOMException("Aborted", "AbortError"); }
   fit();
-  return { setActive(value) { if (disposed) return; running = value; previous = 0; loop.setActive(value); }, setStage: choose, setAuto(value) { automatic = value; hold = 0; }, setFocus(value) { focus = value; fit(); }, redraw: () => loop.redraw(), dispose };
+  return {
+    setActive(value) {
+      if (disposed) return;
+      running = value;
+      previous = 0;
+      if (!running) { releasePointer(); material.uniforms.waveStrength.value = 0; }
+      loop.setActive(value);
+    },
+    dispose,
+  };
 }

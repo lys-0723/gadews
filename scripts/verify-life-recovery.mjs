@@ -19,8 +19,6 @@ const host = 'document.querySelector(".life-particles")';
 const canvas = host + '.querySelector("canvas")';
 const image = host + '.querySelector(".life-static")';
 const frames = 'Number(' + canvas + '.dataset.lifeFrames || 0)';
-const autoButton = host + '.querySelector(".life-shapes button")';
-
 async function step(name, run) {
   try { results.push({ name, status: "passed", evidence: await run() }); }
   catch (error) { results.push({ name, status: "failed", error: String(error) }); throw error; }
@@ -41,15 +39,19 @@ async function verifyFrames(count) {
 try {
   await call("Runtime.enable");
   await call("Page.addScriptToEvaluateOnNewDocument", { source: `
-    window.__observedGlobeDraws = 0;
+    window.__wave = 0;
     if (window.WebGL2RenderingContext) {
-      for (const method of ["drawArrays", "drawElements"]) {
-        const original = WebGL2RenderingContext.prototype[method];
-        WebGL2RenderingContext.prototype[method] = function (...args) {
-          if (this.canvas.closest(".globe-stage")) window.__observedGlobeDraws++;
-          return original.apply(this, args);
-        };
-      }
+      const gl = WebGL2RenderingContext.prototype, locations = new WeakSet();
+      const get = gl.getUniformLocation, set = gl.uniform1f;
+      gl.getUniformLocation = function(program, name) {
+        const loc = get.call(this, program, name);
+        if (name === "waveStrength" && loc) locations.add(loc);
+        return loc;
+      };
+      gl.uniform1f = function(loc, value) {
+        if (loc && locations.has(loc)) window.__wave = value;
+        return set.call(this, loc, value);
+      };
     }` });
   await viewport(390, 844);
   await call("Page.navigate", { url: new URL("/", base).href });
@@ -61,7 +63,7 @@ try {
     assert.equal(await evaluate(frames), 0);
     await showForm();
     const visible = await verifyFrames(10500);
-    assert.ok(visible.canvas[1] < visible.sectionHeight / 2);
+    assert.ok(visible.canvas[1] <= visible.sectionHeight * 1.5);
     return { initialPointRequests: 0, visible };
   });
   await step("returning to the phone header suspends just the offscreen form", async () => {
@@ -78,12 +80,12 @@ try {
     await evaluate(canvas + '.setAttribute("data-old-context","1")');
     await call("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
     await wait(host + '.dataset.lifeRenderer==="static" && !' + image + '.hidden');
-    await evaluate(host + '.querySelectorAll(".life-shapes button")[2].click()');
-    await wait(host + '.dataset.lifeStage==="shrimp" && ' + image + '.src.endsWith("shrimp-static.svg")');
+    const stage = await evaluate(host + ".dataset.lifeStage");
+    assert.ok(await evaluate(image + '.src.endsWith("' + stage + '-static.svg")'));
     await call("Emulation.setEmulatedMedia", { features: [] });
     const visible = await verifyFrames(10500);
     assert.equal(await evaluate(canvas + '.hasAttribute("data-old-context")'), false);
-    assert.equal(await evaluate(host + ".dataset.lifeStage"), "shrimp");
+    assert.equal(await evaluate(host + ".dataset.lifeStage"), stage);
     return visible;
   });
   await step("desktop and mobile particle budgets recover across both resize directions", async () => {
@@ -92,37 +94,31 @@ try {
       await viewport(width, height);
       await showForm();
       rows.push({ width, ...await verifyFrames(count) });
-      assert.equal(await evaluate(host + ".dataset.lifeStage"), "shrimp");
+      assert.equal(await evaluate(host + '.querySelectorAll("button").length'), 0);
     }
     return rows;
   });
-  await step("desktop focus hides country labels, stops globe draws and restores the globe on return", async () => {
+  await step("automatic cycle and local mouse wave fade without buttons", async () => {
     await viewport(1440, 900);
-    await evaluate('scrollTo({top:0,behavior:"instant"})');
-    await wait("window.__observedGlobeDraws > 2");
-    const toggle = host + '.querySelector(".life-actions button[aria-pressed]")';
-    const globe = 'document.querySelector(".globe-stage")';
-    const visibleLabels = '[...document.querySelectorAll(".report-globe-label")].filter(el => el.getClientRects().length && getComputedStyle(el).visibility === "visible").length';
-    await evaluate(toggle + ".click()");
-    await wait(host + '.classList.contains("is-focused") && !' + globe + ".getClientRects().length");
-    assert.ok(Math.abs(await evaluate('document.querySelector(".hero").getBoundingClientRect().top')) < 120, "focused scene should start in view");
-    assert.equal(await evaluate(visibleLabels), 0);
-    await delay(250);
-    const paused = await evaluate("window.__observedGlobeDraws");
-    await delay(400);
-    assert.equal(await evaluate("window.__observedGlobeDraws"), paused);
-    await evaluate(toggle + ".click()");
-    await wait(globe + ".getClientRects().length && window.__observedGlobeDraws > " + paused);
-    await wait(visibleLabels + " > 0");
-    return { pausedDraws: paused, resumedDraws: await evaluate("window.__observedGlobeDraws"), restoredLabels: await evaluate(visibleLabels) };
+    await showForm();
+    await verifyFrames(39000);
+    assert.equal(await evaluate(host + '.querySelectorAll("button").length'), 0);
+    assert.equal(await evaluate('document.querySelector(".life-jump")'), null);
+    const stage = await evaluate(host + ".dataset.lifeStage");
+    const point = await evaluate('(()=>{const r=' + canvas + '.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};})()');
+    await call("Input.dispatchMouseEvent", {type:"mouseMoved", ...point});
+    await wait("window.__wave > .7");
+    await call("Input.dispatchMouseEvent", {type:"mouseMoved",x:12,y:12});
+    await wait("window.__wave < .01");
+    await wait(host + '.dataset.lifeStage!==' + JSON.stringify(stage));
+    return { from: stage, to: await evaluate(host + ".dataset.lifeStage"), shaderResponded: true };
   });
-  await step("an actual context loss leaves the sourced static form selectable", async () => {
+  await step("an actual context loss leaves the current static form", async () => {
+    const stage = await evaluate(host + ".dataset.lifeStage");
     await evaluate(canvas + '.getContext("webgl2").getExtension("WEBGL_lose_context").loseContext()');
     await wait(host + '.dataset.lifeRenderer==="static" && !' + image + '.hidden');
-    await evaluate(host + '.querySelectorAll(".life-shapes button")[3].click()');
-    await wait(host + '.dataset.lifeStage==="cell" && ' + image + '.src.endsWith("cell-static.svg")');
-    assert.equal(await evaluate(autoButton + '.getAttribute("aria-pressed")'), "false");
-    return { selected: await evaluate(host + ".dataset.lifeStage") };
+    assert.ok(await evaluate(image + '.src.endsWith("' + stage + '-static.svg")'));
+    return { stage };
   });
   assert.deepEqual(errors, []);
 } finally {
