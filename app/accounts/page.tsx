@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { areaNames, identityLabel, roleNames } from "@/lib/accounts/display";
+import { evaluatePassword } from "@/lib/accounts/password-strength";
+import { accountApi as api, accountMessages as messages } from "@/lib/accounts/client";
+import { SystemGrants } from "./system-grants";
+import { ApprovalQueue, ApplicationDetails } from "./approval-queue";
 import { AccessPreview } from "./access-preview";
 import { StickyHeader } from "@/components/gadews/sticky-header";
 import { useLocale } from "@/components/gadews/locale-provider";
@@ -11,71 +18,21 @@ import {
   type Account,
   type Country,
   type Model,
-  type Role,
 } from "@/lib/accounts/policy";
 import type { Dashboard } from "@/lib/accounts/service";
 
 type T = (zh: string, en: string) => string;
-const roleName: Record<Role, [string, string]> = {
-  system: ["超级管理员", "System administrator"],
-  country: ["国家管理员", "Country administrator"],
-  region: ["区域管理员", "Regional administrator"],
-  member: ["终端用户", "End user"],
-};
-const labels: Record<string, [string, string]> = {
-  A: ["示例国甲", "Country A"],
-  B: ["示例国乙", "Country B"],
-  east: ["东区", "East"],
-  west: ["西区", "West"],
-  north: ["北区", "North"],
+const labels: Record<string, readonly [string, string]> = {
+  ...areaNames,
   active: ["已启用", "Active"],
-  pending: ["待分配", "Pending assignment"],
+  pending: ["待审批", "Awaiting approval"],
   disabled: ["已停用", "Disabled"],
+  rejected: ["申请已拒绝", "Application rejected"],
   "wsd-v1.0": ["白斑病 · v1.0", "White spot disease · v1.0"],
   "tilapia-demo-score-v0.1": ["罗非鱼 · v0.1", "Tilapia · v0.1"],
   "knowledge-chat-v1": ["知识助手 · v1", "Knowledge assistant · v1"],
 };
 const label = (key: string, t: T) => (labels[key] ? t(...labels[key]) : key);
-const messages: Record<string, [string, string]> = {
-  invalid_request: [
-    "请核对用户名、密码、辖区或输入格式。",
-    "Check the username, password, jurisdiction or input.",
-  ],
-  invalid_login: ["用户名、密码有误或账号已停用。", "Invalid credentials or disabled account."],
-  name_taken: ["此用户名已使用。", "This username is already in use."],
-  login_required: ["请重新登录。", "Please sign in."],
-  model_denied: ["模型使用权未获分配。", "Model access has not been granted."],
-  out_of_scope: [
-    "此分配超出你的管理范围，请刷新。",
-    "This assignment is outside your scope. Refresh and try again.",
-  ],
-  record_denied: ["没有这条记录的读取权限。", "You do not have access to this record."],
-  store_unavailable: [
-    "账号服务暂不可用，请联系维护人员核对存储配置。",
-    "Account storage is unavailable. Contact the operator.",
-  ],
-  not_configured: [
-    "模型服务未配置，仍可运行规则演示。",
-    "The model service is not configured. The rule preview remains available.",
-  ],
-  rate_limited: ["操作较频繁，请稍后再试。", "Too many attempts. Please try again later."],
-};
-async function api(action?: string, input?: unknown) {
-  const response = await fetch(
-    "/api/accounts",
-    action
-      ? {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, input }),
-          cache: "no-store",
-        }
-      : { cache: "no-store" },
-  );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.code ?? "unavailable");
-  return data;
-}
 const card = "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7";
 const button =
   "rounded-lg bg-teal-800 px-4 py-2.5 font-semibold text-white hover:bg-teal-900 disabled:opacity-45";
@@ -84,22 +41,56 @@ const secondary =
 const field = "mt-1 block w-full rounded-lg border border-slate-400 bg-white px-3 py-2.5 text-slate-950";
 type Act = (action: string, input?: unknown) => Promise<void>;
 
+const strengthLevels = {
+  weak: { label: ["弱", "Weak"], bars: 1, fill: "bg-orange-700" },
+  medium: { label: ["中", "Medium"], bars: 2, fill: "bg-teal-600" },
+  strong: { label: ["强", "Strong"], bars: 3, fill: "bg-teal-900" },
+} as const;
+
 function Credentials({ act, busy }: { act: Act; busy: boolean }) {
   const { t } = useLocale();
-  const [signup, setSignup] = useState(false);
+  const signup = useSearchParams().get("mode") === "register";
+  if (!signup) return (
+    <section className={card}>
+      <h2 className="text-xl font-bold">{t("登录账号", "Sign in")}</h2>
+      <div className="my-5 flex flex-wrap gap-3">
+        <Link href="/login?entry=user" className={button}>{t("普通用户登录", "User sign-in")}</Link>
+        <Link href="/login?entry=admin" className={secondary}>{t("管理员登录", "Administrator sign-in")}</Link>
+      </div>
+      <Link href="/accounts?mode=register" className="text-teal-800 underline">{t("注册账号", "Create an account")}</Link>
+    </section>
+  );
+  return <RegistrationForm act={act} busy={busy} />;
+}
+
+function RegistrationForm({ act, busy }: { act: Act; busy: boolean }) {
+  const { t } = useLocale();
   const [country, setCountry] = useState<Country>("A");
+  const [password, setPassword] = useState("");
+  const checks = evaluatePassword(password);
+  const strength = strengthLevels[checks.strength];
+  const missing = [
+    !checks.longEnough && t("至少 7 个字符", "at least 7 characters"),
+    !checks.withinLimit && t("最多 128 个字符", "at most 128 characters"),
+    !checks.hasUppercase && t("一个大写英文字母（A–Z）", "an uppercase letter (A–Z)"),
+    !checks.hasSpecial && t("一个特殊字符（如 _ 或 !）", "a special character such as _ or !"),
+  ].filter(Boolean);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const input = Object.fromEntries(new FormData(form));
-    await act(signup ? "register" : "login", input);
+    const enteredPassword = String(input.password ?? "");
+    if (!evaluatePassword(enteredPassword).valid) {
+      setPassword(enteredPassword);
+      form.querySelector<HTMLInputElement>('[name="password"]')?.focus();
+      return;
+    }
+    await act("register", input);
   }
   return (
     <section className={card}>
-      <h2 className="text-xl font-bold">
-        {signup ? t("创建账号", "Create an account") : t("使用账号登录", "Sign in")}
-      </h2>
-      <form key={String(signup)} onSubmit={submit} className="mt-5 space-y-4">
+      <h2 className="text-xl font-bold">{t("创建账号", "Create an account")}</h2>
+      <form onSubmit={submit} className="mt-5 space-y-4">
         <label className="block">
           {t("用户名", "Username")}
           <input
@@ -112,14 +103,12 @@ function Credentials({ act, busy }: { act: Act; busy: boolean }) {
             autoComplete="username"
           />
         </label>
-        {signup && (
-          <p className="text-sm text-slate-600">
-            {t(
-              "用户名使用 3–40 个英文字母、数字、点、下划线或短横线；密码至少 10 个字符。",
-              "Use 3–40 letters, digits, dots, underscores or hyphens; choose a password of at least 10 characters.",
-            )}
-          </p>
-        )}
+        <p className="text-sm text-slate-600">
+          {t(
+            "用户名可用 3–40 个英文字母、数字、点、下划线或短横线。",
+            "Use 3–40 letters, digits, dots, underscores or hyphens for your username.",
+          )}
+        </p>
         <label className="block">
           {t("密码", "Password")}
           <input
@@ -127,61 +116,81 @@ function Credentials({ act, busy }: { act: Act; busy: boolean }) {
             name="password"
             type="password"
             required
-            minLength={10}
+            minLength={7}
             maxLength={128}
-            autoComplete={signup ? "new-password" : "current-password"}
+            autoComplete="new-password"
+            onChange={(event) => setPassword(event.currentTarget.value)}
+            aria-describedby="password-strength"
+            aria-invalid={password.length > 0 && !checks.valid}
           />
         </label>
-        {signup && (
-          <label className="block">
-            {t("申请身份", "Requested role")}
-            <select className={field} name="requested" defaultValue="member">
-              {(["member", "region", "country"] as const).map((r) => (
-                <option key={r} value={r}>
-                  {t(...roleName[r])}
+        <div id="password-strength" aria-live="polite" aria-atomic="true" className="space-y-2 text-sm text-slate-700">
+          {password && (
+            <div className="flex items-center gap-3">
+              <span className="font-medium">{t("密码强度", "Password strength")} · {t(strength.label[0], strength.label[1])}</span>
+              <span aria-hidden="true" className="flex w-24 gap-1">
+                {[1, 2, 3].map((bar) => (
+                  <span key={bar} className={`h-1 flex-1 rounded-full ${bar <= strength.bars ? strength.fill : "bg-slate-200"}`} />
+                ))}
+              </span>
+            </div>
+          )}
+          <p>
+            {!password
+              ? t("使用 7–128 个字符，至少包含一个大写英文字母（A–Z）和一个特殊字符（如 _ 或 !）。",
+                "Use 7–128 characters, including an uppercase letter (A–Z) and a special character such as _ or !.")
+              : !checks.valid
+                ? t("还需满足", "Still needed") + " · " + missing.join(t("、", ", "))
+                : checks.strength === "medium"
+                  ? t("已符合注册要求。若要达到“强”，使用至少 12 个字符，并包含小写字母和数字。",
+                    "You can register with this password. For a strong rating, use at least 12 characters and include a lowercase letter and a digit.")
+                  : t("已符合注册要求。", "Registration requirements met.")}
+          </p>
+        </div>
+        <label className="block">
+          {t("申请身份", "Requested role")}
+          <select className={field} name="requested" defaultValue="member">
+            {(["member", "region", "country"] as const).map((r) => (
+              <option key={r} value={r}>
+                {t(...roleNames[r])}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label>
+            {t("申请国家", "Country")}
+            <select
+              className={field}
+              name="country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value as Country)}
+            >
+              {Object.keys(areas).map((id) => (
+                <option key={id} value={id}>
+                  {label(id, t)}
                 </option>
               ))}
             </select>
           </label>
-        )}
-        {signup && (
-          <div className="grid grid-cols-2 gap-3">
-            <label>
-              {t("申请国家", "Country")}
-              <select
-                className={field}
-                name="country"
-                value={country}
-                onChange={(e) => setCountry(e.target.value as Country)}
-              >
-                {Object.keys(areas).map((id) => (
-                  <option key={id} value={id}>
-                    {label(id, t)}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              {t("申请区域", "Region")}
-              <select key={country} className={field} name="region">
-                {areas[country].map((id) => (
-                  <option key={id} value={id}>
-                    {label(id, t)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        )}
+          <label>
+            {t("申请区域", "Region")}
+            <select key={country} className={field} name="region">
+              {areas[country].map((id) => (
+                <option key={id} value={id}>
+                  {label(id, t)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <button disabled={busy} className={button}>
-          {signup ? t("注册并查看申请状态", "Register and view status") : t("登录", "Sign in")}
+          {t("注册并查看申请状态", "Register and view status")}
         </button>
       </form>
-      <button className="mt-4 text-teal-800 underline" onClick={() => setSignup(!signup)}>
-        {signup
-          ? t("已有账号？去登录", "Already registered? Sign in")
-          : t("没有账号？注册", "Create an account")}
-      </button>
+      <Link className="mt-4 inline-block text-teal-800 underline" href="/login?entry=user">
+        {t("已有账号？去登录", "Already registered? Sign in")}
+      </Link>
     </section>
   );
 }
@@ -206,7 +215,7 @@ function Assignment({ user, view, act, busy }: { user: Account; view: Dashboard;
       </summary>
       <form onSubmit={save} className="mt-4 space-y-3">
         <p>
-          {t("分配身份", "Assigned role")} · {t(...roleName[role])}
+          {t("分配身份", "Assigned role")} · {t(...roleNames[role])}
         </p>
         <label className="block">
           <input type="checkbox" name="enabled" value="yes" defaultChecked={user.status !== "disabled"} />{" "}
@@ -240,7 +249,7 @@ function Assignment({ user, view, act, busy }: { user: Account; view: Dashboard;
           </fieldset>
         )}
         <button className={button} disabled={busy}>
-          {user.status === "pending" ? t("批准并分配", "Approve assignment") : t("保存授权", "Save grants")}
+          {t("保存授权", "Save grants")}
         </button>
       </form>
     </details>
@@ -286,6 +295,12 @@ export default function AccountsPage() {
     [error, setError] = useState(""),
     [score, setScore] = useState<Preview | null>(null),
     [output, setOutput] = useState("");
+  const managedAccounts = view?.children.filter(account => account.status !== "pending") ?? [];
+  useEffect(() => {
+    if (!loading && ["#approvals", "#user-permissions"].includes(window.location.hash)) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+    }
+  }, [loading]);
   async function refresh() {
     const data = (await api()) as Dashboard | null;
     setView(data);
@@ -315,12 +330,16 @@ export default function AccountsPage() {
     try {
       if (action === "refresh") {
         await refresh();
+        window.dispatchEvent(new Event("gadews:session-changed"));
         return;
       }
       const data = await api(action, input);
       if (action === "register") {
         const { username, password } = input as { username: string; password: string };
         await api("login", { username, password });
+      }
+      if (action === "register" || action === "logout") {
+        window.dispatchEvent(new Event("gadews:session-changed"));
       }
       if (action === "preview") setScore(data);
       if (action === "detail") setOutput(JSON.stringify(data, null, 2));
@@ -337,12 +356,19 @@ export default function AccountsPage() {
             2,
           ),
         );
+      if (action === "reopen") setMessage(t("申请已返回待审批列表。", "Application returned to the pending list."));
+      if (action === "reject") setMessage(t("申请已拒绝。", "Application rejected."));
+      if (action === "approve") setMessage(t("申请已批准。", "Application approved."));
+      if (action === "systemGrant") setMessage(t("用户权限已保存。", "User permissions saved."));
       if (action === "assign") setMessage(t("授权已保存。", "Grants saved."));
       await refresh();
     } catch (e) {
       const code = e instanceof Error ? e.message : "unavailable";
       setError(code);
-      if (code === "login_required") setView(null);
+      if (code === "login_required") {
+        setView(null);
+        window.dispatchEvent(new Event("gadews:session-changed"));
+      }
       else if (view) await refresh().catch(() => setView(null));
     } finally {
       setBusy(false);
@@ -395,12 +421,10 @@ export default function AccountsPage() {
                 <div>
                   <h2 className="text-xl font-bold">{view.self.username}</h2>
                   <p>
-                    {label(view.self.status, t)} ·{" "}
-                    {view.self.status === "pending"
-                      ? t("等待管理员分配", "Awaiting assignment")
-                      : t(...roleName[view.self.role])}
-                    {view.self.role !== "system" &&
-                      " · " + label(view.self.country, t) + " / " + label(view.self.region, t)}
+                    {t(...identityLabel(view.self.role, view.self.status, view.active))}
+                    {view.active && view.self.role !== "system" && " · " + label(view.self.country, t)}
+                    {view.active && (view.self.role === "region" || view.self.role === "member") &&
+                      " / " + label(view.self.region, t)}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -412,7 +436,18 @@ export default function AccountsPage() {
                   </button>
                 </div>
               </div>
+              {(view.self.status === "pending" || view.self.status === "rejected") && <ApplicationDetails account={view.self} />}
+              {view.active && view.self.role !== "member" && (
+                <nav aria-label={t("账号管理操作", "Account management actions")} className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-4 text-sm font-semibold text-teal-800">
+                  <a className="underline underline-offset-4" href="#approvals">{t("待审批申请", "Pending applications")} ({view.approvals.length})</a>
+                  {view.self.role === "system" && <a className="underline underline-offset-4" href="#user-permissions">{t("用户权限管理", "User permissions")}</a>}
+                </nav>
+              )}
             </section>
+            {view.active && view.self.role !== "member" && (
+              <ApprovalQueue view={view} approve={input => act("approve", input)} reject={input => act("reject", input)} busy={busy} />
+            )}
+            {view.active && view.self.role === "system" && <SystemGrants accounts={view.systemAccounts} busy={busy} save={act} modelLabel={label} />}
             {view.active && (
               <>
                 <section className={card}>
@@ -428,14 +463,14 @@ export default function AccountsPage() {
                   </p>
                 </section>
                 {view.engine && <p className="text-sm text-slate-600">{t("AI 服务配置","AI service configuration")} · {view.engine.model || t("未指定","Unspecified")} · {view.engine.configured ? t("已配置，实际状态以调用回执为准","Configured; availability is checked on request") : t("未配置，规则演示可用","Not configured; offline previews available")}</p>}
-                {view.self.role !== "member" && (
+                {(view.self.role === "country" || view.self.role === "region") && (
                   <section className={card}>
                     <h2 className="text-xl font-bold">
                       {t("管理下一级账号", "Manage subordinate accounts")}
                     </h2>
                     <div className="mt-4 space-y-3">
-                      {view.children.length
-                        ? view.children.map((u) => (
+                      {managedAccounts.length
+                        ? managedAccounts.map((u) => (
                             <Assignment
                               key={JSON.stringify([u, view.assignable])}
                               user={u}
@@ -445,8 +480,8 @@ export default function AccountsPage() {
                             />
                           ))
                         : t(
-                            "当前范围内没有待分配或直属账号。",
-                            "No pending or directly managed accounts in this scope.",
+                            "当前没有已归属的下一级账号。",
+                            "No subordinate accounts assigned yet.",
                           )}
                     </div>
                   </section>
@@ -459,8 +494,14 @@ export default function AccountsPage() {
                     <ul className="mt-3 divide-y">
                       {view.directory.map((a) => (
                         <li className="py-2" key={a.username}>
-                          {a.username} · {t(...roleName[a.status === "pending" ? a.requested : a.role])} ·{" "}
+                          {a.username} · {t(...roleNames[(a.status === "pending" || a.status === "rejected") ? a.requested : a.role])} ·{" "}
                           {label(a.country, t)} / {label(a.region, t)} · {label(a.status, t)}
+                          {a.status === "rejected" && (
+                            <button type="button" disabled={busy} onClick={() => act("reopen", { id: a.id })}
+                              className="ml-3 rounded-md border border-teal-700 px-3 py-1.5 font-medium text-teal-800 hover:bg-teal-50">
+                              {t("重新审核", "Reopen application")}
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>

@@ -18,7 +18,7 @@ export interface Account {
   region: string;
   role: Role;
   requested: Role;
-  status: "pending" | "active" | "disabled";
+  status: "pending" | "active" | "disabled" | "rejected";
   parent: string | null;
   models: Model[];
   records: string[];
@@ -31,7 +31,8 @@ export class AccountError extends Error {
     super(code);
   }
 }
-export function sameArea(actor: Account, target: Account) {
+type Scope = Pick<Account, "country" | "region">;
+export function sameArea(actor: Scope & Pick<Account, "role">, target: Scope) {
   return (
     actor.role === "system" ||
     (actor.country === target.country && (actor.role === "country" || actor.region === target.region))
@@ -40,11 +41,18 @@ export function sameArea(actor: Account, target: Account) {
 export function childRole(role: Role): Role | undefined {
   return ({ system: "country", country: "region", region: "member", member: undefined } as const)[role];
 }
+export function isApprovalParent(parent: Scope & Pick<Account, "role">, applicant: Scope & Pick<Account, "requested">) {
+  return childRole(parent.role) === applicant.requested && sameArea(parent, applicant);
+}
+export function canApprove(actor: Account, applicant: Account) {
+  return actor.id !== applicant.id && applicant.requested !== "system" && applicant.status === "pending" &&
+    (actor.role === "system" || isApprovalParent(actor, applicant));
+}
 export function canManage(actor: Account, target: Account) {
-  if (actor.id === target.id || !childRole(actor.role) || !sameArea(actor, target)) return false;
+  if (target.status === "rejected" || actor.id === target.id || !childRole(actor.role) || !sameArea(actor, target)) return false;
   return target.status === "pending"
     ? target.requested === childRole(actor.role)
-    : target.parent === actor.id;
+    : target.parent === actor.id && (actor.role === "system" || childRole(actor.role) === target.role);
 }
 export function access(account: Account, accounts: Account[]) {
   let current = account;
@@ -54,7 +62,7 @@ export function access(account: Account, accounts: Account[]) {
     const parent = accounts.find((item) => item.id === current.parent);
     if (
       !parent ||
-      childRole(parent.role) !== current.role ||
+      (parent.role !== "system" && childRole(parent.role) !== current.role) ||
       !sameArea(parent, current) ||
       parent.status !== "active"
     ) {

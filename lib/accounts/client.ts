@@ -1,0 +1,47 @@
+export const accountMessages: Record<string, [string, string]> = {
+  approval_parent_missing: ["该辖区缺少已启用的直属管理员，请先批准或启用上一级账号。", "This jurisdiction needs an active supervising administrator. Approve or enable one first."],
+  approval_parent_required: ["请选择该申请的直属管理员。", "Select a supervising administrator for this application."],
+  approval_processed: ["该申请已处理，列表已刷新。", "This application was already processed. The list has been refreshed."],
+  invalid_request: [
+    "请核对用户名、密码、辖区或输入格式。",
+    "Check the username, password, jurisdiction or input.",
+  ],
+  password_policy: [
+    "请使用 7–128 个字符，包含大写英文字母（A–Z）和特殊字符（如 _ 或 !）。",
+    "Use 7–128 characters, including an uppercase letter (A–Z) and a special character such as _ or !.",
+  ],
+  invalid_login: ["用户名、密码有误或账号已停用。", "Invalid credentials or disabled account."],
+  name_taken: ["此用户名已使用。", "This username is already in use."],
+  login_required: ["请重新登录。", "Please sign in."],
+  model_denied: ["模型使用权未获分配。", "Model access has not been granted."],
+  out_of_scope: [
+    "此分配超出你的管理范围，请刷新。",
+    "This assignment is outside your scope. Refresh and try again.",
+  ],
+  record_denied: ["没有这条记录的读取权限。", "You do not have access to this record."],
+  store_unavailable: [
+    "账号服务暂不可用，请联系维护人员核对存储配置。",
+    "Account storage is unavailable. Contact the operator.",
+  ],
+  not_configured: [
+    "模型服务未配置，仍可运行规则演示。",
+    "The model service is not configured. The rule preview remains available.",
+  ],
+  rate_limited: ["操作较频繁，请稍后再试。", "Too many attempts. Please try again later."],
+};
+export async function accountApi(action?: string, input?: unknown) {
+  const response = await fetch(
+    "/api/accounts",
+    action
+      ? {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, input }),
+          cache: "no-store",
+        }
+      : { cache: "no-store" },
+  );
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.code ?? "unavailable");
+  return data;
+}

@@ -4,6 +4,9 @@ import { createAiAssessmentHandler } from "@/lib/gadews/ai-assessment/handler";
 import { AccountError, catalog } from "@/lib/accounts/policy";
 import { accountDb } from "@/lib/accounts/storage";
 import {
+  approve,
+  reviewApplication,
+  systemGrant,
   assign,
   authorize,
   dashboard,
@@ -21,7 +24,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 65;
 const envelope = z
   .object({
-    action: z.enum(["register", "login", "logout", "assign", "detail", "preview", "ai"]),
+    action: z.enum(["register", "login", "logout", "approve", "reject", "reopen", "systemGrant", "assign", "detail", "preview", "ai"]),
     input: z.unknown().optional(),
   })
   .strict();
@@ -59,6 +62,18 @@ export async function POST(request: Request) {
         maxAge: value ? sessionSeconds : 0,
       });
       return response;
+    }
+    if (action === "approve") {
+      await approve(db, token, input);
+      return reply({ ok: true });
+    }
+    if (action === "reject" || action === "reopen") {
+      await reviewApplication(db, token, action, input);
+      return reply({ ok: true });
+    }
+    if (action === "systemGrant") {
+      await systemGrant(db, token, input);
+      return reply({ ok: true });
     }
     if (action === "assign") {
       await assign(db, token, input);
