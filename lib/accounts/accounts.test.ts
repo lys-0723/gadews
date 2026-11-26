@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { createClient } from "@libsql/client";
 import { initAccounts } from "./storage";
 import { AccountError } from "./policy";
-import { assign, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
+import { approve, assign, systemGrant, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
 import { previewScore, sampleRequest } from "./samples";
 import { catalog } from "./policy";
 import { evaluatePassword } from "./password-strength";
@@ -126,4 +126,107 @@ test("registration strength rules preserve existing sign-in and accept seven-cha
   assert.equal(signup("A_".padEnd(128, "x")), true);
   assert.equal(signup("legacy-password"), false);
   assert.equal(loginCredentials.safeParse({ username: "reader", password: "legacy-password" }).success, true);
+});
+
+test("system can approve all roles, delegate ownership or directly override account privileges", async (t) => {
+  const dir = await mkdtemp(join(tmpdir(), "gadews-approval-test-"));
+  const db = await initAccounts(createClient({ url: "file:" + join(dir, "test.db") }));
+  t.after(async () => {
+    db.close();
+    await rm(dir, { recursive: true, force: true });
+  });
+  const password = "Q_" + randomBytes(16).toString("hex");
+  await bootstrap(db, { username: "owner", password });
+  const owner = await login(db, { username: "owner", password });
+  async function signup(username: string, requested: string, country = "A", region = "east") {
+    await register(db, { username, password, requested, country, region });
+    const token = await login(db, { username, password });
+    const { self } = await dashboard(db, token);
+    return { token, id: self.id };
+  }
+  const rejected = (code: string) => (err: unknown) => err instanceof AccountError && err.code === code;
+  const country = await signup("country", "country");
+  const foreign = await signup("foreign", "country", "B", "north");
+  const east = await signup("eastern", "region");
+  const east2 = await signup("another", "region");
+  const member = await signup("member", "member");
+  const abroad = await signup("abroad", "member", "B", "north");
+  const initial = await dashboard(db, owner);
+  assert.equal(initial.approvals.length, 6);
+  assert.equal(initial.approvalParents.length, 0);
+  await approve(db, owner, { id: abroad.id });
+  assert.equal((await dashboard(db, abroad.token)).self.parent, initial.self.id);
+  assert.equal((await dashboard(db, abroad.token)).active, true);
+  assert.equal(initial.systemAccounts.length, 6);
+  assert.equal((await dashboard(db, abroad.token)).systemAccounts.length, 0);
+  await assert.rejects(approve(db, country.token, { id: east.id }), rejected("out_of_scope"));
+
+  await approve(db, owner, { id: country.id });
+  await approve(db, owner, { id: foreign.id });
+  const countryView = await dashboard(db, country.token);
+  assert.deepEqual(countryView.approvals.map((a) => a.id).sort(), [east.id, east2.id].sort());
+  assert.equal(countryView.approvalParents.length, 0);
+  await assert.rejects(approve(db, foreign.token, { id: east.id }), rejected("out_of_scope"));
+  await assert.rejects(approve(db, owner, { id: east.id, parentId: foreign.id }), rejected("out_of_scope"));
+  await approve(db, owner, { id: east.id });
+  assert.equal((await dashboard(db, east.token)).self.parent, country.id);
+  await approve(db, country.token, { id: east2.id });
+  assert.deepEqual((await dashboard(db, east.token)).approvals.map((a) => a.id), [member.id]);
+
+  await assert.rejects(approve(db, owner, { id: member.id }), rejected("approval_parent_required"));
+  await assert.rejects(approve(db, east.token, { id: member.id, parentId: east2.id }), rejected("out_of_scope"));
+  await assert.rejects(approve(db, east.token, { id: abroad.id }), rejected("out_of_scope"));
+  await approve(db, owner, { id: member.id, parentId: east2.id });
+  const view = await dashboard(db, member.token);
+  assert.equal(view.active, true);
+  assert.equal(view.self.role, "member");
+  assert.equal(view.self.parent, east2.id);
+  assert.deepEqual(view.models, []);
+  assert.deepEqual(view.records, []);
+  assert.deepEqual(view.approvals, []);
+  assert.deepEqual((await dashboard(db, owner)).records, []);
+  await assert.rejects(approve(db, owner, { id: member.id, parentId: east.id }), rejected("approval_processed"));
+  assert.equal((await dashboard(db, member.token)).self.parent, east2.id);
+  const second = await signup("second", "member");
+  await approve(db, east.token, { id: second.id });
+  assert.equal((await dashboard(db, second.token)).self.parent, east.id);
+
+  await assign(db, owner, { id: country.id, enabled: false, models: [], records: [] });
+  const parents = (await dashboard(db, owner)).approvalParents;
+  assert.deepEqual(parents.map((a) => a.id), [foreign.id]);
+  const remaining = await signup("remaining", "member");
+  await assert.rejects(approve(db, owner, { id: remaining.id, parentId: east.id }), rejected("out_of_scope"));
+  assert.equal((await dashboard(db, remaining.token)).self.status, "pending");
+  const override = {
+    id: remaining.id, role: "member", country: "A", region: "east", enabled: true,
+    models: ["wsd-v1.0"], records: ["E-01"],
+  };
+  await assert.rejects(systemGrant(db, foreign.token, override), rejected("out_of_scope"));
+  await assert.rejects(systemGrant(db, owner, { ...override, id: initial.self.id }), rejected("out_of_scope"));
+  await assert.rejects(systemGrant(db, owner, { ...override, records: ["N-01"] }), rejected("out_of_scope"));
+  await systemGrant(db, owner, override);
+  await authorize(db, remaining.token, "wsd-v1.0", "E-01");
+  await assign(db, owner, { id: remaining.id, enabled: true, models: [], records: [] });
+  assert.equal((await dashboard(db, remaining.token)).self.role, "member");
+  await assert.rejects(authorize(db, remaining.token, "wsd-v1.0"), rejected("model_denied"));
+  await systemGrant(db, owner, { ...override, enabled: false });
+  await assert.rejects(dashboard(db, remaining.token), rejected("login_required"));
+  await systemGrant(db, owner, { ...override, enabled: true });
+  const restored = await login(db, { username: "remaining", password });
+  await authorize(db, restored, "wsd-v1.0", "E-01");
+
+  // Re-enable the former country hierarchy. A move must invalidate incompatible descendants.
+  await assign(db, owner, { id: country.id, enabled: true, models: [], records: [] });
+  const oldSession = await login(db, { username: "second", password });
+  assert.equal((await dashboard(db, oldSession)).active, true);
+  await systemGrant(db, owner, { ...override, id: country.id, role: "region", records: [], region: "west" });
+  await assert.rejects(dashboard(db, oldSession), rejected("login_required"));
+  assert.equal((await dashboard(db, owner)).systemAccounts.find((a) => a.id === east.id)?.status, "disabled");
+  const movedSession = await login(db, { username: "country", password });
+  const moved = await dashboard(db, movedSession);
+  assert.equal(moved.active, true);
+  assert.equal(moved.self.region, "west");
+  assert.equal(moved.self.role, "region");
+  await assert.rejects(assign(db, movedSession, { id: east.id, enabled: true, models: [], records: [] }),
+    rejected("out_of_scope"));
 });

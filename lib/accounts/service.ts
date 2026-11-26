@@ -4,7 +4,7 @@ import type { SessionIdentity } from "./display";
 import type { Client } from "@libsql/client";
 import { z } from "zod";
 import { readAssistantConfig } from "../gadews/assistant/config";
-import { access, AccountError, areas, canManage, catalog, childRole, models, type Model } from "./policy";
+import { access, AccountError, areas, canApprove, canManage, catalog, isApprovalParent, models, type Account, type Model } from "./policy";
 import { accounts, inWrite } from "./storage";
 
 export const nameSchema = z
@@ -24,6 +24,7 @@ export const registration = newCredentials
     region: z.enum(["east", "west", "north"]),
   })
   .refine((v) => (areas[v.country] as readonly string[]).includes(v.region));
+const approval = z.object({ id: z.string().uuid(), parentId: z.string().uuid().optional() }).strict();
 export const assignment = z
   .object({
     id: z.string().uuid(),
@@ -32,6 +33,11 @@ export const assignment = z
     records: z.array(z.string().max(20)).max(4),
   })
   .strict();
+const systemAssignment = assignment.extend({
+  role: z.enum(["country", "region", "member"]),
+  country: z.enum(["A", "B"]),
+  region: z.enum(["east", "west", "north"]),
+}).refine((v) => (areas[v.country] as readonly string[]).includes(v.region));
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 const lifetime = 60 * 60 * 24 * 7;
 export const sessionCookie = "gadews_account";
@@ -122,6 +128,11 @@ export async function sessionIdentity(db: Client, token: string): Promise<Sessio
   return { username, role, country, region, status, active: rights.active };
 }
 
+function activeApprovalParents(all: Account[]) {
+  return all.filter((account) => (account.role === "country" || account.role === "region") &&
+    access(account, all).active);
+}
+
 export async function dashboard(db: Client, token: string) {
   const { all, self, rights } = await identity(db, token);
   const directory =
@@ -145,6 +156,11 @@ export async function dashboard(db: Client, token: string) {
   return {
     engine,
     directory,
+    systemAccounts: self.role === "system" && rights.active ? all.filter((a) => a.role !== "system") : [],
+    approvals: rights.active ? all.filter((a) => canApprove(self, a)) : [],
+    approvalParents: rights.active && self.role === "system"
+      ? activeApprovalParents(all).map(({ id, username, role, country, region }) => ({ id, username, role, country, region }))
+      : [],
     self,
     active: rights.active,
     models: rights.usable,
@@ -161,20 +177,79 @@ export async function dashboard(db: Client, token: string) {
   };
 }
 export type Dashboard = Awaited<ReturnType<typeof dashboard>>;
+export async function approve(db: Client, token: string, input: unknown) {
+  const { id, parentId } = approval.parse(input);
+  await inWrite(db, async (tx) => {
+    const { all, self, rights } = await identity(tx, token);
+    const applicant = all.find((a) => a.id === id);
+    if (!rights.active || !applicant) throw new AccountError(403, "out_of_scope");
+    if (applicant.status !== "pending" && (self.role === "system" || canManage(self, applicant)))
+      throw new AccountError(409, "approval_processed");
+    if (!canApprove(self, applicant)) throw new AccountError(403, "out_of_scope");
+
+    // The approver and the ongoing direct manager can be different people.
+    const parents = (self.role === "system" && parentId === self.id) || isApprovalParent(self, applicant) ? [self] :
+      activeApprovalParents(all).filter((p) => isApprovalParent(p, applicant));
+    if (!parents.length && self.role === "system") parents.push(self);
+    if (!parentId && parents.length > 1) throw new AccountError(409, "approval_parent_required");
+    const parent = parentId ? parents.find((p) => p.id === parentId) : parents[0];
+    if (!parent) throw new AccountError(403, "out_of_scope");
+
+    const result = await tx.execute({
+      sql: "UPDATE accounts SET role=requested, status='active', parent=?, models='[]', records='[]' WHERE id=? AND status='pending'",
+      args: [parent.id, applicant.id],
+    });
+    if (!result.rowsAffected) throw new AccountError(409, "approval_processed");
+  });
+}
+
+const revokeBranchSessions = `
+  WITH RECURSIVE branch(id) AS (
+    SELECT id FROM accounts WHERE id=? UNION ALL SELECT a.id FROM accounts a JOIN branch b ON a.parent=b.id
+  ) DELETE FROM sessions WHERE account IN (SELECT id FROM branch)`;
+
+function recordsInScope(records: string[], role: Account["role"], target: Pick<Account, "country" | "region">) {
+  return records.every((id) => role === "member" && catalog.some(
+    (r) => r.id === id && r.country === target.country && r.region === target.region,
+  ));
+}
+
+export async function systemGrant(db: Client, token: string, input: unknown) {
+  const v = systemAssignment.parse(input);
+  await inWrite(db, async (tx) => {
+    const { self, all, rights } = await identity(tx, token);
+    const target = all.find((a) => a.id === v.id);
+    if (!rights.active || self.role !== "system" || !target || target.role === "system" ||
+        !recordsInScope(v.records, v.role, v)) throw new AccountError(403, "out_of_scope");
+
+    const scopeChanged = target.role !== v.role || target.country !== v.country || target.region !== v.region;
+    // Preserve a pending applicant's session so it can observe the initial approval.
+    if (!v.enabled || (scopeChanged && target.status !== "pending"))
+      await tx.execute({ sql: revokeBranchSessions, args: [target.id] });
+    if (scopeChanged) {
+      for (const child of all.filter((a) => a.parent === target.id && a.status === "active")) {
+        if (!isApprovalParent(v, { ...child, requested: child.role }))
+          await tx.execute({ sql: "UPDATE accounts SET status='disabled' WHERE id=?", args: [child.id] });
+      }
+    }
+    await tx.execute({
+      sql: "UPDATE accounts SET role=?,country=?,region=?,parent=?,status=?,models=?,records=? WHERE id=?",
+      args: [v.role, v.country, v.region, self.id, v.enabled ? "active" : "disabled",
+        JSON.stringify([...new Set(v.models)]), JSON.stringify([...new Set(v.records)]), target.id],
+    });
+  });
+}
+
 export async function assign(db: Client, token: string, input: unknown) {
   const v = assignment.parse(input);
   await inWrite(db, async (tx) => {
     const { all, self, rights } = await identity(tx, token);
     const target = all.find((a) => a.id === v.id);
     if (!rights.active || !target || !canManage(self, target)) throw new AccountError(403, "out_of_scope");
-    const role = childRole(self.role)!;
+    const role = target.status === "pending" ? target.requested : target.role;
     if (
       v.models.some((m) => !rights.assignable.includes(m)) ||
-      v.records.some(
-        (id) =>
-          role !== "member" ||
-          !catalog.some((r) => r.id === id && r.country === target.country && r.region === target.region),
-      )
+      !recordsInScope(v.records, role, target)
     )
       throw new AccountError(403, "out_of_scope");
     await tx.execute({
@@ -190,7 +265,7 @@ export async function assign(db: Client, token: string, input: unknown) {
     });
     if (!v.enabled)
       await tx.execute({
-        sql: "WITH RECURSIVE branch(id) AS (SELECT id FROM accounts WHERE id=? UNION ALL SELECT a.id FROM accounts a JOIN branch b ON a.parent=b.id) DELETE FROM sessions WHERE account IN (SELECT id FROM branch)",
+        sql: revokeBranchSessions,
         args: [target.id],
       });
   });
