@@ -18,13 +18,15 @@ import {
   type Feed,
 } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentMaps {
+  onSiteChange?: (site: Site) => void;
+  day?: string;
   heatMonth: number;
   delivery: Delivery | null;
   layer: OceanLayer;
   points: boolean;
   site: Site | null;
 }
-function ReferenceDetail({ site, feeds, now }: { site: Site; feeds: Feed[]; now: number }) {
+function ReferenceDetail({ site, feeds, now, day }: { site: Site; feeds: Feed[]; now: number; day?: string }) {
   const { t } = useLocale();
   const keys =
     site === "offshore"
@@ -45,7 +47,9 @@ function ReferenceDetail({ site, feeds, now }: { site: Site; feeds: Feed[]; now:
               {f ? t(...names[f.id]) : id} · {t("资料不足", "Insufficient data")}
             </p>
           );
-        const i = timeIndex(s.times, now),
+        const i = day ? s.times.findIndex(time => time.slice(0, 10) === day) : timeIndex(s.times, now);
+        if (i < 0) return <p key={id}>{t(...names[f.id])} · {t("所选日无资料", "No data for this day")}</p>;
+        const
           field = s.fields.find((v) => v.key === "precipitation") ?? s.fields[0],
           value = field.values[i];
         return (
@@ -106,7 +110,7 @@ function MarineTiles({
     </>
   );
 }
-export function EnvironmentLayers({ delivery, layer, points, site, heatMonth }: EnvironmentMaps) {
+export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, day, onSiteChange }: EnvironmentMaps) {
   const map = useMap(),
     { t } = useLocale();
   useEffect(() => {
@@ -154,6 +158,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth }: 
           <CircleMarker
             key={id}
             center={[station[id][2], station[id][3]]}
+            eventHandlers={{click: () => onSiteChange?.(id)}}
             radius={8}
             pathOptions={{ color: "#f1ffff", weight: 2, fillColor: "#126c79", fillOpacity: 1 }}
           >
@@ -161,7 +166,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth }: 
               {t(station[id][0], station[id][1])} · {t("环境代表点", "Environmental reference")}
             </Tooltip>
             <Popup>
-              <ReferenceDetail site={id} feeds={feeds} now={delivery.asOf} />
+              <ReferenceDetail site={id} feeds={feeds} now={delivery.asOf} day={day} />
             </Popup>
           </CircleMarker>
         ))}

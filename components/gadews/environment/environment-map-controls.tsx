@@ -13,6 +13,7 @@ import {
 import { heatColors } from "@/lib/gadews/environment/heat-grid";
 import { oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentControls {
+  hideSitePicker?: boolean;
   heatMonth: number;
   onHeatMonth: (month: number) => void;
   delivery: Delivery | null;
@@ -26,6 +27,7 @@ export interface EnvironmentControls {
   onSite: (v: Site | null) => void;
 }
 export function OceanControls({
+  hideSitePicker = false,
   heatMonth, onHeatMonth, delivery,
   failed,
   retry,
@@ -47,7 +49,7 @@ export function OceanControls({
         <input type="checkbox" checked={points} onChange={(e) => onPoints(e.target.checked)} />
         {t("天气、海况与河流代表点", "Weather, marine and river reference points")}
       </label>
-      <label className="block">
+      {!hideSitePicker && <label className="block">
         {t("定位到代表点", "Locate a reference point")}
         <select
           className={control}
@@ -61,7 +63,7 @@ export function OceanControls({
             </option>
           ))}
         </select>
-      </label>
+      </label>}
       <label className="block">
         {t("海洋资料图层", "Marine evidence layer")}
         <select className={control} value={layer} onChange={(e) => onLayer(e.target.value as OceanLayer)}>

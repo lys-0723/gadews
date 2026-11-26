@@ -38,7 +38,7 @@
     "accounts:init-admin": "tsx scripts/init-account-admin.ts",
     "test:accounts": "tsx --test lib/accounts/accounts.test.ts",
     "sync:environment": "python3 scripts/sync_environment.py",
-    "test:environment": "tsx --test lib/gadews/environment/snapshot.test.ts && python3 -m unittest scripts.test_sync_environment -v"
+    "test:environment": "tsx --test lib/gadews/environment/snapshot.test.ts lib/gadews/environment/regional-evidence.test.ts && python3 -m unittest scripts.test_sync_environment -v"
   },
   "dependencies": {
     "@ai-sdk/openai": "4.0.105",
