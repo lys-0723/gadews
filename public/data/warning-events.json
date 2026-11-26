@@ -1,0 +1,36 @@
+[
+  {
+    "id": "demo-warning-001",
+    "disease_id": "wssv-demo",
+    "site_id": "demo-site-001",
+    "alert_level": "critical",
+    "risk_score": 88,
+    "title": "Synthetic WSSV Environmental Risk Alert",
+    "summary": "Demo alert generated from fictional rainfall, salinity, oxygen, ammonia, and proximity inputs.",
+    "triggered_rules": [
+      "salinityDrop24h > 5",
+      "rainfall24h > 30",
+      "doMin < 4",
+      "ammonia > 1",
+      "nearbyOutbreakKm <= 5"
+    ],
+    "issued_at": "2026-05-17T12:15:00+08:00",
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional warning for software UI demonstration only."
+  },
+  {
+    "id": "demo-warning-002",
+    "disease_id": "wssv-demo",
+    "site_id": "demo-site-002",
+    "alert_level": "low",
+    "risk_score": 18,
+    "title": "Synthetic Low Risk Monitoring Notice",
+    "summary": "Demo notice generated from stable fictional environmental inputs.",
+    "triggered_rules": [],
+    "issued_at": "2026-05-17T12:15:00+08:00",
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional warning for software UI demonstration only."
+  }
+]

@@ -5,11 +5,43 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test": "npm run test:aquaculture && npm run test:restore && npm run test:calendar && npm run test:requests && npm run test:surveillance && npm run test:warning && npm run test:tilapia:conversion && npm run test:tilapia && npm run test:workbench && npm run test:monitoring && npm run test:experience && npm run test:assistant && npm run test:life && npm run test:ai-assessment && npm run test:accounts",
+    "test:aquaculture": "tsx --test lib/aquaculture/rich-link-signature.test.ts lib/aquaculture/normalize.test.ts lib/aquaculture/config.test.ts lib/aquaculture/collector.test.ts",
+    "fetch:nasa-power": "tsx scripts/fetch-nasa-power.ts",
+    "db:init:aquaculture": "tsx scripts/init-aquaculture-db.ts",
+    "collect:rich-link": "tsx scripts/collect-rich-link.ts",
+    "poll:rich-link": "tsx scripts/collect-rich-link.ts --watch",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --max-warnings 0",
+    "data:restore": "tsx scripts/restore-runtime-data.ts",
+    "data:verify": "tsx scripts/restore-runtime-data.ts --verify",
+    "typecheck": "tsc --noEmit",
+    "test:restore": "tsx --test scripts/restore-runtime-data.test.ts",
+    "test:calendar": "tsx --test components/ui/calendar.test.tsx",
+    "test:requests": "tsx --test lib/aquaculture/request-validation.test.ts lib/aquaculture/request-handlers.test.ts",
+    "check": "npm run data:restore && npm run data:verify && npm run data:verify:surveillance && npm run data:verify:tilapia && npm run data:verify:visuals && npm run lint && npm run typecheck && npm test && npm run build",
+    "test:surveillance": "tsx --test lib/gadews/public-surveillance.test.ts scripts/publish-surveillance-data.test.ts lib/gadews/public-surveillance-loader.test.ts hooks/use-public-surveillance.test.tsx lib/gadews/regional-monitoring-demo.test.ts components/gadews/home/recent-snapshot-events.test.tsx components/gadews/risk-map/public-layers.test.tsx",
+    "data:publish:surveillance": "tsx scripts/publish-surveillance-data.ts",
+    "data:verify:surveillance": "tsx scripts/publish-surveillance-data.ts --check",
+    "test:warning": "tsx --test lib/gadews/wsd-assessment.test.ts lib/gadews/assessment-presentation.test.ts components/gadews/warning-tools/wsd-risk-model.test.tsx lib/gadews/assessment-context.test.ts lib/gadews/assessment-report.test.ts components/gadews/warning-tools/assessment-result-panel.test.tsx",
+    "data:build:tilapia": "python3 scripts/convert_tilapia_knowledge.py",
+    "data:verify:tilapia": "python3 scripts/convert_tilapia_knowledge.py --check-published",
+    "test:tilapia:conversion": "python3 -m unittest scripts.test_convert_tilapia_knowledge -v",
+    "test:tilapia": "tsx --test lib/gadews/tilapia-assessment.test.ts lib/gadews/tilapia-prediction.test.ts",
+    "test:workbench": "tsx --test components/gadews/warning-tools/tilapia-form.test.ts components/gadews/warning-tools/warning-workbench.test.tsx",
+    "test:monitoring": "tsx --test lib/aquaculture/monitoring-types.test.ts lib/aquaculture/monitoring-publication.test.ts lib/aquaculture/monitoring-quality.test.ts lib/aquaculture/monitoring-handlers.test.ts lib/gadews/wsd-monitoring.test.ts components/gadews/warning-tools/monitoring-evidence-panel.test.tsx lib/gadews/monitoring-source.test.ts lib/gadews/monitoring-demo.test.ts",
+    "test:experience": "tsx --test lib/gadews/i18n/locale.test.tsx components/gadews/site-header.test.tsx components/gadews/overview/overview-locale.test.tsx components/gadews/risk-map/map-locale.test.tsx components/gadews/knowledge/literature-locale.test.tsx components/gadews/knowledge/value-locale.test.tsx components/gadews/warning-tools/workbench-locale.test.tsx lib/gadews/globe-reports.test.ts components/gadews/home/report-globe.test.tsx lib/gadews/media-policy.test.ts components/gadews/home/ocean-film.test.tsx components/gadews/home/hero-intro.test.tsx",
+    "data:verify:visuals": "node scripts/verify-ocean-assets.mjs",
+    "test:assistant": "tsx --test lib/gadews/assistant/*.test.ts components/gadews/assistant/knowledge-assistant.test.tsx",
+    "test:life": "tsx --test lib/gadews/life-visuals.test.ts scripts/publish-life-visuals.test.ts components/gadews/home/life-particles.test.tsx",
+    "test:ai-assessment": "tsx --test lib/gadews/ai-assessment/*.test.ts components/gadews/warning-tools/ai-assessment-panel.test.tsx components/gadews/warning-tools/ai-assessment-integration.test.tsx",
+    "accounts:init-admin": "tsx scripts/init-account-admin.ts",
+    "test:accounts": "tsx --test lib/accounts/accounts.test.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai": "4.0.105",
     "@hookform/resolvers": "^3.9.1",
+    "@libsql/client": "0.18.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
     "@radix-ui/react-aspect-ratio": "1.1.1",
@@ -37,6 +69,7 @@
     "@radix-ui/react-toggle": "1.1.1",
     "@radix-ui/react-toggle-group": "1.1.1",
     "@radix-ui/react-tooltip": "1.1.6",
+    "ai": "7.0.157",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -47,10 +80,11 @@
     "input-otp": "1.4.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.544.0",
-    "next": "16.1.6",
+    "next": "16.4.6",
     "next-themes": "^0.4.6",
+    "pg": "^8.23.0",
     "react": "19.2.3",
-    "react-day-picker": "8.10.1",
+    "react-day-picker": "9.11.1",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.54.1",
     "react-leaflet": "^5.0.0",
@@ -59,17 +93,28 @@
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "three": "0.180.0",
     "vaul": "^1.1.2",
-    "zod": "^3.24.1"
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.13",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/user-event": "14.6.1",
+    "@types/jsdom": "21.1.7",
     "@types/leaflet": "^1.9.21",
-    "@types/node": "^22",
+    "@types/node": "24.10.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
+    "@types/three": "0.180.0",
+    "eslint": "9.39.1",
+    "eslint-config-next": "16.4.6",
+    "jsdom": "26.1.0",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.22.1",
     "typescript": "5.7.3"
   },
   "pnpm": {
@@ -77,5 +122,9 @@
       "@types/react": "19.2.7",
       "@types/react-dom": "19.2.3"
     }
-  }
+  },
+  "engines": {
+    "node": ">=24.13.1 <25"
+  },
+  "packageManager": "npm@11.20.0"
 }

@@ -1,36 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { ShieldCheck, Home, ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useMemo, useState } from "react";
+import { StickyHeader } from "@/components/gadews/sticky-header";
+import { useLocale } from "@/components/gadews/locale-provider";
+import { RegionalDemoPanel } from "@/components/gadews/risk-map/regional-demo-panel";
+import { getRegionalDemoSummary, type RegionalDemoRadius, type RegionalDemoSiteId } from "@/lib/gadews/regional-monitoring-demo";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { MapCanvas } from "@/components/gadews/risk-map/map-canvas";
 import { LayerControlPanel } from "@/components/gadews/risk-map/layer-control-panel";
 import { TimelineController } from "@/components/gadews/risk-map/timeline-controller";
 import { LegendToolkit } from "@/components/gadews/risk-map/legend-toolkit";
+import type { QaadStatusFilter } from "@/components/gadews/risk-map/qaad-surveillance-layer";
+import type { DiseaseFilter, LayerStats } from "@/components/gadews/risk-map/woah-wahis-layer";
 
 export default function RiskMapPage() {
+  const { t } = useLocale();
   const [layers, setLayers] = useState({
+    regionalDemo: false,
     boundaries: false,
     waterSystems: false,
     farmDensity: false,
     sst: false,
     chlorophyll: false,
     rainfall: false,
-    heatmap: true,
-    cases: true,
+    heatmap: false,
+    cases: false,
     coverage: false,
+    wahis: true,
+    qaad: true,
   });
 
+  const [siteId, setSiteId] = useState<RegionalDemoSiteId>("A");
+  const [radius, setRadius] = useState<RegionalDemoRadius>(3000);
+  const summary = useMemo(() => layers.regionalDemo ? getRegionalDemoSummary(siteId, radius) : undefined, [layers.regionalDemo, siteId, radius]);
   const [panelOpen, setPanelOpen] = useState(true);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
+  const [diseaseFilter, setDiseaseFilter] = useState<DiseaseFilter>("all");
+  const [qaadStatusFilter, setQaadStatusFilter] = useState<QaadStatusFilter>("priority");
+  const [wahisStats, setWahisStats] = useState<LayerStats>({
+    recordsDisplayed: 0,
+    countriesCovered: 0,
+    topDisease: "--",
+    countries: [],
+  });
+  const [qaadStats, setQaadStats] = useState<LayerStats>({
+    recordsDisplayed: 0,
+    countriesCovered: 0,
+    topDisease: "--",
+    countries: [],
+  });
 
   const handleToggle = (key: string, value: boolean) => {
     setLayers((prev) => ({ ...prev, [key]: value }));
+    if (key === "regionalDemo" && value) {
+      if (window.matchMedia("(max-width: 1023px)").matches) setPanelOpen(false);
+      requestAnimationFrame(() => document.getElementById("regional-demo-site-select")?.focus({ preventScroll: true }));
+    }
   };
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-background">
+    <div data-risk-map className="fixed inset-0 overflow-hidden bg-background">
       {/* Full-screen map canvas */}
       <MapCanvas
+        regionalDemo={summary}
         showHeatmap={layers.heatmap}
         showCases={layers.cases}
         showCoverage={layers.coverage}
@@ -40,82 +73,73 @@ export default function RiskMapPage() {
         showBoundaries={layers.boundaries}
         showWaterSystems={layers.waterSystems}
         showFarmDensity={layers.farmDensity}
+        showWahis={layers.wahis}
+        showQaad={layers.qaad}
+        diseaseFilter={diseaseFilter}
+        qaadStatusFilter={qaadStatusFilter}
+        onWahisStatsChange={setWahisStats}
+        onQaadStatsChange={setQaadStats}
+        onPopupVisibilityChange={setPopupOpen}
       />
 
       {/* ===== FLOATING OVERLAYS ===== */}
 
-      {/* Top bar: Mini header + breadcrumb */}
-      <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3">
-        <div className="glass-strong flex items-center gap-3 rounded-2xl px-4 py-2.5 shadow-xl shadow-black/20">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 ring-1 ring-primary/30">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-            </div>
-            <span className="text-xs font-bold tracking-wide text-foreground">GADEWS</span>
-          </Link>
-          <span className="h-4 w-px bg-border/40" />
-          <nav className="flex items-center gap-1 text-[11px]">
-            <Link href="/" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-              <Home className="h-3 w-3" />
-              Home
-            </Link>
-            <ChevronRight className="h-3 w-3 text-muted-foreground/50" />
-            <span className="font-semibold text-primary">Risk Map</span>
-          </nav>
+      <StickyHeader variant="map" />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 top-24 z-20 flex flex-col">
+        {summary && <RegionalDemoPanel summary={summary} onSiteChange={setSiteId} onRadiusChange={setRadius} onClose={() => {
+          handleToggle("regionalDemo", false);
+          setPanelOpen(true);
+          setSourcesOpen(false);
+          requestAnimationFrame(() => document.getElementById("regional-demo-toggle")?.focus({ preventScroll: true }));
+        }} />}
+        <div data-map-controls-space className="relative min-h-0 flex-1">
+          {/* Left panel: Layer controller */}
+          <div data-layer-panel inert={!panelOpen || popupOpen} aria-hidden={!panelOpen || popupOpen} className={`pointer-events-auto absolute top-0 left-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto transition-all duration-300 ${popupOpen ? "hidden " : ""}${panelOpen ? "translate-x-0 opacity-100" : "-translate-x-[calc(100%+16px)] opacity-0"}`}>
+            <LayerControlPanel
+              layers={layers}
+              onToggle={handleToggle}
+              diseaseFilter={diseaseFilter}
+              onDiseaseFilterChange={setDiseaseFilter}
+              qaadStatusFilter={qaadStatusFilter}
+              onQaadStatusFilterChange={setQaadStatusFilter}
+            />
+          </div>
+
+          {/* Left panel toggle button */}
+          <button
+            onClick={() => { setPanelOpen(!panelOpen); setSourcesOpen(false); }}
+            hidden={popupOpen}
+            className={`${popupOpen ? "hidden" : "flex"} pointer-events-auto absolute z-40 top-0 border border-slate-300 bg-white text-slate-800 h-11 w-11 items-center justify-center rounded-xl shadow-lg transition-all hover:bg-primary/15 hover:text-primary`}
+            style={{ left: panelOpen ? "min(340px, calc(100vw - 52px))" : "16px" }}
+            aria-label={panelOpen ? t("关闭图层面板", "Close layers panel") : t("打开图层面板", "Open layers panel")}
+            aria-expanded={panelOpen}
+          >
+            {panelOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          </button>
+
+          {/* Right top: Legend & Toolkit */}
+          <div className={`pointer-events-auto absolute top-0 right-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto ${popupOpen ? "hidden" : sourcesOpen ? "" : "hidden lg:block"}`}>
+            <LegendToolkit wahisStats={wahisStats} qaadStats={qaadStats} />
+          </div>
+
+          {/* Bottom: Timeline controller */}
+          <div className={`pointer-events-auto absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-4xl ${popupOpen ? "hidden" : "hidden lg:block"}`}>
+            <TimelineController />
+          </div>
+
+          {/* Mobile: Collapsed layer panel as bottom sheet trigger */}
+          <div className={`pointer-events-auto absolute bottom-12 left-4 z-20 ${popupOpen ? "hidden" : "lg:hidden"}`}>
+            <button
+              onClick={() => { setPanelOpen(!panelOpen); setSourcesOpen(false); }}
+              className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-lg"
+            >
+              <PanelLeftOpen className="h-3.5 w-3.5" />
+              {t("图层", "Layers")}
+            </button>
+            <button className="mt-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-lg" onClick={() => { setSourcesOpen(!sourcesOpen); setPanelOpen(false); }} aria-expanded={sourcesOpen}>{t("来源与统计", "Sources and statistics")}</button>
+          </div>
         </div>
-
-        {/* Active layers badge */}
-        <div className="glass-strong flex items-center gap-2 rounded-2xl px-4 py-2.5 shadow-xl shadow-black/20">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-[11px] text-muted-foreground">
-            <span className="font-semibold text-foreground/80">
-              {Object.values(layers).filter(Boolean).length}
-            </span>
-            {" layers active"}
-          </span>
-          <span className="h-3 w-px bg-border/30" />
-          <span className="text-[11px] text-muted-foreground">
-            8 outbreak markers
-          </span>
-        </div>
-      </div>
-
-      {/* Left panel: Layer controller */}
-      <div className={`absolute top-20 left-4 z-20 transition-all duration-300 ${panelOpen ? "translate-x-0 opacity-100" : "-translate-x-[calc(100%+16px)] opacity-0"}`}>
-        <LayerControlPanel layers={layers} onToggle={handleToggle} />
-      </div>
-
-      {/* Left panel toggle button */}
-      <button
-        onClick={() => setPanelOpen(!panelOpen)}
-        className={`absolute z-20 top-20 glass-strong flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground shadow-lg transition-all hover:bg-primary/15 hover:text-primary ${panelOpen ? "left-[300px]" : "left-4"}`}
-        aria-label={panelOpen ? "Close panel" : "Open panel"}
-      >
-        {panelOpen ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
-      </button>
-
-      {/* Right top: Legend & Toolkit */}
-      <div className="absolute top-20 right-4 z-20">
-        <LegendToolkit />
-      </div>
-
-      {/* Bottom: Timeline controller */}
-      <div className="absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-4xl">
-        <TimelineController />
-      </div>
-
-      {/* Mobile: Collapsed layer panel as bottom sheet trigger */}
-      <div className="absolute bottom-28 left-4 z-20 lg:hidden">
-        <button
-          onClick={() => setPanelOpen(!panelOpen)}
-          className="glass-strong flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground shadow-lg hover:text-foreground"
-        >
-          <PanelLeftOpen className="h-3.5 w-3.5" />
-          Layers
-        </button>
       </div>
     </div>
   );

@@ -1,0 +1,29 @@
+# Supplement to a deployment directory generated from an explicit Git commit.
+# Keep public/data, scripts, TypeScript test support, and local font licenses.
+/.git/
+/.github/
+/.claude/
+/.codex/
+/.superpowers/
+/.vercel/
+/data/
+/doc/
+/openspec/
+/node_modules/
+/.next/
+/out/
+/dist/
+/coverage/
+/logs/
+.env*
+**/.env*
+.DS_Store
+**/.DS_Store
+*.log
+*.tsbuildinfo
+/AGENTS.md
+/PROJECT_STATE.md
+/README.md
+/public/data/qaad-regional-surveillance-summary.json
+
+/.local-accounts/

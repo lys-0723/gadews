@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "fieldVersion": 1,
+  "sources": {
+    "wahis": {
+      "source": "WOAH WAHIS",
+      "sourceType": "snapshot",
+      "path": "/data/woah-wahis-aquatic-disease-reports.geo.json",
+      "sourcePath": "public/data/woah-wahis-aquatic-disease-reports.geo.json",
+      "recordCount": 371,
+      "sourceSha256": "56160203b0f36afdda2e4ea998953d1a0aaa5c4c9c0868c8d8f1c658042cd23f",
+      "sourceHashMode": "lf-normalized-utf8",
+      "outputSha256": "56160203b0f36afdda2e4ea998953d1a0aaa5c4c9c0868c8d8f1c658042cd23f",
+      "outputHashMode": "lf-normalized-utf8",
+      "outputBytes": 3771952,
+      "coverage": {
+        "from": "2005-01-01",
+        "to": "2025-12-31"
+      },
+      "retrievedAt": "2026-05-18",
+      "sourceUrls": [
+        "https://wahis.woah.org/"
+      ]
+    },
+    "qaad": {
+      "source": "NACA QAAD",
+      "sourceType": "snapshot",
+      "path": "/data/qaad-surveillance-display.json",
+      "sourcePath": "public/data/qaad-regional-surveillance-summary.json",
+      "recordCount": 1789,
+      "sourceSha256": "338860b7e0f04cc51d5bf276275d52a848726fec65f26e3d12f90c0519ff414f",
+      "sourceHashMode": "raw-bytes",
+      "outputSha256": "15828a77648c56a03bc96497807b4d96469901353a3390769d5ab410ce2a1d16",
+      "outputHashMode": "raw-bytes",
+      "outputBytes": 1606470,
+      "coverage": {
+        "from": "2021 Q1",
+        "to": "2025 Q4"
+      },
+      "retrievedAt": null,
+      "sourceUrls": [
+        "https://enaca.org/?id=8"
+      ]
+    }
+  }
+}

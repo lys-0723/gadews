@@ -1,0 +1,36 @@
+[
+  {
+    "id": "wssv-demo",
+    "name": "White Spot Syndrome Virus Demo Risk",
+    "common_name": "WSSV Demo",
+    "monitored_species": ["Demo shrimp group A", "Demo shrimp group B"],
+    "risk_factors": [
+      {
+        "id": "temp-delta-24h",
+        "label": "Temperature change over 24h",
+        "category": "environment",
+        "value": "> 3",
+        "unit": "C",
+        "weight": 18,
+        "source": "GADEWS synthetic demo profile",
+        "source_url": "https://example.org/demo-source",
+        "demo_note": "Synthetic threshold for UI and rule-engine demonstration only."
+      },
+      {
+        "id": "salinity-drop-24h",
+        "label": "Salinity drop over 24h",
+        "category": "environment",
+        "value": "> 5",
+        "unit": "ppt",
+        "weight": 22,
+        "source": "GADEWS synthetic demo profile",
+        "source_url": "https://example.org/demo-source",
+        "demo_note": "Synthetic threshold for UI and rule-engine demonstration only."
+      }
+    ],
+    "description": "Fictional WSSV-oriented environmental risk profile for frontend scoring demos. This record is not real surveillance or diagnostic guidance.",
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional data for software UI demonstration only."
+  }
+]

@@ -155,19 +155,51 @@ export function OneHealthMonitor() {
 
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Disease outbreaks are triggered when{" "}
-                <span className="font-semibold text-cyan-400">Environmental Pressure</span>,{" "}
-                <span className="font-semibold text-red-400">Pathogen Presence</span>, and{" "}
+                <span className="font-semibold text-cyan-400">Environment Pressure</span>{" "}
+                (SST anomaly, salinity crash, DO drop),{" "}
+                <span className="font-semibold text-red-400">Pathogen Presence</span>{" "}
+                (WSSV / AHPND / Vibrio density), and{" "}
                 <span className="font-semibold text-emerald-400">Host Immunity</span>{" "}
-                interact. GADEWS continuously monitors all three dimensions to detect
-                risk convergence before outbreaks occur.
+                (stress index, feed response rate) converge. GADEWS monitors all three dimensions
+                in real-time to detect risk convergence before outbreaks occur.
               </p>
 
               {/* Mini stats */}
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: "Env. Pressure", value: "72", unit: "/100", color: "text-cyan-400", bg: "bg-cyan-400/10", border: "border-cyan-400/20" },
-                  { label: "Pathogen Index", value: "58", unit: "/100", color: "text-red-400", bg: "bg-red-400/10", border: "border-red-400/20" },
-                  { label: "Host Health", value: "65", unit: "/100", color: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
+                  {
+                    label: "Environment Pressure",
+                    sublabel: "SST +1.8°C · Salinity −5.2 ppt",
+                    value: "72",
+                    unit: "/100",
+                    color: "text-cyan-400",
+                    bg: "bg-cyan-400/10",
+                    border: "border-cyan-400/20",
+                    trend: "↑ Rising",
+                    trendColor: "text-red-400",
+                  },
+                  {
+                    label: "Pathogen Presence",
+                    sublabel: "WSSV prevalence: 38% sites",
+                    value: "58",
+                    unit: "/100",
+                    color: "text-red-400",
+                    bg: "bg-red-400/10",
+                    border: "border-red-400/20",
+                    trend: "↑ High",
+                    trendColor: "text-red-400",
+                  },
+                  {
+                    label: "Host Immunity",
+                    sublabel: "Avg DO: 4.5 mg/L · Feed rate −20%",
+                    value: "65",
+                    unit: "/100",
+                    color: "text-emerald-400",
+                    bg: "bg-emerald-400/10",
+                    border: "border-emerald-400/20",
+                    trend: "↓ Declining",
+                    trendColor: "text-amber-400",
+                  },
                 ].map((s) => (
                   <div
                     key={s.label}
@@ -177,7 +209,9 @@ export function OneHealthMonitor() {
                       {s.value}
                       <span className="text-xs font-normal text-muted-foreground">{s.unit}</span>
                     </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground">{s.label}</p>
+                    <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">{s.label}</p>
+                    <p className="mt-1 text-[9px] text-muted-foreground/70 leading-tight">{s.sublabel}</p>
+                    <p className={`mt-1 text-[9px] font-bold ${s.trendColor}`}>{s.trend}</p>
                   </div>
                 ))}
               </div>

@@ -7,7 +7,6 @@ import {
   Dna,
   Microscope,
   Download,
-  ExternalLink,
   ChevronRight,
   Bug,
   Pill,

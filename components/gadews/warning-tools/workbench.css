@@ -1,0 +1,48 @@
+.warning-workbench {
+  background: #eaf3f5;
+  color: #102e40;
+  font-size: 18px;
+  line-height: 1.75;
+  color-scheme: light;
+}
+.warning-workbench :is(p, li, summary, label, code) {
+  overflow-wrap: anywhere;
+}
+.warning-workbench .text-xs { font-size: 14px; line-height: 1.7; }
+.warning-workbench .text-base { font-size: 18px; line-height: 1.8; }
+.warning-workbench .text-sm { font-size: 17px; line-height: 1.75; }
+.warning-workbench :is(.text-slate-500, .text-slate-600) { color: #49616b; }
+.warning-workbench :is(.text-teal-700, .text-teal-800, .text-teal-900) { color: #075766; }
+.warning-workbench :is(.bg-teal-700, .hover\:bg-teal-800:hover) { background-color: #075766; }
+.warning-workbench :is(.bg-teal-50, .from-white) { --tw-gradient-to: #edf6f6; }
+.warning-workbench .bg-teal-50 { background-color: #edf6f6; }
+.warning-workbench :is(.border-teal-100, .border-teal-200) { border-color: #c1d9df; }
+.warning-workbench .bg-slate-50 { background-color: #f2f6f8; }
+.warning-workbench :is(input, select, button, a, summary):focus-visible {
+  outline: 3px solid #0d6580;
+  outline-offset: 4px;
+}
+.warning-workbench :is(input, select) { font-size: 17px; }
+.warning-workbench :is(input, select)::placeholder { color: #52646c; opacity: 1; }
+.warning-workbench button:disabled { opacity: 1; color: #405866; background: #e5edf0; border-color: #b7cbd3; }
+.warning-workbench button:disabled svg { color: #405866; }
+.warning-workbench fieldset { min-width: 0; }
+.warning-workbench legend { max-width: 100%; }
+.warning-workbench .workbench-intro {
+  background: radial-gradient(ellipse at 85% 5%, #123f54 0%, #0b293b 40%, #051724 100%);
+  color: #fff;
+  padding-top: 9rem;
+  padding-bottom: 3rem;
+}
+.warning-workbench .workbench-intro :is(h1, p, a) { color: #fff; }
+.warning-workbench .workbench-intro .intro-kicker { color: #9ce9d7; }
+.warning-workbench .workbench-intro .intro-note { background: #13384a; border-color: #557181; }
+@media (max-width: 639px) {
+  .warning-workbench { font-size: 17px; }
+  .warning-workbench :is(.text-sm, .text-base) { font-size: 17px; }
+  .warning-workbench .workbench-intro { padding-top: 7rem; padding-bottom: 2rem; }
+  .warning-workbench .sticky.bottom-3 { position: static; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .warning-workbench * { scroll-behavior: auto; transition: none; }
+}

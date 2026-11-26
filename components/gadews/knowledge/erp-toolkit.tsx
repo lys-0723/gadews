@@ -12,7 +12,6 @@ import {
   Syringe,
   FileSpreadsheet,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 interface Resource {
   icon: typeof FileText;

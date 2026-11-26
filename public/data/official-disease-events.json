@@ -1,0 +1,30 @@
+[
+  {
+    "id": "demo-event-001",
+    "disease_id": "wssv-demo",
+    "site_id": "demo-site-001",
+    "event_date": "2026-05-17",
+    "alert_level": "high",
+    "status": "demo_observation",
+    "summary": "Fictional nearby event used to demonstrate proximity scoring in the UI.",
+    "latitude": 21.34,
+    "longitude": 110.45,
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional event. Not real surveillance data."
+  },
+  {
+    "id": "demo-event-002",
+    "disease_id": "wssv-demo",
+    "site_id": "demo-site-002",
+    "event_date": "2026-05-16",
+    "alert_level": "moderate",
+    "status": "watch",
+    "summary": "Fictional watch event used for map and timeline UI demonstrations.",
+    "latitude": 20.9,
+    "longitude": 111.22,
+    "source": "GADEWS synthetic demo dataset",
+    "source_url": "https://example.org/demo-source",
+    "demo_note": "Synthetic / fictional event. Not real surveillance data."
+  }
+]

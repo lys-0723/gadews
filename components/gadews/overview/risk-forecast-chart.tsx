@@ -57,10 +57,10 @@ export function RiskForecastChart() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-foreground">
-              7-Day Risk Forecast
+              双轴趋势图：环境骤变 × WSSV 爆发概率
             </h3>
             <p className="text-[10px] text-muted-foreground">
-              AI-powered outbreak probability model
+              左轴: 水温 (°C) / 盐度 (ppt) 骤降曲线 · 右轴: WSSV 爆发概率 (%) 飙升
             </p>
           </div>
         </div>
@@ -162,9 +162,9 @@ export function RiskForecastChart() {
       {/* Insight strip */}
       <div className="mt-4 rounded-lg border border-orange-400/20 bg-orange-400/5 px-4 py-2.5">
         <p className="text-[11px] leading-relaxed text-orange-300">
-          <span className="font-bold">AI Insight:</span> Rising outbreak probability
-          detected in SE Asia corridor. Peak risk expected Feb 13-14 driven by monsoon
-          salinity disruption and elevated WSSV prevalence.
+          <span className="font-bold">核心相关性：</span>{" "}
+          湄公河三角洲盐度在 72h 内从 18 ppt 骤降至 8.6 ppt，与水温下降至 26°C 共同触发 WSSV 潜伏激活。
+          爆发概率从 32% 升至 67%，预计 Feb 13–14 达峰 —— 与历史 WSSV 爆发前驱特征高度吻合 (AI 置信度 92%)。
         </p>
       </div>
     </div>

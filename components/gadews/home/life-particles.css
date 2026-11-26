@@ -1,0 +1,41 @@
+.ocean-home .hero-product-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  max-width: 38ch;
+  color: #b0e6de;
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 600;
+  letter-spacing: .06em;
+}
+.ocean-home .hero-product-name::before {
+  content: "";
+  flex: 0 0 26px;
+  height: 2px;
+  background: #8de3d1;
+}
+.ocean-home .hero-copy .primary-link { border-radius: 9px; }
+
+/* Inline scientific illustration for the animal and pathogen evidence step. */
+.ocean-home .life-particles {
+  position: relative;
+  margin: 22px 0 0;
+  max-width: 33rem;
+}
+.ocean-home .life-motion-area { position: relative; width: 100%; aspect-ratio: 2.35; }
+.ocean-home .life-motion-area canvas,
+.ocean-home .life-static { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.ocean-home .life-particles [hidden] { display: none !important; }
+.ocean-home .life-description {
+  margin-top: 8px;
+  padding-top: 9px;
+  border-top: 1px solid #839da950;
+}
+.ocean-home .life-description h4 { margin: 0; font-size: 15px; font-weight: 600; color: #daebe9; line-height: 1.5; }
+.ocean-home .life-description p { max-width: none; margin: 3px 0 0; font-size: 12px; line-height: 1.6; color: #b2c9ce; }
+.ocean-home .life-description a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 600px) {
+  .ocean-home .hero-product-name { margin-bottom: 10px; }
+  .ocean-home .life-motion-area { aspect-ratio: 2; }
+}
