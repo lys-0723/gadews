@@ -238,19 +238,44 @@ export function EnvironmentOverview() {
           "Inspect location, dates and coverage alongside public disease reports to decide what to verify. Offshore grid cells describe regional conditions; farm assessments need local evidence.",
         )}
       </p>
-      <nav aria-label={t("天气与气候预报", "Weather and climate forecasts")} className="mb-5 flex flex-wrap gap-x-5 gap-y-2">
-        {(["weather", "gefs", "ec46", "seas5", "imerg", "heatwave"] as const).map((id) => (
-          <button type="button" key={id} className={linkClass} onClick={() => {
-            if (id === "heatwave") setSite("offshore");
-            else if (site === "offshore") setSite("zhanjiang");
-            setSelected(id);
-          }}>
-            {t(...names[id])}
-          </button>
-        ))}
-        <a href="#enso-outlook" className={linkClass}>{t(...names.enso)}</a>
-      </nav>
-      <div className="mb-4 grid gap-4 sm:grid-cols-2">
+      {data && (
+        <details id="environment-catalog" className="mb-5 scroll-mt-24 rounded-xl border border-slate-300 bg-white p-4">
+          <summary className="cursor-pointer font-semibold">
+            {t("查看全部环境数据", "Browse all environmental data")} ({feedIds.length})
+          </summary>
+          <p className="my-3 text-sm text-slate-700">
+            {t("这些资料可供后续疫病预测预警选用。当前可查看环境状况、预报和来源，具体变量的适用范围及预测效果待验证。",
+              "These sources are candidates for future disease early warning. Explore conditions, forecasts and sources here. The suitability and predictive value of individual variables still require validation.")}
+          </p>
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              {title: t("海洋环境", "Marine environment"), ids: feedIds.filter(id => sitesFor(id).includes("offshore"))},
+              {title: t("地区气象、气候与水文", "Regional weather, climate and hydrology"), ids: feedIds.filter(id => sitesFor(id).length && !sitesFor(id).includes("offshore"))},
+              {title: t("全球气候背景与区域通告", "Global climate context and regional notices"), ids: feedIds.filter(id => !sitesFor(id).length)},
+            ].map(group => (
+              <section key={group.title}>
+                <h3 className="mb-2 font-semibold">{group.title}</h3>
+                <ul className="space-y-2">
+                  {group.ids.map(id => {
+                    const locations = sitesFor(id);
+                    const target = locations.includes(site) ? site : locations[0];
+                    const href = target ? "?site=" + target + "&product=" + id + "#environment-product"
+                      : id === "enso" ? "#enso-outlook" : "#environment-" + id;
+                    return <li key={id}><a className={linkClass} href={href} onClick={() => {
+                      if (target) { setSite(target); setSelected(id); }
+                      else if (id !== "enso") {
+                        const notices = document.querySelector<HTMLDetailsElement>("#environment-notices");
+                        if (notices) notices.open = true;
+                      }
+                    }}>{t(...names[id])}</a></li>;
+                  })}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </details>
+      )}
+      <div id="environment-product" className="mb-4 grid scroll-mt-24 gap-4 sm:grid-cols-2">
         <label>
           {t("代表位置", "Reference location")}
           <select className={inputClass} value={site} onChange={(e) => setSite(e.target.value as Site)}>
@@ -328,14 +353,14 @@ export function EnvironmentOverview() {
                 ? t("已验证缓存", "Last validated cache")
                 : t("随站快照", "Bundled snapshot")}
           </p>
-          <details className="mt-6 rounded-xl border border-slate-300 bg-white p-4">
+          <details id="environment-notices" className="mt-6 rounded-xl border border-slate-300 bg-white p-4">
             <summary className="cursor-pointer font-semibold">
               {t("气旋、藻华产品与主管部门通告", "Cyclones, bloom products and official notices")}
             </summary>
             {data.snapshot.feeds
               .filter((f) => f.events || f.id === "cyclones" || f.id === "abis")
               .map((f) => (
-                <section key={f.id} className="my-4">
+                <section id={"environment-" + f.id} key={f.id} className="my-4 scroll-mt-24">
                   <h3 className="font-semibold">{t(...names[f.id])}</h3>
                   <SourceStatus feed={f} asOf={data.asOf} />
                   <p className="text-sm">
