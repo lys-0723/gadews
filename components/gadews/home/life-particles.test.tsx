@@ -34,7 +34,7 @@ async function visibility(value: boolean) { const { act } = await import("@testi
 
 test("life scene stays lazy; first visible mount starts tilapia and releases resources on unmount", async () => {
   environment(); const { cleanup, waitFor } = await import("@testing-library/react"); const c = controller(); const calls: Array<{count: number; initialStage: number}> = [];
-  try { const view = await setup(async (_canvas: HTMLCanvasElement, options: {count: number; initialStage: number}) => { calls.push(options); return c.api; }); assert.equal(calls.length, 0); assert.ok(document.querySelector('img[src$="tilapia-static.svg"]')); await visibility(true); await waitFor(() => assert.equal(calls.length, 1)); assert.equal(calls[0].count, 39000); assert.equal(calls[0].initialStage, 0); await waitFor(() => assert.equal(c.active.at(-1), true)); view.unmount(); assert.equal(c.disposed, 1); assert.ok(disconnected > 0); } finally { cleanup(); }
+  try { const view = await setup(async (_canvas: HTMLCanvasElement, options: {count: number; initialStage: number}) => { calls.push(options); return c.api; }); assert.equal(calls.length, 0); assert.ok(document.querySelector('img[src$="tilapia-static.svg"]')); await visibility(true); await waitFor(() => assert.equal(calls.length, 1)); assert.equal(calls[0].count, 14000); assert.equal(calls[0].initialStage, 0); await waitFor(() => assert.equal(c.active.at(-1), true)); view.unmount(); assert.equal(c.disposed, 1); assert.ok(disconnected > 0); } finally { cleanup(); }
 });
 
 test("reduced motion keeps a credited static form without controls or GPU work", async () => {

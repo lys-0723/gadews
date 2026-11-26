@@ -57,17 +57,17 @@ export function LifeParticles({ sceneLoader = defaultLoader }: { sceneLoader?: L
   const active = lifeMotionAllowed({ reduced, visible, hidden, mobile, assistantOpen }) && !error;
   useEffect(() => { scene.current?.setActive(active); }, [active, ready]);
   const photo = stage < 2 ? photoSources[stage === 0 ? 0 : 1] : null;
-  return <section className="life-particles" aria-label={t("养殖动物与微观生命", "Aquaculture animals and microscopic life")}
+  return <figure id="life-observer" className="life-particles" aria-label={t("养殖动物与微观生命", "Aquaculture animals and microscopic life")}
     data-life-stage={LIFE_STAGES[stage]} data-life-renderer={ready && !error ? "ready" : "static"}>
     <div ref={motionArea} className="life-motion-area" aria-hidden="true">
       <img className="life-static" src={`/media/gadews/life/${LIFE_STAGES[stage]}-static.svg`} alt="" hidden={ready && !error} />
       <canvas key={reduced ? "static" : mobile ? "mobile" : "desktop"} ref={canvas} hidden={!ready || error} />
     </div>
-    <div className="life-description" id="life-observer">
-      <h2>{titles[stage]}</h2>
+    <figcaption className="life-description">
+      <h4>{titles[stage]}</h4>
       {photo ? <p>{t("照片采样", "Photo sampling")} · <a href={photo.sourceUrl}>{photo.credit}</a> · <a href={photo.licenseUrl}>{photo.license}</a></p> :
         <p>{t("形态示意，非显微照片或诊断结果。", "Morphology schematic, not micrography or diagnosis.")}</p>}
       {error && <p role="status">{t("动态暂不可用，显示静态轮廓。", "Motion is unavailable; showing a static outline.")}</p>}
-    </div>
-  </section>;
+    </figcaption>
+  </figure>;
 }

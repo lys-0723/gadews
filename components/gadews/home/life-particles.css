@@ -17,38 +17,26 @@
 }
 .ocean-home .hero-copy .primary-link { border-radius: 9px; }
 
-.ocean-home .hero:has(.life-particles) {
-  height: auto;
-  min-height: 1290px;
-  max-height: none;
-  padding-bottom: 500px;
-}
-.ocean-home .hero:has(.life-particles) .globe-stage { top: 100px; height: 650px; max-height: 650px; }
-.ocean-home .hero:has(.life-particles) .globe-access-slot { top: 730px; bottom: auto; }
+/* Inline scientific illustration for the animal and pathogen evidence step. */
 .ocean-home .life-particles {
-  position: absolute;
-  inset: auto var(--edge) 32px;
-  height: clamp(280px, 34vw, 475px);
-  color: #eaf9f5;
-  pointer-events: none;
-  z-index: 3;
+  position: relative;
+  margin: 22px 0 0;
+  max-width: 33rem;
+  scroll-margin-block-start: 7rem;
 }
-.ocean-home .life-motion-area { position: absolute; inset: 0 0 75px; }
-.ocean-home .life-motion-area canvas, .ocean-home .life-static { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ocean-home .life-motion-area { position: relative; width: 100%; aspect-ratio: 2.35; }
+.ocean-home .life-motion-area canvas,
+.ocean-home .life-static { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .ocean-home .life-particles [hidden] { display: none !important; }
-.ocean-home .life-description { position: absolute; bottom: 0; max-width: 100%; padding-inline-start: 12px; border-inline-start: 2px solid #a4e6db; }
-.ocean-home [data-life-stage="shrimp"] .life-description { border-color: #efc39c; }
-.ocean-home .life-description h2 { margin: 0; font-size: clamp(18px, 2vw, 24px); line-height: 1.4; }
-.ocean-home .life-description p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: #c7dfe5; }
-.ocean-home .life-description a { pointer-events: auto; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 1050px) {
-  .ocean-home .hero:has(.life-particles) { min-height: 1500px; padding-bottom: 400px; }
-  .ocean-home .hero:has(.life-particles) .globe-stage { position: relative; top: auto; height: auto; min-height: 410px; max-height: none; }
-  .ocean-home .hero:has(.life-particles) .globe-access-slot { top: auto; }
+.ocean-home .life-description {
+  margin-top: 8px;
+  padding-top: 9px;
+  border-top: 1px solid #839da950;
 }
+.ocean-home .life-description h4 { margin: 0; font-size: 15px; font-weight: 600; color: #daebe9; line-height: 1.5; }
+.ocean-home .life-description p { max-width: none; margin: 3px 0 0; font-size: 12px; line-height: 1.6; color: #b2c9ce; }
+.ocean-home .life-description a { text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 600px) {
   .ocean-home .hero-product-name { margin-bottom: 10px; }
-  .ocean-home .hero:has(.life-particles) { min-height: 1450px; padding-bottom: 350px; }
-  .ocean-home .life-particles { bottom: 26px; }
-  .ocean-home .life-description { max-width: calc(100% - 24px); }
+  .ocean-home .life-motion-area { aspect-ratio: 2; }
 }

@@ -57,12 +57,14 @@ try {
   await call("Page.navigate", { url: new URL("/", base).href });
   await wait('document.readyState==="complete" && ' + host + '?.querySelector(".life-motion-area")');
   await step("phone defers offscreen particle data until the form is in view", async () => {
+    assert.equal(await evaluate('document.querySelector(".hero .life-particles")'), null);
+    assert.equal(await evaluate(host + '.closest("article").dataset.step'), "1");
     assert.ok(await evaluate(host + '.querySelector(".life-motion-area").getBoundingClientRect().top >= innerHeight'));
     await delay(500);
     assert.equal(pointRequests, 0);
     assert.equal(await evaluate(frames), 0);
     await showForm();
-    const visible = await verifyFrames(10500);
+    const visible = await verifyFrames(7000);
     assert.ok(visible.canvas[1] <= visible.sectionHeight * 1.5);
     return { initialPointRequests: 0, visible };
   });
@@ -83,14 +85,14 @@ try {
     const stage = await evaluate(host + ".dataset.lifeStage");
     assert.ok(await evaluate(image + '.src.endsWith("' + stage + '-static.svg")'));
     await call("Emulation.setEmulatedMedia", { features: [] });
-    const visible = await verifyFrames(10500);
+    const visible = await verifyFrames(7000);
     assert.equal(await evaluate(canvas + '.hasAttribute("data-old-context")'), false);
     assert.equal(await evaluate(host + ".dataset.lifeStage"), stage);
     return visible;
   });
   await step("desktop and mobile particle budgets recover across both resize directions", async () => {
     const rows = [];
-    for (const [width, height, count] of [[1440, 900, 39000], [390, 844, 10500]]) {
+    for (const [width, height, count] of [[1440, 900, 14000], [390, 844, 7000]]) {
       await viewport(width, height);
       await showForm();
       rows.push({ width, ...await verifyFrames(count) });
@@ -101,7 +103,7 @@ try {
   await step("automatic cycle and local mouse wave fade without buttons", async () => {
     await viewport(1440, 900);
     await showForm();
-    await verifyFrames(39000);
+    await verifyFrames(14000);
     assert.equal(await evaluate(host + '.querySelectorAll("button").length'), 0);
     assert.equal(await evaluate('document.querySelector(".life-jump")'), null);
     const stage = await evaluate(host + ".dataset.lifeStage");

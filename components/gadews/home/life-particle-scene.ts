@@ -109,7 +109,20 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
       p.xy += vec2(-travel.y, travel.x) * arc;
       float drift=sin(time*.45+phase)*.006;p+=mix(vec3(drift,cos(time*.36+phase)*.004,drift),vec3(sin(time*.35)*.002,cos(time*.3)*.002,drift*.25),animal);
       float angle=mix(.25+sin(time*.12)*.12,sin(time*.12)*.022,animal);mat2 r=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));p.xz=r*p.xz;
-      float depth=mix(4.8/(4.8-p.z),1.0,animal);vec2 px=center+vec2(p.x,-p.y)*scale*depth;
+      float depth = mix(4.8 / (4.8 - p.z), 1.0, animal);
+      vec2 specimen = center + vec2(p.x, -p.y) * scale * depth;
+      // Open up the silhouette into a tide of points between the sampled forms.
+      float u = phase / 6.2831853;
+      float lane = (pointSize - 0.64) / 0.85;
+      float tide = u * 8.0 + time * 0.38;
+      vec2 current = viewport * vec2(0.08 + 0.84 * u,
+        0.50 + 0.19 * sin(tide + lane * 1.8)
+             + 0.08 * sin(13.0 * u - time * 0.23)
+             + 0.14 * (lane - 0.5));
+      float spread = sin(3.14159265 * e);
+      float mist = smoothstep(0.94, 0.995, lane);
+      float flow = max(mist, spread * spread);
+      vec2 px = mix(specimen, current, flow);
       vec2 offset = px - waveCenter;
       float distancePx = length(offset);
       float radius = clamp(viewport.x * .16, 90.0, 155.0);
@@ -117,9 +130,12 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
       float wave = sin(distancePx * .10 - time * 5.0) * falloff * waveStrength;
       px += (offset / max(distancePx, 1.0)) * wave * 10.0;
       gl_Position=vec4(px.x/viewport.x*2.0-1.0,1.0-px.y/viewport.y*2.0,0.0,1.0);
-      gl_PointSize=clamp(pointSize*pixelRatio*depth*1.48,.85,3.1);float gleam = 0.95 + 0.05 * sin(p.x * 4.0 - time * 0.75 + p.y);
+      float bead = smoothstep(0.96, 1.0, fract(phase * 15.71));
+      gl_PointSize = clamp(pixelRatio * (pointSize * depth * 1.16 + flow * bead * 2.1), 0.8, 4.0);float gleam = 0.95 + 0.05 * sin(p.x * 4.0 - time * 0.75 + p.y);
       tint=mix(colorFrom,colorTo,e)*(.69+depth*.26)*gleam*(1.0+.18*wave);
-      opacity=1.0; }`,
+      vec3 sea = mix(vec3(.12, .52, .59), vec3(.44, .94, .82), lane);
+      tint = mix(tint, sea, flow * .84);
+      opacity = mix(1.0, .32 + .58 * bead, flow) * (1.0 - .45 * mist); }`,
     fragmentShader: `varying vec3 tint;varying float opacity;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;gl_FragColor=vec4(tint,(1.0-smoothstep(.12,.5,r))*.70*opacity);}`,
   });
   const scene = new THREE.Scene(), camera = new THREE.Camera(), points = new THREE.Points(geometry, material);
@@ -138,11 +154,10 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
   }
   const pointer = new THREE.Vector2();
   let hovering = false;
-  const hero = canvas.closest(".hero");
+  const surface = canvas;
   function releasePointer() { hovering = false; }
   function movePointer(event: PointerEvent) {
-    if (!running || event.pointerType !== "mouse" ||
-        (event.target instanceof Element && event.target.closest("a, button, .globe-stage"))) {
+    if (!running || event.pointerType !== "mouse") {
       releasePointer();
       return;
     }
@@ -153,7 +168,6 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
     if (!hovering && material.uniforms.waveStrength.value < .01) material.uniforms.waveCenter.value.copy(pointer);
     hovering = true;
   }
-  const surface = hero instanceof HTMLElement ? hero : canvas;
   surface.addEventListener("pointermove", movePointer, { passive: true });
   surface.addEventListener("pointerleave", releasePointer);
   surface.addEventListener("pointercancel", releasePointer);
@@ -167,8 +181,8 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
     if (running) {
       elapsed += dt;
       hold += dt;
-      progress = Math.min(1, progress + dt / 2.5);
-      if (hold >= 8) advance();
+      progress = Math.min(1, progress + dt / 3.6);
+      if (hold >= 9) advance();
     }
     const ease = 1 - Math.exp(-dt * 9);
     const wave = material.uniforms.waveStrength;

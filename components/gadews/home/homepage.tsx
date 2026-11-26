@@ -78,7 +78,6 @@ export function HomePage() {
               </span>
             </div>
           </div>
-          <LifeParticles />
         </section>
         <section
           className="one-health"
@@ -252,6 +251,7 @@ export function HomePage() {
                   <h3>{c("h027")}</h3>
                   <p>{c("h028")}</p>
                   <p className="step-detail">{c("h029")}</p>
+                  <LifeParticles />
                 </article>
                 <article className="evidence-step" data-step="2">
                   <h3>{c("h030")}</h3>
