@@ -172,7 +172,9 @@ def erddap(dataset, field):
             raise ValueError("inconsistent ERDDAP grid")
         samples.append([float(lat), float(lon), None if math.isnan(val) else val])
     nearest = min(samples, key=lambda r: (r[0]-SEA[1])**2 + (r[1]-SEA[2])**2)
-    return {"series": [point(SEA, nearest[0], nearest[1], [day], [(field, units[-1], [nearest[2]])], u)],
+    fixed_query = query.replace("[(last)]", f"[({day})]", 1)
+    source = server + dataset + ".csv?" + quote(fixed_query, safe="(),:")
+    return {"series": [point(SEA, nearest[0], nearest[1], [day], [(field, units[-1], [nearest[2]])], source)],
             "grid": {"time": day, "unit": units[-1], "points": samples}}
 
 
@@ -195,11 +197,12 @@ def copernicus(key):
     dimensions = {d.findtext("{*}Identifier"): d.findtext("{*}Default") for d in layer.findall("{*}Dimension")}
     name = layer.findtext("{*}Identifier")
     style = layer.find("{*}Style").findtext("{*}Identifier")
-    n = 256 * 2**7
+    zoom = 9
+    n = 256 * 2**zoom
     x = int((SEA[2]+180)/360*n)
     y = int((1-math.asinh(math.tan(math.radians(SEA[1])))/math.pi)/2*n)
     u = endpoint(WMTS, SERVICE="WMTS", REQUEST="GetFeatureInfo", VERSION="1.0.0", LAYER=name, STYLE=style, FORMAT="image/png",
-                 TILEMATRIXSET="EPSG:3857", TILEMATRIX=7, TILEROW=y//256, TILECOL=x//256, I=x%256, J=y%256, INFOFORMAT="application/json", **dimensions)
+                 TILEMATRIXSET="EPSG:3857", TILEMATRIX=zoom, TILEROW=y//256, TILECOL=x//256, I=x%256, J=y%256, INFOFORMAT="application/json", **dimensions)
     row = json.loads(read(u))["features"][0]["properties"]
     if row["variableId"] != field or not name.startswith(row["datasetId"]+"/") or abs(row["lat"]-SEA[1])>.3 or abs(row["lon"]-SEA[2])>.3:
         raise ValueError("unexpected WMTS feature")

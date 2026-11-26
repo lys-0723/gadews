@@ -42,6 +42,8 @@ class EnvironmentTest(unittest.TestCase):
             data = env.erddap(env.VIIRS,"chlor_a")
         self.assertIsNone(data["series"][0]["fields"][0]["values"][0])
         self.assertEqual(data["grid"]["points"][1][2],0.7)
+        self.assertIn("(2026-11-16T12:00:00Z)", data["series"][0]["source"])
+        self.assertNotIn("(last)", data["series"][0]["source"])
 
     def test_meteo_rejects_wrong_batch_and_misaligned_series(self):
         with patch.object(env,"read",return_value=b'[]'), self.assertRaises(ValueError):

@@ -31,7 +31,7 @@ export function HeatwaveGrid({ encoded, month }: { encoded: string; month: strin
             image.data[rgba] = color[0];
             image.data[rgba + 1] = color[1];
             image.data[rgba + 2] = color[2];
-            image.data[rgba + 3] = 167;
+            image.data[rgba + 3] = 255;
           }
         }
         ctx.putImageData(image, 0, 0);

@@ -2,10 +2,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Popup, useMapEvent } from "react-leaflet";
 import { useLocale } from "../locale-provider";
+import { unitText, numberText } from "@/lib/gadews/environment/ocean-legend";
 import { names, type FeedId } from "@/lib/gadews/environment/snapshot";
 
 interface Pixel {
   value: number | null;
+  outsideGrid?: boolean;
   unit: string;
   lat: number;
   lon: number;
@@ -55,10 +57,10 @@ export function EnvironmentPixel({ id, time }: { id: FeedId; time: string }) {
       {p ? (
         <>
           <p>
-            {p.value === null ? t("该像元缺测", "Missing pixel") : Number(p.value.toFixed(3)) + " " + p.unit}
+            {p.outsideGrid ? t("所选位置不在返回格点内", "Returned cell does not cover this location") : p.value === null ? t("该像元缺测", "Missing pixel") : numberText(p.value) + " " + unitText(p.unit)}
           </p>
           <p>
-            {p.lat.toFixed(3)}°, {p.lon.toFixed(3)}°
+            {t("来源格点", "Source cell")} {p.lat.toFixed(3)}°, {p.lon.toFixed(3)}°
           </p>
           <a href={p.source} target="_blank" rel="noreferrer">
             {t("复核原始像元", "Inspect source pixel")}

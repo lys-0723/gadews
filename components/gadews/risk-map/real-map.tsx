@@ -2,7 +2,7 @@
 
 import type { HistoryScope } from "@/lib/gadews/history-reports";
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap, useMapEvents, ZoomControl } from "react-leaflet";
+import { MapContainer, CircleMarker, Tooltip, useMap, useMapEvents, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useLocale } from "@/components/gadews/locale-provider";
@@ -20,6 +20,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+import { OceanBasemap } from "./ocean-basemap";
 import { EnvironmentLayers, type EnvironmentMaps } from "./environment-layers";
 
 export interface MapProps {
@@ -88,17 +89,15 @@ export default function RealMap({
       className="gadews-map"
       center={[12, 18]}
       zoom={2}
+      minZoom={2}
+      worldCopyJump
       zoomControl={false} // 隐藏默认的加减号，保持界面干净
       style={{ height: "100%", width: "100%", zIndex: 0 }}
     >
       <ZoomControl key={locale} position="bottomright" zoomInTitle={t("放大地图", "Zoom in")} zoomOutTitle={t("缩小地图", "Zoom out")} />
       <ReportFocus country={history?.country} center={reportCenter} />
       <PopupEvents onChange={onPopupVisibilityChange} />
-      {/* OpenStreetMap global basemap */}
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <OceanBasemap />
 
       {showCases && <>
         <CircleMarker center={[21.5, 111.0]} radius={8} className="demo-case-marker" pathOptions={{ color: "#ef4444", fillOpacity: 0.7 }}>

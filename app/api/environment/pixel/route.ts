@@ -1,5 +1,5 @@
 import { readEnvironment } from "@/lib/gadews/environment/publication";
-import { feature, featureUrl, pixelQuery } from "@/lib/gadews/environment/pixel";
+import { feature, featureUrl, nearbySourceCell, pixelQuery } from "@/lib/gadews/environment/pixel";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
@@ -22,8 +22,9 @@ export async function GET(request: Request) {
     if (!response.ok) throw new Error("source unavailable");
     const item = feature.parse(await response.json()).features[0].properties;
     if (item.datasetId + "/" + item.variableId !== raster.layer) throw new Error("unexpected product");
+    const nearby = nearbySourceCell(layer, lat, lon, item.lat, item.lon);
     return Response.json(
-      { value: item.value, unit: item.units, lat: item.lat, lon: item.lon, time, source },
+      { value: nearby ? item.value : null, outsideGrid: !nearby, unit: item.units, lat: item.lat, lon: item.lon, time, source },
       { headers: { "Cache-Control": "public,max-age=300,s-maxage=3600" } },
     );
   } catch {

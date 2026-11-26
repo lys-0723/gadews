@@ -28,7 +28,7 @@ test("satellite gaps, interpolated products and stale snapshots remain separate"
   assert.equal(sitesFor("chl-l3").includes("mekong"), false);
 });
 
-import { featureUrl, pixelQuery } from "./pixel";
+import { featureUrl, nearbySourceCell, pixelQuery } from "./pixel";
 test("global WMTS queries pin the published version, time, depth and EPSG:3857 pixel", () => {
   const url = new URL(
     featureUrl(20.5, 111.5, {
@@ -41,7 +41,7 @@ test("global WMTS queries pin the published version, time, depth and EPSG:3857 p
   assert.equal(url.host, "wmts.marine.copernicus.eu");
   assert.deepEqual(
     ["TILEROW", "TILECOL", "I", "J"].map((k) => url.searchParams.get(k)),
-    ["56", "103", "164", "140"],
+    ["226", "414", "147", "51"],
   );
   assert.equal(url.searchParams.get("elevation"), "-0.49");
   assert.equal(url.searchParams.get("time"), "2026-11-26T00:00:00Z");
@@ -70,5 +70,20 @@ test("NOAA grid wraps longitude and keeps missing distinct from zero probability
       if (value === null) assert.equal(decoded, 255);
       else assert.ok(Math.abs(value - decoded) <= 0.51);
     }
+  }
+});
+
+test("Copernicus rejects distant cells and handles neighbours across the dateline", () => {
+  assert.equal(nearbySourceCell("chl-l4", 20.478, 111.543, 20.47917, 111.5625), true);
+  assert.equal(nearbySourceCell("chl-l4", 20.478, 111.543, 15.35417, 111.52084), false);
+  assert.equal(nearbySourceCell("salinity", 5, -179.99, 5, 180), true);
+});
+
+test("source links in legacy NOAA snapshots reproduce the displayed time and original subset", () => {
+  for (const f of schema.parse(snapshot).feeds.filter(f => f.grid)) {
+    const source = decodeURIComponent(new URL(f.series[0].source).search);
+    assert.ok(source.includes(`[(${f.grid!.time})]`));
+    assert.ok(!source.includes("(last)"));
+    assert.equal(source.includes(":2:"), f.id === "viirs");
   }
 });

@@ -1,0 +1,34 @@
+.gadews-map.gadews-ocean-basemap { background-color: #dcebed; }
+/* Apply only to the street layer. Evidence keeps its published colour scale. */
+.gadews-map .gadews-geography-tiles { filter: saturate(.26) contrast(.72) brightness(1.14); }
+.gadews-basemap-status {
+  position: absolute;
+  z-index: 410;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 72%;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #fff;
+  color: #384d51;
+  font-size: 12px;
+  pointer-events: none;
+}
+.gadews-atlas-label {
+  pointer-events: none;
+  color: #63746e;
+  font: 500 11px/18px system-ui, sans-serif;
+  text-align: center;
+  text-shadow: 0 1px 2px #fff;
+  white-space: nowrap;
+}
+
+/* Keep credits readable on short maps and beside the floating assistant. */
+.gadews-ocean-basemap .leaflet-bottom.leaflet-left {
+  max-width: calc(100% - 80px);
+}
+.gadews-ocean-basemap .leaflet-control-attribution {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

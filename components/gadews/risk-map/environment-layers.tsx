@@ -1,10 +1,12 @@
 "use client";
+import { MarineAreaRange } from "./marine-area-range";
 import { HeatwaveGrid } from "./heatwave-grid";
 import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
-import { gridPalette } from "../environment/environment-map-controls";
+import { nativeCellHalfWidth } from "@/lib/gadews/environment/map-range";
+import { gridBreaks, gridPalette } from "@/lib/gadews/environment/ocean-legend";
 import { numberText, unitText } from "@/lib/gadews/environment/format";
 import {
   station,
@@ -95,7 +97,7 @@ function MarineTiles({
     <>
       <TileLayer
         url={"https://wmts.marine.copernicus.eu/teroWmts?" + q + "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}"}
-        opacity={0.6}
+        opacity={1}
         zIndex={3}
         maxNativeZoom={9}
         attribution="E.U. Copernicus Marine Service"
@@ -122,6 +124,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
     f = feeds.find((s) => s.id === layer);
   return (
     <>
+      {f && (f.raster || f.grid || f.heatMaps) && <MarineAreaRange key={"range:" + f.id + (f.raster?.time ?? "")} feed={f} month={heatMonth}/>}
       {f?.heatMaps && <HeatwaveGrid encoded={f.heatMaps[heatMonth]} month={f.series[0].times[heatMonth]}/>}
       {f?.raster && <MarineTiles key={f.raster.layer + f.raster.time} raster={f.raster} />}
       {f?.raster && <EnvironmentPixel key={f.id + f.raster.time} id={f.id} time={f.raster.time} />}
@@ -129,8 +132,8 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
         f.grid.points.map(([lat, lon, value]) => {
           if (value === null) return null;
           const sst = layer === "oisst",
-            half = sst ? 0.125 : 0.01875;
-          const stops = sst ? [20, 25, 30] : [0.3, 1, 3];
+            half = nativeCellHalfWidth(f.id);
+          const stops = sst ? gridBreaks.oisst : gridBreaks.viirs;
           const color = gridPalette[stops.filter((n) => value >= n).length];
           return (
             <Rectangle
@@ -139,7 +142,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
                 [lat - half, lon - half],
                 [lat + half, lon + half],
               ]}
-              pathOptions={{ stroke: false, fillOpacity: 0.65, fillColor: color }}
+              pathOptions={{ stroke: false, fillOpacity: 1, fillColor: color }}
             >
               <Popup>
                 <strong>{t(...names[f.id])}</strong>
