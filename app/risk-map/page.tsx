@@ -155,7 +155,7 @@ export default function RiskMapPage() {
 
           {/* Right top: Legend & Toolkit */}
           <div className={`pointer-events-auto absolute top-0 right-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto ${popupOpen ? "hidden" : sourcesOpen ? "" : "hidden lg:block"}`}>
-            <LegendToolkit scope={history} wahisStats={wahisStats} qaadStats={qaadStats} enabled={{wahis: layers.wahis, qaad: layers.qaad}} />
+            <LegendToolkit scope={history} diseaseFilter={diseaseFilter} qaadStatusFilter={qaadStatusFilter} wahisStats={wahisStats} qaadStats={qaadStats} enabled={{wahis: layers.wahis, qaad: layers.qaad}} />
           </div>
 
           {/* Mobile: Collapsed layer panel as bottom sheet trigger */}
