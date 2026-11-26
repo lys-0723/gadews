@@ -1,0 +1,43 @@
+name: Refresh public environment
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: publish-environment-data
+  cancel-in-progress: false
+jobs:
+  refresh:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare the separate data branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref=$(git ls-remote --heads origin refs/heads/environment-data)
+          if [[ -n "$ref" ]]; then
+            git fetch --no-tags origin refs/heads/environment-data
+            git worktree add -b environment-data "$RUNNER_TEMP/environment" FETCH_HEAD
+          else
+            git worktree add --orphan -b environment-data "$RUNNER_TEMP/environment"
+          fi
+      - name: Fetch public products and validate the snapshot
+        run: |
+          python3 scripts/sync_environment.py --output "$RUNNER_TEMP/environment/snapshot.json"
+          python3 -m unittest discover -s scripts -p test_sync_environment.py -v
+      - name: Publish a complete revision when the data changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/environment"
+          echo '{"git":{"deploymentEnabled":{"environment-data":false}}}' > vercel.json
+          git add -- snapshot.json vercel.json
+          if ! git diff --cached --quiet; then
+            git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Refresh public environmental evidence"
+            git push origin HEAD:refs/heads/environment-data
+          fi
