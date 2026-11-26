@@ -17,7 +17,7 @@ export function OverviewContent() {
     </header>
     <section className="mx-auto grid max-w-7xl gap-5 px-4 lg:grid-cols-3 lg:px-8" aria-label={t("同一健康联系", "One Health connections")}>
       {[
-        { icon: Waves, title:t("环境", "Environment"), text:t("NASA POWER 提供区域大气背景。气温与塘口水温需分开理解。", "NASA POWER describes the regional atmosphere. Air temperature and pond water temperature must be interpreted separately.") },
+        { icon: Waves, title:t("环境", "Environment"), text:t("结合天气预报、卫星海色与海温分析，核对区域环境及缺项。塘口水温另取现场观测。", "Compare weather forecasts, satellite ocean colour and SST analysis, including gaps. Pond water temperature requires a local observation.") },
         { icon: Fish, title:t("水生动物", "Aquatic animals"), text:t("WAHIS 事件与 QAAD 监测状态保留各自含义，不能直接当作养殖场病例。", "WAHIS events and QAAD surveillance statuses retain their distinct meanings and cannot be treated as farm-level cases.") },
         { icon: Users, title:t("人的决策", "People and decisions"), text:t("风险筛查原型帮助整理输入与证据；实际处置需要专业人员结合现场核实。", "The risk screening prototype organizes inputs and evidence. Practical decisions require professional review and field verification.") },
       ].map(item => <article key={item.title} className="rounded-2xl border border-slate-300 bg-white p-6"><item.icon className="mb-5 h-8 w-8 text-sky-800" aria-hidden="true" /><h2 className="mb-3 text-2xl font-bold text-slate-950">{item.title}</h2><p className="text-lg leading-8 text-slate-700">{item.text}</p></article>)}

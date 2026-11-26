@@ -14,17 +14,21 @@ import type { QaadStatusFilter } from "@/components/gadews/risk-map/qaad-surveil
 import type { DiseaseFilter, LayerStats } from "@/components/gadews/risk-map/woah-wahis-layer";
 
 import { useEnvironment } from "@/hooks/use-environment";
-import { siteIds, type Site } from "@/lib/gadews/environment/snapshot";
-import { type OceanLayer } from "@/components/gadews/environment/environment-map-controls";
+import { siteIds, type Site, oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
+
 
 function subscribeHash(fn:()=>void) { window.addEventListener("hashchange",fn);return ()=>window.removeEventListener("hashchange",fn); }
 function referenceHash() { return siteIds.find(s=>location.hash==="#env-"+s)??null; }
+
+function requestedLayer() { const key=new URLSearchParams(location.search).get("ocean");return oceanLayers.find(v=>v===key)??"off"; }
 
 export default function RiskMapPage() {
   const { t } = useLocale();
   const {data, error, retry}=useEnvironment();
   const selectedSite=useSyncExternalStore(subscribeHash,referenceHash,()=>null);
-  const [oceanLayer,setOceanLayer]=useState<OceanLayer>("off");
+  const initialLayer=useSyncExternalStore(subscribeHash,requestedLayer,()=>"off" as OceanLayer);
+  const [chosenLayer,setOceanLayer]=useState<OceanLayer|null>(null);
+  const oceanLayer=chosenLayer??initialLayer;
   const [envPoints,setEnvPoints]=useState(true);
   function locate(site:Site|null){setEnvPoints(true);location.hash=site?"env-"+site:"";}
   const [layers, setLayers] = useState({

@@ -148,3 +148,16 @@ export function overdue(f: Feed, now: number) {
   return ageDays > (f.id === "weather" || f.id === "marine" || f.id === "flood" ? 1 : 4);
 }
 export type Delivery = { snapshot: Snapshot; asOf: number; origin: "bundled" | "cached" | "published" };
+
+export const oceanLayers = [
+  "off",
+  "oisst",
+  "ocean-temp",
+  "chl-l3",
+  "chl-l4",
+  "viirs",
+  "salinity",
+  "oxygen",
+  "ph",
+] as const;
+export type OceanLayer = (typeof oceanLayers)[number];

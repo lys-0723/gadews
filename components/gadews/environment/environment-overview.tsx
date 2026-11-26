@@ -6,6 +6,7 @@ import { useEnvironment } from "@/hooks/use-environment";
 import { useLocale } from "../locale-provider";
 import {
   feedIds,
+  oceanLayers,
   names,
   overdue,
   siteIds,
@@ -191,13 +192,17 @@ const subscribeLocation = (fn: () => void) => {
 };
 const requestedSite = () =>
   siteIds.find((id) => id === new URLSearchParams(location.search).get("site")) ?? "offshore";
+const requestedProduct = () =>
+  feedIds.find((key) => key === new URLSearchParams(location.search).get("product")) ?? "weather";
 export function EnvironmentOverview() {
   const { t } = useLocale(),
     { data, error, retry } = useEnvironment();
   const initialSite = useSyncExternalStore(subscribeLocation, requestedSite, () => "offshore" as Site);
   const [chosen, setSite] = useState<Site | null>(null);
   const site = chosen ?? initialSite;
-  const [selected, setSelected] = useState<FeedId>("weather");
+  const initialProduct = useSyncExternalStore(subscribeLocation, requestedProduct, () => "weather" as FeedId);
+  const [chosenProduct, setSelected] = useState<FeedId | null>(null);
+  const selected = chosenProduct ?? initialProduct;
   const options = feedIds.filter((key) => sitesFor(key).includes(site));
   const key = options.includes(selected) ? selected : site === "offshore" ? "oisst" : options[0];
   const feed = data?.snapshot.feeds.find((f) => f.id === key);
@@ -268,7 +273,10 @@ export function EnvironmentOverview() {
             )}
           </p>
         )}
-        <a className={linkClass + " mt-4 inline-block"} href={"/risk-map#env-" + site}>
+        <a
+          className={linkClass + " mt-4 inline-block"}
+          href={"/risk-map?ocean=" + (oceanLayers.find((id) => id === key) ?? "off") + "#env-" + site}
+        >
           {t("在地图上对照该位置与历史报告", "Compare this location with historical reports on the map")} →
         </a>
         <CountryReports site={site} />

@@ -3,7 +3,7 @@ import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
-import { gridPalette, type OceanLayer } from "../environment/environment-map-controls";
+import { gridPalette } from "../environment/environment-map-controls";
 import {
   station,
   siteIds,
@@ -11,6 +11,7 @@ import {
   timeIndex,
   overdue,
   variables,
+  type OceanLayer,
   type Delivery,
   type Site,
   type Feed,

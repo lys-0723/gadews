@@ -10,18 +10,7 @@ import {
   overdue,
 } from "@/lib/gadews/environment/snapshot";
 
-export const oceanLayers = [
-  "off",
-  "oisst",
-  "ocean-temp",
-  "chl-l3",
-  "chl-l4",
-  "viirs",
-  "salinity",
-  "oxygen",
-  "ph",
-] as const;
-export type OceanLayer = (typeof oceanLayers)[number];
+import { oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentControls {
   delivery: Delivery | null;
   failed: boolean;
@@ -165,7 +154,10 @@ export function OceanControls({
           "Marine conditions and historical reports have distinct scales and dates. Colours show environmental values. Regional alert grading awaits rule review.",
         )}
       </p>
-      <a className="underline" href={"/overview" + (site ? "?site=" + site : "") + "#environment-evidence"}>
+      <a
+        className="underline"
+        href={"/overview?site=" + (site ?? "offshore") + "&product=" + layer + "#environment-evidence"}
+      >
         {t("查看环境趋势与来源", "Explore trends and sources")} →
       </a>
     </fieldset>
