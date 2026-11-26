@@ -91,28 +91,17 @@ try {
     await step("life forms and photo reference " + width, async () => {
       await navigate("/");
       await wait(q(".life-particles"));
-      await evaluate(q(".life-controls") + ".scrollIntoView({block:'center',behavior:'instant'})");
+      await evaluate(q(".life-motion-area") + ".scrollIntoView({block:'center',behavior:'instant'})");
       await wait("document.querySelector('.life-particles').dataset.lifeRenderer==='ready'");
-      await click(btn("Tilapia"));
-      assert.equal(await evaluate(q(".life-particles") + ".dataset.lifeStage"), "tilapia");
+      assert.equal(await evaluate(q(".life-particles") + '.querySelectorAll("button").length'), 0);
       const paths = [];
-      for (const [name, id] of [["Tilapia","tilapia"],["Shrimp","shrimp"],["Cells","cell"],["Pathogens","pathogen"]]) {
-        await click(btn(name)); await delay(3800);
-        assert.equal(await evaluate(q(".life-particles") + ".dataset.lifeStage"), id);
+      for (const id of ["tilapia","shrimp","cell","pathogen"]) {
+        await wait(q(".life-particles") + '.dataset.lifeStage===' + JSON.stringify(id));
+        await delay(2800);
         paths.push(await shot("life-" + id + "-" + width));
       }
-      await click(btn("Shrimp")); await click(btn("Photo reference"));
-      await wait(q(".life-reference-content"));
-      assert.ok(await evaluate(q(".life-reference-content") + ".textContent.includes('juvenile')"));
-      assert.ok(await evaluate(q(".life-reference-content") + ".textContent.includes('USDA')"));
-      assert.equal(await evaluate(q(".ga-launcher") + ".hidden"), true);
-      const reference = await shot("reference-" + width);
-      await click(label("Close photo and morphology reference"));
-      await click(btn("Focus form")); await delay(200);
-      await noOverflow(); const focus = await shot("focused-" + width);
-      await click(btn("Show page"));
-      await click(btn("Auto morph")); await wait("document.querySelector('.life-particles').dataset.lifeStage==='shrimp'");
-      return { paths, reference, focus, realRenderer: true, autoSequenceFirstTransition: "tilapia-to-shrimp" };
+      await noOverflow();
+      return { paths, automaticSequence: true };
     });
     await step("risk attention presentation " + width, async () => {
       await navigate("/warning-tools");
@@ -155,12 +144,8 @@ try {
   });
   await step("actual GPU pause and resume lifecycle", async () => {
     await navigate("/");
-    await evaluate(q(".life-controls") + ".scrollIntoView({block:'center',behavior:'instant'})");
+    await evaluate(q(".life-motion-area") + ".scrollIntoView({block:'center',behavior:'instant'})");
     await wait("document.querySelector('.life-particles').dataset.lifeRenderer==='ready' && window.__lifeDraws>2");
-    await click(btn("Pause")); await delay(120);
-    const paused = await evaluate("window.__lifeDraws"); await delay(350);
-    assert.equal(await evaluate("window.__lifeDraws"), paused);
-    await click(btn("Resume")); await wait("window.__lifeDraws>" + paused);
     await click(label("Open knowledge assistant")); await delay(120);
     const covered = await evaluate("window.__lifeDraws"); await delay(350);
     assert.equal(await evaluate("window.__lifeDraws"), covered);
@@ -173,15 +158,15 @@ try {
     } finally { await call("Target.closeTarget", { targetId: target.targetId }); await call("Page.bringToFront"); }
     await wait("!document.hidden");
     const before = await evaluate("window.__lifeDraws"); await wait("window.__lifeDraws>" + before);
-    return { paused, covered, hiddenTabTested: true, actualDrawCallsObserved: true };
+    return { covered, hiddenTabTested: true, actualDrawCallsObserved: true };
   });
   await step("reduced motion and 320px/720px layout", async () => {
     await call("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
     await navigate("/");
-    await evaluate(q(".life-controls") + ".scrollIntoView({block:'center',behavior:'instant'})");
+    await evaluate(q(".life-motion-area") + ".scrollIntoView({block:'center',behavior:'instant'})");
     await wait("document.querySelector('.life-particles').dataset.lifeRenderer==='static'");
     assert.equal(await evaluate(q(".life-static") + ".hidden"), false);
-    await click(btn("Shrimp")); assert.ok(await evaluate(q(".life-static") + ".getAttribute('src').includes('shrimp')"));
+    assert.ok(await evaluate(q(".life-static") + ".getAttribute('src').includes('tilapia')"));
     const sizes = [];
     for (const width of [320, 720, 1024]) {
       await metrics(width, width === 720 ? 500 : 900);
@@ -211,7 +196,7 @@ try {
   await step("missing point resource static fallback", async () => {
     await call("Network.setBlockedURLs", { urls: ["*/life/photo-points.bin", "*://*.tile.openstreetmap.org/*", "*://cdnjs.cloudflare.com/*"] });
     await navigate("/");
-    await evaluate(q(".life-controls") + ".scrollIntoView({block:'center',behavior:'instant'})");
+    await evaluate(q(".life-motion-area") + ".scrollIntoView({block:'center',behavior:'instant'})");
     await wait("document.querySelector('.life-description').textContent.includes('Motion is unavailable')");
     assert.equal(await evaluate(q(".life-static") + ".hidden"), false);
     assert.ok(await evaluate("document.querySelector('.report-globe-count').textContent.includes('371')"));

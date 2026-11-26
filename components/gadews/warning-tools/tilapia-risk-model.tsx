@@ -91,7 +91,7 @@ export function TilapiaRiskModel({ aiActive = true, aiRevision = 0 }: { aiActive
         {result ? <><AssessmentResultPanel result={result} outdated={outdated} /><TilapiaTracePanel result={result} /></> : <div className="rounded-3xl border border-dashed border-teal-200 bg-white p-7 text-sm leading-7 text-slate-500"><h3 className="font-bold text-slate-800">{w("No tilapia assessment yet")}</h3><p>{w("Start with the evidence you have, then choose Evaluate. No value, laboratory result or professional confirmation is assumed.")}</p><p className="mt-3">{w("The form covers basic observations and separate laboratory findings. Continuous exposure records, vaccination, regional context and professional case reviews require other evidence sources.")}</p></div>}
       </div>
     </div>
-    <AiAssessmentPanel request={aiRequest} active={aiActive && Boolean(knowledge)} revision={aiRevision} />
+    <AiAssessmentPanel sampleAllowed={exampleInput !== null && !exampleDerived} request={aiRequest} active={aiActive && Boolean(knowledge)} revision={aiRevision} />
     {knowledge && <TilapiaKnowledgePanel knowledge={knowledge} />}
   </section>;
 }

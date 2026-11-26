@@ -12,6 +12,7 @@ const links = [
   ["/risk-map", "全球报告", "Global reports"],
   ["/warning-tools", "预警工具", "Warning tools"],
   ["/knowledge-bank", "知识资源", "Knowledge"],
+  ["/accounts", "账号管理", "Accounts"],
   ["/why-gadews-matters", "走近 GADEWS", "About GADEWS"],
 ] as const;
 
@@ -25,7 +26,7 @@ export function Brand({ dark = false }: { dark?: boolean }) {
 
 export function LanguageSwitch() {
   const { locale, setLocale } = useLocale();
-  return <div className="site-language" aria-label="Chinese / English"><button type="button" aria-pressed={locale === "zh-CN"} onClick={() => setLocale("zh-CN")}>Chinese</button><span aria-hidden="true">/</span><button type="button" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>English</button></div>;
+  return <div className="site-language" role="group" aria-label="Chinese / English"><button type="button" aria-pressed={locale === "zh-CN"} onClick={() => setLocale("zh-CN")}>Chinese</button><button type="button" aria-pressed={locale === "en"} onClick={() => setLocale("en")}>English</button></div>;
 }
 
 export function StickyHeader({ variant = "light" }: { variant?: "light" | "dark" | "map" }) {

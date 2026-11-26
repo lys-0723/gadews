@@ -56,8 +56,8 @@ test("resampling changes display density without inventing silhouette coordinate
 test("life story starts with fish and shrimp before microscopic forms at bounded densities", () => {
   assert.deepEqual([0, nextLifeStage(0), nextLifeStage(1), nextLifeStage(2), nextLifeStage(3)], [0, 1, 2, 3, 0]);
   assert.throws(() => nextLifeStage(4));
-  assert.equal(lifePointCount(390, false), 10500);
-  assert.equal(lifePointCount(1440, false), 39000);
+  assert.equal(lifePointCount(390, false), 7000);
+  assert.equal(lifePointCount(1440, false), 14000);
   assert.equal(lifePointCount(1440, true), 0);
 });
 

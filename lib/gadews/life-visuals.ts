@@ -79,7 +79,7 @@ export function nextLifeStage(stage: number): LifeStage {
 }
 
 export function lifePointCount(width: number, reduced: boolean): number {
-  return reduced ? 0 : width < 600 ? 10500 : 39000;
+  return reduced ? 0 : width < 600 ? 7000 : 14000;
 }
 
 export function lifeMotionAllowed(state: { reduced: boolean; visible: boolean; hidden: boolean; assistantOpen: boolean; mobile: boolean }): boolean {

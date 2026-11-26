@@ -153,3 +153,5 @@ __pycache__/
 *.pptx
 *.xmind
 *.pdf
+
+/.local-accounts/

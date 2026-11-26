@@ -74,6 +74,7 @@ export function buildScoringPrompt(request: AiAssessmentRequest, rubric: Scoring
   return { system, prompt };
 }
 interface Dependencies {
+  authorize?: (request: Request, parsed: AiAssessmentRequest) => Promise<Response | null>;
   env?: Record<string,string|undefined>; budget?: ModelBudget; now?: () => Date; timeoutMs?: number;
   generate?: (config: AssistantConfig, prompt: ScoringPrompt, signal: AbortSignal) => Promise<string>;
 }
@@ -86,6 +87,10 @@ export function createAiAssessmentHandler(dependencies: Dependencies = {}) {
     let parsed: AiAssessmentRequest;
     try { parsed = parseAiAssessmentRequest(await readBoundedJson(request)); } catch (error) {
       return request.signal.aborted ? fail(499,"cancelled") : fail(error instanceof AiRuntimeError && error.code === "body_too_large" ? 413 : 400, error instanceof AiRuntimeError && error.code === "body_too_large" ? "body_too_large" : "invalid_request");
+    }
+    if (dependencies.authorize) {
+      const denied = await dependencies.authorize(request, parsed);
+      if (denied) return denied;
     }
     let config: AssistantConfig;
     try { config = readAssistantConfig(env); if (!config.apiKey) return fail(503, "not_configured"); } catch { return fail(503, "not_configured"); }

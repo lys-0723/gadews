@@ -101,6 +101,6 @@ export function WsdRiskModel({ monitoringSnapshot = null, monitoringOrigin = pub
         {result ? <AssessmentResultPanel result={result} outdated={outdated} /> : <div className="rounded-3xl border border-dashed border-teal-200 bg-white p-7 text-sm leading-7 text-slate-500"><h3 className="font-bold text-slate-800">{w("No assessment yet")}</h3><p>{demo ? w("Load a synthetic observation or enter demo values. Choose Evaluate to review available evidence and missing information. Every result in this workspace is example data.") : w("Start with blank fields, or explicitly load an example. Choose Evaluate to review available evidence and missing information.")}</p><p className="mt-3">{w("The inherited WSD source has overlapping pH and grade boundaries. These will remain visible until the parameters are reviewed.")}</p></div>}
       </div>
     </div>
-    <AiAssessmentPanel request={aiRequest} active={aiActive && Boolean(config)} revision={aiRevision} />
+    <AiAssessmentPanel sampleAllowed={!demo && mode === "example" && Object.keys(context).length === 0 && JSON.stringify(input) === JSON.stringify(WSD_WORKBENCH_EXAMPLE)} request={aiRequest} active={aiActive && Boolean(config)} revision={aiRevision} />
   </section>;
 }

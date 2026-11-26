@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
+import { WSD_WORKBENCH_EXAMPLE } from "./warning-fields";
 import { installDom } from "@/lib/gadews/test-support/dom";
 import { createAiAssessmentHandler } from "@/lib/gadews/ai-assessment/handler";
 import { buildWsdScoringRubric, evaluateWsdBaseline } from "@/lib/gadews/ai-assessment/wsd-rubric";
@@ -29,8 +30,13 @@ test("real form snapshots drive both comparisons while original JSON and disable
  const blobs:Blob[]=[];const create=URL.createObjectURL,revoke=URL.revokeObjectURL,click=window.HTMLAnchorElement.prototype.click;URL.createObjectURL=b=>{blobs.push(b as Blob);return"blob:integration";};URL.revokeObjectURL=()=>{};window.HTMLAnchorElement.prototype.click=()=>{};
  try{render(<WarningWorkbench/>);const user=userEvent.setup();await waitFor(()=>assert.equal((screen.getByRole("button",{name:"Evaluate WSD"})as HTMLButtonElement).disabled,false));
  await user.type(screen.getByLabelText("Pond pH"),"7.02");await user.click(screen.getByRole("button",{name:"Evaluate WSD"}));await user.click(screen.getByRole("button",{name:"Download JSON"}));const originalJson=await blobs[0].text();
- await user.click(screen.getByRole("button",{name:"AI-assisted assessment"}));await screen.findByText("Incomplete evidence; known items retained");assert.equal(io.requests.length,1);assert.ok(io.requests[0].diseaseId==="wsd");assert.equal(String(io.requests[0].input.ph),"7.02");
+ assert.ok((screen.getByRole("button",{name:"AI-assisted assessment"}) as HTMLButtonElement).disabled);
+ assert.equal(io.requests.length,0);
  await user.click(screen.getByRole("button",{name:"Download JSON"}));assert.equal(await blobs[1].text(),originalJson);
+ await user.click(screen.getByRole("button",{name:"Load WSD example"}));
+ await user.click(screen.getByRole("button",{name:"AI-assisted assessment"}));
+ await screen.findByRole("button",{name:"Download comparison JSON"});
+ assert.equal(io.requests.length,1);
  await user.click(screen.getByRole("button",{name:"Download comparison JSON"}));assert.equal(JSON.parse(await blobs[2].text()).reportType,"gadews-ai-assessment-comparison");
  await user.type(screen.getByLabelText("Pond pH"),"1");assert.equal((screen.getByRole("button",{name:"Download comparison JSON"})as HTMLButtonElement).disabled,true);
  await user.click(screen.getByRole("button",{name:"Tilapia streptococcosis"}));const tilt=within(screen.getByRole("region",{name:"Tilapia workspace"}));await waitFor(()=>assert.equal((tilt.getByRole("button",{name:"Evaluate tilapia"})as HTMLButtonElement).disabled,false));
@@ -43,14 +49,14 @@ test("real form snapshots drive both comparisons while original JSON and disable
 test("switching disease cancels an actual pending AI request and prevents stale results when returning",async()=>{
  const React=await import("react"),{render,screen,waitFor,cleanup,act}=await import("@testing-library/react"),{default:userEvent}=await import("@testing-library/user-event"),{WarningWorkbench}=await import("./warning-workbench");const original=globalThis.fetch;
  let signal:AbortSignal|undefined,finish!:(r:Response)=>void;globalThis.fetch=async(url,init)=>{if(String(url).includes("/api/assessment/ai")){signal=init!.signal as AbortSignal;return new Promise(resolve=>{finish=resolve;});}return Response.json(String(url).includes("tilapia")?knowledge:wsd);};
- try{render(<WarningWorkbench/>);const user=userEvent.setup();await waitFor(()=>assert.equal((screen.getByRole("button",{name:"Evaluate WSD"})as HTMLButtonElement).disabled,false));await user.type(screen.getByLabelText("Pond pH"),"7.02");await user.click(screen.getByRole("button",{name:"AI-assisted assessment"}));
- await user.click(screen.getByRole("button",{name:"Tilapia streptococcosis"}));assert.equal(signal?.aborted,true);await act(async()=>finish(Response.json({reportType:"late"})));await user.click(screen.getByRole("button",{name:"WSD / white spot disease"}));assert.equal((screen.getByLabelText("Pond pH")as HTMLInputElement).value,"7.02");assert.equal(screen.queryByRole("button",{name:"Download comparison JSON"}),null);
+ try{render(<WarningWorkbench/>);const user=userEvent.setup();await waitFor(()=>assert.equal((screen.getByRole("button",{name:"Evaluate WSD"})as HTMLButtonElement).disabled,false));await user.click(screen.getByRole("button",{name:"Load WSD example"}));await user.click(screen.getByRole("button",{name:"AI-assisted assessment"}));
+ await user.click(screen.getByRole("button",{name:"Tilapia streptococcosis"}));assert.equal(signal?.aborted,true);await act(async()=>finish(Response.json({reportType:"late"})));await user.click(screen.getByRole("button",{name:"WSD / white spot disease"}));assert.equal((screen.getByLabelText("Pond pH")as HTMLInputElement).value,String(WSD_WORKBENCH_EXAMPLE.ph));assert.equal(screen.queryByRole("button",{name:"Download comparison JSON"}),null);
  }finally{globalThis.fetch=original;cleanup();}
 });
-test("monitoring demo AI uses its separate example snapshot and leaves manual parameters intact",async()=>{
+test("monitoring demo stays local and leaves manual parameters intact",async()=>{
  const React=await import("react"),{render,screen,within,cleanup}=await import("@testing-library/react"),{default:userEvent}=await import("@testing-library/user-event"),{WarningWorkbench}=await import("./warning-workbench");const io=bridge(),original=globalThis.fetch;globalThis.fetch=io.fetch;
  try{render(<WarningWorkbench/>);const user=userEvent.setup();await user.type(screen.getByLabelText("Pond pH"),"7.02");await user.click(screen.getByRole("button",{name:"Run monitoring demo"}));await screen.findByText("29 °C");const demo=within(screen.getByRole("region",{name:"WSD demo workspace"}));
- await user.click(demo.getByRole("button",{name:"Load demo observation into WSD"}));await user.click(demo.getByRole("button",{name:"AI-assisted assessment"}));await demo.findByRole("button",{name:"Download comparison JSON"});assert.equal(io.requests[0].context.dataMode,"example");assert.ok(io.requests[0].diseaseId==="wsd");assert.equal(String(io.requests[0].input.ph),"8.2");
+ await user.click(demo.getByRole("button",{name:"Load demo observation into WSD"}));assert.ok((demo.getByRole("button",{name:"AI-assisted assessment"}) as HTMLButtonElement).disabled);assert.equal(io.requests.length,0);
  await user.click(screen.getByRole("button",{name:"Published observations"}));assert.equal((within(screen.getByRole("region",{name:"WSD workspace"})).getByLabelText("Pond pH")as HTMLInputElement).value,"7.02");
  }finally{globalThis.fetch=original;cleanup();}
 });
