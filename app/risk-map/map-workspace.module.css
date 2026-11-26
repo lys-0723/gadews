@@ -1,0 +1,29 @@
+.workspace { position: fixed; inset: 80px 0 0; display: flex; flex-direction: column; color: #173b45; background: #f6faf8; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; gap: 12px; padding: 9px 20px; border-bottom: 1px solid #bfcecb; background: #fafcfb; }
+.views { display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: #e5eeeb; }
+.views a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; padding: 5px 14px; border-radius: 6px; font-size: 14px; font-weight: 650; }
+.views [aria-current="page"] { background: #114c4c; color: #fff; }
+.catalog { color: #165e58; font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.body { display: grid; grid-template-columns: clamp(300px, 27vw, 388px) minmax(0, 1fr); min-height: 0; flex: 1; }
+.rail { overflow: auto; overscroll-behavior: contain; padding: 18px 20px 35px; background: #fff; border-right: 1px solid #becfcb; scrollbar-width: thin; }
+.rail > section { width: 100%; max-width: none; padding: 0; box-shadow: none; border: 0; border-radius: 0; }
+.rail > section + section, .rail > details { margin-top: 20px; padding-top: 15px; border-top: 1px solid #ccd9d6; }
+.rail select { width: 100%; }
+.map { position: relative; min-height: 0; isolation: isolate; }
+.map :global(.leaflet-bottom.leaflet-right) { margin-bottom: 90px; }
+.rail :global(.regional-demo-panel) { display: block; margin: 0; padding: 10px; }
+.rail :global(.regional-demo-selects) { display: flex; flex-wrap: wrap; }
+.rail :global(.regional-demo-summary) { margin-top: 8px; }
+@media (max-width:760px) {
+  .workspace { top: 78px; overflow-y: auto; }
+  .toolbar { position: sticky; z-index: 2; top: 0; padding: 5px 8px; gap: 4px; }
+  .views a { gap: 4px; padding: 5px 8px; font-size: 13px; }
+  .views svg { display:none; }
+  .catalog { font-size: 12px; text-align: right; }
+  .body { display: flex; flex-direction: column; flex: 1 0 auto; min-height: auto; }
+  .map { order: -1; flex: 0 0 auto; height: clamp(235px,42svh,400px); }
+  .rail { overflow: visible; padding: 18px 16px 96px; border-right: 0; }
+  .map :global(.leaflet-bottom.leaflet-right) { margin-bottom: 0; }
+}
+
+.demoNotice { position: absolute; z-index: 2; top: 8px; left: 8px; max-width: 85%; display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 7px 10px; background: white; color: #30444c; border: 1px solid #c8d2d0; border-radius: 5px; font-size: 13px; }

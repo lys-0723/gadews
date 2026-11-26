@@ -36,13 +36,8 @@ export function RegionalDemoLayer({ summary }: { summary: RegionalDemoSummary })
     const bounds = L.latLng(site.latitude, site.longitude).toBounds(2 * radiusMeters);
     function fitDemo() {
       if (!controls || !map.getContainer().isConnected) return;
-      const size = map.getSize();
-      const desktop = size.x >= 1024;
-      const mapTop = map.getContainer().getBoundingClientRect().top;
-      const top = controls.getBoundingClientRect().top - mapTop;
       map.stop().fitBounds(bounds, {
-        paddingTopLeft: [desktop ? 366 : 20, top + 18],
-        paddingBottomRight: [desktop ? 330 : 20, desktop ? 138 : Math.min(125, Math.max(36, (size.y - top) / 4))],
+        padding: [28, 28],
         maxZoom: 14,
         animate: false,
       });

@@ -331,7 +331,7 @@ export function EnvironmentOverview() {
         )}
         <a
           className={linkClass + " mt-4 inline-block"}
-          href={"/risk-map?ocean=" + (oceanLayers.find((id) => id === key) ?? "off") + "#env-" + site}
+          href={"/risk-map?view=regional&ocean=" + (oceanLayers.find((id) => id === key) ?? "off") + "#env-" + site}
         >
           {t("在地图上对照该位置与历史报告", "Compare this location with historical reports on the map")} →
         </a>

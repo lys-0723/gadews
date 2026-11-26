@@ -37,11 +37,9 @@ test("map filters retain stable values while accessible labels switch language",
   }
   try {
     render(<LocaleProvider initialLocale="zh-CN"><Example /></LocaleProvider>);
-    assert.ok(screen.getByRole("checkbox", { name: "区域监测演示", description: /查找试点周边/ }));
     fireEvent.change(screen.getByRole("combobox", { name: "病种筛选" }), { target:{ value:"WSD" } });
     fireEvent.change(screen.getByRole("combobox", { name: "QAAD 状态筛选" }), { target:{ value:"no_information" } });
     fireEvent.click(screen.getByText("Language"));
-    assert.ok(screen.getByRole("checkbox", { name: "Regional monitoring demo", description: /near a sample site/ }));
     assert.equal((screen.getByRole("combobox", { name: "Disease filter" }) as HTMLSelectElement).value, "WSD");
     assert.equal((screen.getByRole("combobox", { name: "QAAD status filter" }) as HTMLSelectElement).value, "no_information");
     assert.ok(screen.getByText(/not outbreak events/));

@@ -4,6 +4,7 @@ import {
   names,
   station,
   siteIds,
+  sitesFor,
   type FeedId,
   type Site,
   type Delivery,
@@ -13,6 +14,7 @@ import {
 import { heatColors } from "@/lib/gadews/environment/heat-grid";
 import { oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentControls {
+  hideSitePicker?: boolean;
   heatMonth: number;
   onHeatMonth: (month: number) => void;
   delivery: Delivery | null;
@@ -26,6 +28,7 @@ export interface EnvironmentControls {
   onSite: (v: Site | null) => void;
 }
 export function OceanControls({
+  hideSitePicker = false,
   heatMonth, onHeatMonth, delivery,
   failed,
   retry,
@@ -39,6 +42,9 @@ export function OceanControls({
   const { t } = useLocale();
   const current = delivery?.snapshot.feeds.find((f) => f.id === layer);
   const day = current?.heatMaps ? current.series[0].times[heatMonth] : current?.grid?.time ?? current?.raster?.time;
+  const linkedProduct = layer === "off" ? (site === "offshore" ? "oisst" : "weather") : layer;
+  const locations = sitesFor(linkedProduct);
+  const linkedSite = site && locations.includes(site) ? site : locations[0];
   const control = "mt-1 block w-full rounded-lg border border-slate-400 bg-white px-2 py-2";
   return (
     <fieldset className="space-y-2 border-t border-slate-200 pt-2">
@@ -47,7 +53,7 @@ export function OceanControls({
         <input type="checkbox" checked={points} onChange={(e) => onPoints(e.target.checked)} />
         {t("天气、海况与河流代表点", "Weather, marine and river reference points")}
       </label>
-      <label className="block">
+      {!hideSitePicker && <label className="block">
         {t("定位到代表点", "Locate a reference point")}
         <select
           className={control}
@@ -61,7 +67,7 @@ export function OceanControls({
             </option>
           ))}
         </select>
-      </label>
+      </label>}
       <label className="block">
         {t("海洋资料图层", "Marine evidence layer")}
         <select className={control} value={layer} onChange={(e) => onLayer(e.target.value as OceanLayer)}>
@@ -119,6 +125,7 @@ export function OceanControls({
           {current?.heatMaps && <>
             <label className="block">{t("预报月份", "Forecast month")}
               <select className={control} value={heatMonth} onChange={e => onHeatMonth(Number(e.target.value))}>
+                {heatMonth < 0 && <option value={-1} disabled>{t("所选日期无预报月份", "No forecast for this date")}</option>}
                 {current.series[0].times.map((v,i) => <option key={v} value={i}>{v.slice(0,7)}</option>)}
               </select>
             </label>
@@ -170,9 +177,9 @@ export function OceanControls({
       </p>
       <a
         className="underline"
-        href={"/overview?site=" + (site ?? "offshore") + "&product=" + layer + "#environment-evidence"}
+        href={"/overview?site=" + linkedSite + "&product=" + linkedProduct + "#environment-evidence"}
       >
-        {t("查看环境趋势与来源", "Explore trends and sources")} →
+        {t("查看环境趋势与来源", "Explore trends and sources")}{site !== linkedSite && " · " + t(station[linkedSite][0], station[linkedSite][1])} →
       </a>
     </fieldset>
   );
