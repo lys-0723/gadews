@@ -45,8 +45,8 @@ export function MarineAreaRange({feed, month}: {feed: Feed; month: number}) {
   const update = useCallback(() => setBox(viewport(map)), [map]);
   useEffect(() => {
     map.on("moveend resize", update);
-    update();
-    return () => { map.off("moveend resize", update); };
+    const frame = requestAnimationFrame(update);
+    return () => { cancelAnimationFrame(frame); map.off("moveend resize", update); };
   }, [map, update]);
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => { if (root.current) L.DomEvent.disableClickPropagation(root.current); }, []);
