@@ -115,6 +115,12 @@ export function HeaderAccount() {
       </button>
       {open && <div id="site-account-panel" className="site-account-panel">
         <strong className="site-account-name">{identity.username}</strong>
+        {identity.active && identity.role !== "member" && (
+          <Link href="/accounts#approvals" onClick={() => setOpen(false)}>{t("待审批申请", "Pending applications")}</Link>
+        )}
+        {identity.active && identity.role === "system" && (
+          <Link href="/accounts#user-permissions" onClick={() => setOpen(false)}>{t("用户权限管理", "User permissions")}</Link>
+        )}
         <Link href="/accounts" onClick={() => setOpen(false)}>{t("账号管理", "Account settings")}</Link>
         <button type="button" disabled={signingOut} onClick={logout}><LogOut size={16} aria-hidden="true" />
           {signingOut ? t("正在退出…", "Signing out…") : t("退出登录", "Sign out")}

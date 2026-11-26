@@ -6,6 +6,8 @@ import { useSearchParams } from "next/navigation";
 import { areaNames, roleNames } from "@/lib/accounts/display";
 import { evaluatePassword } from "@/lib/accounts/password-strength";
 import { accountApi as api, accountMessages as messages } from "@/lib/accounts/client";
+import { SystemGrants } from "./system-grants";
+import { ApprovalQueue, PendingApplication } from "./approval-queue";
 import { AccessPreview } from "./access-preview";
 import { StickyHeader } from "@/components/gadews/sticky-header";
 import { useLocale } from "@/components/gadews/locale-provider";
@@ -246,7 +248,7 @@ function Assignment({ user, view, act, busy }: { user: Account; view: Dashboard;
           </fieldset>
         )}
         <button className={button} disabled={busy}>
-          {user.status === "pending" ? t("批准并分配", "Approve assignment") : t("保存授权", "Save grants")}
+          {t("保存授权", "Save grants")}
         </button>
       </form>
     </details>
@@ -292,6 +294,12 @@ export default function AccountsPage() {
     [error, setError] = useState(""),
     [score, setScore] = useState<Preview | null>(null),
     [output, setOutput] = useState("");
+  const managedAccounts = view?.children.filter(account => account.status !== "pending") ?? [];
+  useEffect(() => {
+    if (!loading && ["#approvals", "#user-permissions"].includes(window.location.hash)) {
+      document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+    }
+  }, [loading]);
   async function refresh() {
     const data = (await api()) as Dashboard | null;
     setView(data);
@@ -321,6 +329,7 @@ export default function AccountsPage() {
     try {
       if (action === "refresh") {
         await refresh();
+        window.dispatchEvent(new Event("gadews:session-changed"));
         return;
       }
       const data = await api(action, input);
@@ -346,6 +355,8 @@ export default function AccountsPage() {
             2,
           ),
         );
+      if (action === "approve") setMessage(t("申请已批准。", "Application approved."));
+      if (action === "systemGrant") setMessage(t("用户权限已保存。", "User permissions saved."));
       if (action === "assign") setMessage(t("授权已保存。", "Grants saved."));
       await refresh();
     } catch (e) {
@@ -423,7 +434,18 @@ export default function AccountsPage() {
                   </button>
                 </div>
               </div>
+              {view.self.status === "pending" && <PendingApplication account={view.self} />}
+              {view.active && view.self.role !== "member" && (
+                <nav aria-label={t("账号管理操作", "Account management actions")} className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-4 text-sm font-semibold text-teal-800">
+                  <a className="underline underline-offset-4" href="#approvals">{t("待审批申请", "Pending applications")} ({view.approvals.length})</a>
+                  {view.self.role === "system" && <a className="underline underline-offset-4" href="#user-permissions">{t("用户权限管理", "User permissions")}</a>}
+                </nav>
+              )}
             </section>
+            {view.active && view.self.role !== "member" && (
+              <ApprovalQueue view={view} approve={input => act("approve", input)} busy={busy} />
+            )}
+            {view.active && view.self.role === "system" && <SystemGrants accounts={view.systemAccounts} busy={busy} save={act} modelLabel={label} />}
             {view.active && (
               <>
                 <section className={card}>
@@ -439,14 +461,14 @@ export default function AccountsPage() {
                   </p>
                 </section>
                 {view.engine && <p className="text-sm text-slate-600">{t("AI 服务配置","AI service configuration")} · {view.engine.model || t("未指定","Unspecified")} · {view.engine.configured ? t("已配置，实际状态以调用回执为准","Configured; availability is checked on request") : t("未配置，规则演示可用","Not configured; offline previews available")}</p>}
-                {view.self.role !== "member" && (
+                {(view.self.role === "country" || view.self.role === "region") && (
                   <section className={card}>
                     <h2 className="text-xl font-bold">
                       {t("管理下一级账号", "Manage subordinate accounts")}
                     </h2>
                     <div className="mt-4 space-y-3">
-                      {view.children.length
-                        ? view.children.map((u) => (
+                      {managedAccounts.length
+                        ? managedAccounts.map((u) => (
                             <Assignment
                               key={JSON.stringify([u, view.assignable])}
                               user={u}
@@ -456,8 +478,8 @@ export default function AccountsPage() {
                             />
                           ))
                         : t(
-                            "当前范围内没有待分配或直属账号。",
-                            "No pending or directly managed accounts in this scope.",
+                            "当前没有已归属的下一级账号。",
+                            "No subordinate accounts assigned yet.",
                           )}
                     </div>
                   </section>

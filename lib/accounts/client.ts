@@ -1,4 +1,7 @@
 export const accountMessages: Record<string, [string, string]> = {
+  approval_parent_missing: ["该辖区缺少已启用的直属管理员，请先批准或启用上一级账号。", "This jurisdiction needs an active supervising administrator. Approve or enable one first."],
+  approval_parent_required: ["请选择该申请的直属管理员。", "Select a supervising administrator for this application."],
+  approval_processed: ["该申请已处理，列表已刷新。", "This application was already processed. The list has been refreshed."],
   invalid_request: [
     "请核对用户名、密码、辖区或输入格式。",
     "Check the username, password, jurisdiction or input.",
