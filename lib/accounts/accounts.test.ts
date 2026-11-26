@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { createClient } from "@libsql/client";
 import { initAccounts } from "./storage";
 import { AccountError } from "./policy";
-import { assign, authorize, bootstrap, dashboard, login, logout, register } from "./service";
+import { assign, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
 import { previewScore, sampleRequest } from "./samples";
 import { catalog } from "./policy";
 
@@ -47,7 +47,11 @@ test("registered accounts, scoped delegation, independent grants and session rev
   await assert.rejects(
     register(db, { ...credentials("stranger"), country: "A", region: "east", role: "system" }),
   );
+  assert.deepEqual(await sessionIdentity(db, nation.token), {
+    username: "nation", role: "member", country: "A", region: "east", status: "pending", active: false,
+  });
   await grant(owner, nation.id, true, false);
+  assert.equal((await sessionIdentity(db, nation.token)).role, "country");
   await grant(nation.token, east.id, true, false);
   await assert.rejects(grant(nation.token, abroad.id, true, false), denied("out_of_scope"));
   await assert.rejects(grant(east.token, west.id, true, false), denied("out_of_scope"));
@@ -89,6 +93,7 @@ test("registered accounts, scoped delegation, independent grants and session rev
   await grant(owner, nation.id, false, false, false);
   await assert.rejects(dashboard(db, member.token), denied("login_required"));
   await assert.rejects(dashboard(db, nation.token), denied("login_required"));
+  await assert.rejects(sessionIdentity(db, nation.token), denied("login_required"));
   await logout(db, member.token);
   await assert.rejects(dashboard(db, member.token), denied("login_required"));
 });

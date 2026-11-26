@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { roleNames } from "@/lib/accounts/display";
 import { access, type Account, type Role } from "@/lib/accounts/policy";
 import { useLocale } from "@/components/gadews/locale-provider";
 
@@ -40,10 +41,7 @@ export function AccessPreview() {
       <label>
         {t("演示身份", "Demo role")}{" "}
         <select className="rounded border p-2" value={role} onChange={(e) => setRole(e.target.value as Role)}>
-          <option value="system">{t("超级管理员", "System administrator")}</option>
-          <option value="country">{t("国家管理员", "Country administrator")}</option>
-          <option value="region">{t("区域管理员", "Regional administrator")}</option>
-          <option value="member">{t("终端用户", "End user")}</option>
+          {accounts.map(({role: level}) => <option key={level} value={level}>{t(...roleNames[level])}</option>)}
         </select>
       </label>
       {role === "member" && (

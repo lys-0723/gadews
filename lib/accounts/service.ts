@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID, createHash, scrypt, timingSafeEqual } from "node:crypto";
+import type { SessionIdentity } from "./display";
 import type { Client } from "@libsql/client";
 import { z } from "zod";
 import { readAssistantConfig } from "../gadews/assistant/config";
@@ -111,6 +112,12 @@ export async function identity(db: Pick<Client, "execute">, token: string) {
   if (!self || self.status === "disabled") throw new AccountError(401, "login_required");
   return { all, self, rights: access(self, all) };
 }
+export async function sessionIdentity(db: Client, token: string): Promise<SessionIdentity> {
+  const { self, rights } = await identity(db, token);
+  const { username, role, country, region, status } = self;
+  return { username, role, country, region, status, active: rights.active };
+}
+
 export async function dashboard(db: Client, token: string) {
   const { all, self, rights } = await identity(db, token);
   const directory =
