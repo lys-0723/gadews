@@ -247,7 +247,7 @@ export function HomePage() {
                   <p>{c("h025")}</p>
                   <p className="step-detail">{c("h026")}</p>
                 </article>
-                <article className="evidence-step" data-step="1">
+                <article className="evidence-step" data-step="1" id="life-observer">
                   <h3>{c("h027")}</h3>
                   <p>{c("h028")}</p>
                   <p className="step-detail">{c("h029")}</p>

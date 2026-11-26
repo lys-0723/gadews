@@ -57,7 +57,7 @@ export function LifeParticles({ sceneLoader = defaultLoader }: { sceneLoader?: L
   const active = lifeMotionAllowed({ reduced, visible, hidden, mobile, assistantOpen }) && !error;
   useEffect(() => { scene.current?.setActive(active); }, [active, ready]);
   const photo = stage < 2 ? photoSources[stage === 0 ? 0 : 1] : null;
-  return <figure id="life-observer" className="life-particles" aria-label={t("养殖动物与微观生命", "Aquaculture animals and microscopic life")}
+  return <figure className="life-particles" aria-label={t("养殖动物与微观生命", "Aquaculture animals and microscopic life")}
     data-life-stage={LIFE_STAGES[stage]} data-life-renderer={ready && !error ? "ready" : "static"}>
     <div ref={motionArea} className="life-motion-area" aria-hidden="true">
       <img className="life-static" src={`/media/gadews/life/${LIFE_STAGES[stage]}-static.svg`} alt="" hidden={ready && !error} />

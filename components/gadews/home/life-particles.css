@@ -22,7 +22,6 @@
   position: relative;
   margin: 22px 0 0;
   max-width: 33rem;
-  scroll-margin-block-start: 7rem;
 }
 .ocean-home .life-motion-area { position: relative; width: 100%; aspect-ratio: 2.35; }
 .ocean-home .life-motion-area canvas,

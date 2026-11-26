@@ -119,9 +119,9 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
         0.50 + 0.19 * sin(tide + lane * 1.8)
              + 0.08 * sin(13.0 * u - time * 0.23)
              + 0.14 * (lane - 0.5));
-      float spread = sin(3.14159265 * e);
+      float spread = smoothstep(0.05, 0.39, e) * (1.0 - smoothstep(0.61, 0.95, e));
       float mist = smoothstep(0.94, 0.995, lane);
-      float flow = max(mist, spread * spread);
+      float flow = max(mist, spread);
       vec2 px = mix(specimen, current, flow);
       vec2 offset = px - waveCenter;
       float distancePx = length(offset);
@@ -133,9 +133,9 @@ export async function createLifeParticleScene(canvas: HTMLCanvasElement, options
       float bead = smoothstep(0.96, 1.0, fract(phase * 15.71));
       gl_PointSize = clamp(pixelRatio * (pointSize * depth * 1.16 + flow * bead * 2.1), 0.8, 4.0);float gleam = 0.95 + 0.05 * sin(p.x * 4.0 - time * 0.75 + p.y);
       tint=mix(colorFrom,colorTo,e)*(.69+depth*.26)*gleam*(1.0+.18*wave);
-      vec3 sea = mix(vec3(.12, .52, .59), vec3(.44, .94, .82), lane);
+      vec3 sea = mix(vec3(.13, .65, .71), vec3(.51, 1.0, .84), lane);
       tint = mix(tint, sea, flow * .84);
-      opacity = mix(1.0, .32 + .58 * bead, flow) * (1.0 - .45 * mist); }`,
+      opacity = mix(1.0, .65 + .34 * bead, flow) * (1.0 - .45 * mist); }`,
     fragmentShader: `varying vec3 tint;varying float opacity;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;gl_FragColor=vec4(tint,(1.0-smoothstep(.12,.5,r))*.70*opacity);}`,
   });
   const scene = new THREE.Scene(), camera = new THREE.Camera(), points = new THREE.Points(geometry, material);
