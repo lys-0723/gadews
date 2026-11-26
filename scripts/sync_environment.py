@@ -15,6 +15,11 @@ from urllib.parse import quote, urlencode, urljoin, urlsplit
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
+if __package__:
+    from . import climate_products
+else:
+    import climate_products
+
 ROOT = Path(__file__).resolve().parents[1]
 BUNDLED = ROOT / "public/data/environment/snapshot.json"
 WEATHER = "https://api.open-meteo.com/v1/forecast"
@@ -236,10 +241,14 @@ def abis():
     return {"series": [], "events": [dict(name="INCOIS ABIS · India / Sri Lanka", start=day, end=day, url=href)], "catalogUrl":page}
 
 
-def collect(today):
+def collect(today, previous=None):
+    prior_heat = next((f for f in (previous or {}).get("feeds", []) if f["id"] == "heatwave"), {})
     return {
         "weather": lambda: meteo("https://api.open-meteo.com/v1/forecast",STATIONS,"hourly",
             ["temperature_2m","relative_humidity_2m","precipitation","wind_speed_10m","shortwave_radiation"], forecast_days=7,wind_speed_unit="ms"),
+        "heatwave": lambda: climate_products.heatwave(prior_heat, SEA, point),
+        "imerg": lambda: climate_products.imerg(read, STATIONS),
+        "enso": lambda: climate_products.enso(read),
         "gefs": lambda: meteo("https://ensemble-api.open-meteo.com/v1/ensemble", STATIONS, "daily",
             ["temperature_2m_mean", "precipitation_sum"], summarize=gefs_percentiles, models="gfs_seamless", forecast_days=15),
         "ec46": lambda: outlook("weekly", "ecmwf_ec46", 46),
@@ -298,7 +307,7 @@ def validate(snapshot):
             raise ValueError("unknown source state")
         if f["state"] == "unavailable":
             continue
-        if not f.get("retrievedAt") or (not f["series"] and "events" not in f):
+        if not f.get("retrievedAt") or (not any(k in f for k in ("events", "seasons", "frames")) and not f["series"]):
             raise ValueError("missing source provenance")
         for s in f["series"]:
             if not s["source"].startswith("https://"):
@@ -311,11 +320,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output",type=Path,default=BUNDLED)
     options = parser.parse_args()
+    # Report missing runtime dependencies before attempting a partial publication.
+    try:
+        import h5py, fsspec, aiohttp, PIL
+    except ImportError as exc:
+        parser.exit(2, f"Missing {exc.name}; install scripts/requirements-environment.txt first.\n")
     out = options.output
     prior = out if out.exists() else BUNDLED
     previous = json.loads(prior.read_bytes()) if prior.exists() else {}
     now = datetime.now(timezone.utc)
-    data = sync(previous,collect(now.date()),now.isoformat(timespec="seconds"))
+    data = sync(previous,collect(now.date(), previous),now.isoformat(timespec="seconds"))
     validate(data)
     out.parent.mkdir(parents=True,exist_ok=True)
     with tempfile.NamedTemporaryFile(mode="w",dir=out.parent,delete=False,encoding="utf-8") as tmp:

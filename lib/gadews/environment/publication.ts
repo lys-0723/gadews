@@ -3,7 +3,7 @@ import initial from "@/public/data/environment/snapshot.json";
 import { schema, type Snapshot } from "@/lib/gadews/environment/snapshot";
 
 const seed = schema.parse(initial);
-const published = "https://raw.githubusercontent.com/lys-0723/gadews/environment-data/forecasts-v2.json";
+const published = "https://raw.githubusercontent.com/lys-0723/gadews/environment-data/forecasts-v3.json";
 let latest: Snapshot = seed;
 export async function readEnvironment() {
   let origin: "bundled" | "cached" | "published" = latest === seed ? "bundled" : "cached";

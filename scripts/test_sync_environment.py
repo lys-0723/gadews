@@ -64,6 +64,23 @@ class EnvironmentTest(unittest.TestCase):
         _, fields = env.gefs_percentiles(["2026-11-26", "2026-11-27"], ["t"], values, dict.fromkeys(members, "°C"))
         self.assertEqual([f[2] for f in fields], [[3, None], [15, None], [27, None]])
 
+    def test_climate_outlooks_in_published_snapshot(self):
+        from scripts.climate_products import month
+        from datetime import date
+        self.assertEqual(month(date(2026, 12, 1), 2), date(2027, 2, 1))
+        feeds = {f["id"]: f for f in json.loads(env.BUNDLED.read_bytes())["feeds"]}
+        # The bundled version can contain retained data; validate actual published values.
+        if feeds["enso"].get("seasons"):
+            for row in feeds["enso"]["seasons"]:
+                self.assertEqual(row["cold"] + row["neutral"] + row["warm"], 100)
+                self.assertEqual(month(date.fromisoformat(row["start"]), 2).isoformat(), row["end"])
+        if feeds["heatwave"].get("heatMaps"):
+            import base64
+            for packed in feeds["heatwave"]["heatMaps"]:
+                frame = base64.b64decode(packed, validate=True)
+                self.assertEqual(len(frame), 181 * 360)
+                self.assertTrue(all(v <= 100 or v == 255 for v in set(frame)))
+
     def test_publication_validation_rejects_incomplete_snapshot(self):
         snapshot=json.loads(env.BUNDLED.read_bytes())
         env.validate(snapshot)

@@ -12,6 +12,9 @@ export const station: Record<Site, [string, string, number, number]> = {
 };
 export const feedIds = [
   "weather",
+  "heatwave",
+  "imerg",
+  "enso",
   "gefs",
   "ec46",
   "seas5",
@@ -33,6 +36,9 @@ export const feedIds = [
 ] as const;
 export type FeedId = (typeof feedIds)[number];
 export const names: Record<FeedId, [string, string]> = {
+  heatwave: ["NOAA PSL · 海洋热浪概率", "NOAA PSL · Marine heatwave probability"],
+  imerg: ["NASA IMERG · 半小时卫星降水", "NASA IMERG · Half-hourly satellite precipitation"],
+  enso: ["NOAA CPC · ENSO 概率展望", "NOAA CPC · ENSO probability outlook"],
   weather: ["Open-Meteo · 天气预报", "Open-Meteo · Weather forecast"],
   gefs: ["NOAA GEFS · 15 天集合天气预报", "NOAA GEFS · 15-day ensemble weather"],
   ec46: ["ECMWF EC46 · 逐周气候展望", "ECMWF EC46 · Weekly outlook"],
@@ -54,6 +60,7 @@ export const names: Record<FeedId, [string, string]> = {
   abis: ["INCOIS ABIS · 区域藻华产品", "INCOIS ABIS · Regional bloom product"],
 };
 export const variables: Record<string, [string, string]> = {
+  mhw_probability: ["海洋热浪概率", "Marine heatwave probability"],
   temperature_2m_anomaly: ["平均气温距平", "Mean air temperature anomaly"],
   precipitation_anomaly: ["累计降水距平", "Total precipitation anomaly"],
   temperature_2m_mean_p10: ["日均气温 · P10", "Daily mean air temperature · P10"],
@@ -88,13 +95,13 @@ export const variables: Record<string, [string, string]> = {
   ph: ["pH（总标度）", "pH (total scale)"],
 };
 export const sitesFor = (key: FeedId): readonly Site[] =>
-  ["weather", "gefs", "ec46", "seas5", "era5"].includes(key)
+  ["weather", "gefs", "ec46", "seas5", "era5", "imerg"].includes(key)
     ? siteIds.slice(0, 5)
     : key === "power"
       ? ["zhanjiang"]
       : key === "flood"
         ? ["mekong"]
-        : key === "cyclones" || key === "abis"
+        : key === "enso" || key === "cyclones" || key === "abis"
           ? []
           : ["offshore"];
 const https = z.string().url().startsWith("https://");
@@ -125,6 +132,17 @@ const feed = z.object({
   error: z.string().optional(),
   series: z.array(series).max(8),
   catalogUrl: https.optional(),
+  issueMonth: dateText.optional(),
+  heatMaps: z.array(z.string().length(86880).regex(/^[A-Za-z0-9+/]+$/)).length(12).optional(),
+  imageryTime: dateText.optional(),
+  frames: z.array(z.object({
+    site: z.enum(siteIds), url: https, png: z.string().max(220000).startsWith("iVBOR"),
+    rate: z.tuple([z.enum(["Rain Rate", "Snow Rate"]), z.number().nonnegative(), z.number().nonnegative().nullable()]).nullable(),
+  })).length(5).optional(),
+  seasons: z.array(z.object({
+    start: dateText, end: dateText,
+    cold: z.number().int().min(0).max(100), neutral: z.number().int().min(0).max(100), warm: z.number().int().min(0).max(100),
+  }).refine((v) => v.cold + v.neutral + v.warm === 100)).length(9).optional(),
   events: z.array(z.object({ name: z.string(), start: dateText, end: dateText, url: https })).optional(),
   grid: z
     .object({ time: dateText, unit: z.string(), points: z.array(z.tuple([lat, lon, val])).max(3000) })
@@ -137,6 +155,13 @@ const feed = z.object({
       time: dateText,
     })
     .optional(),
+}).refine(f => {
+  if (f.state === "unavailable") return true;
+  if (f.id === "heatwave") return !!f.issueMonth && f.heatMaps?.length === 12 && f.series[0]?.times.length === 12;
+  if (f.id === "enso") return !!f.issueMonth && f.seasons?.length === 9;
+  if (f.id === "imerg") return !!f.imageryTime && f.frames?.length === 5 &&
+    sitesFor("imerg").every(site => f.frames!.some(frame => frame.site === site));
+  return true;
 });
 export const schema = z
   .object({ schemaVersion: z.literal(1), publishedAt: dateText, feeds: z.array(feed) })
@@ -155,6 +180,8 @@ export function timeIndex(times: string[], now: number) {
 export function overdue(f: Feed, now: number) {
   if (f.state !== "ok" || !f.retrievedAt) return true;
   if (now - utcMillis(f.checkedAt) > 12 * 3600000) return true;
+  if (f.id === "enso" || f.id === "heatwave") return !f.issueMonth || now - utcMillis(f.issueMonth) > 47 * 86400000;
+  if (f.id === "imerg") return !f.imageryTime || now - utcMillis(f.imageryTime) > 24 * 3600000;
   const end = f.grid?.time ?? f.series[0]?.times.at(-1) ?? f.events?.[0]?.end;
   if (!end || f.id === "era5" || f.id === "cyclones") return false;
   if (f.id === "gefs" || f.id === "ec46" || f.id === "seas5") {
@@ -171,6 +198,7 @@ export type Delivery = { snapshot: Snapshot; asOf: number; origin: "bundled" | "
 
 export const oceanLayers = [
   "off",
+  "heatwave",
   "oisst",
   "ocean-temp",
   "chl-l3",

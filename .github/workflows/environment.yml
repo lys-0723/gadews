@@ -15,6 +15,10 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r scripts/requirements-environment.txt
       - name: Prepare the separate data branch
         shell: bash
         run: |
@@ -28,7 +32,7 @@ jobs:
           fi
       - name: Fetch public products and validate the snapshot
         run: |
-          python3 scripts/sync_environment.py --output "$RUNNER_TEMP/environment/forecasts-v2.json"
+          python3 scripts/sync_environment.py --output "$RUNNER_TEMP/environment/forecasts-v3.json"
           python3 -m unittest discover -s scripts -p test_sync_environment.py -v
       - name: Publish a complete revision when the data changes
         shell: bash
@@ -36,7 +40,7 @@ jobs:
           set -euo pipefail
           cd "$RUNNER_TEMP/environment"
           echo '{"git":{"deploymentEnabled":{"environment-data":false}}}' > vercel.json
-          git add -- forecasts-v2.json vercel.json
+          git add -- forecasts-v3.json vercel.json
           if ! git diff --cached --quiet; then
             git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Refresh public environmental evidence"
             git push origin HEAD:refs/heads/environment-data
