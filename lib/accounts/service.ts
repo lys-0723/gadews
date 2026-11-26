@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID, createHash, scrypt, timingSafeEqual } from "node:crypto";
+import { evaluatePassword } from "./password-strength";
 import type { SessionIdentity } from "./display";
 import type { Client } from "@libsql/client";
 import { z } from "zod";
@@ -11,9 +12,12 @@ export const nameSchema = z
   .trim()
   .toLowerCase()
   .regex(/^[a-z0-9][a-z0-9_.-]{2,39}$/);
-const passwordSchema = z.string().min(10).max(128);
-export const credentials = z.object({ username: nameSchema, password: passwordSchema }).strict();
-export const registration = credentials
+// Existing accounts authenticate against their stored hash under the policy in effect when created.
+export const credentials = z.object({ username: nameSchema, password: z.string().min(1).max(128) }).strict();
+const newCredentials = credentials.extend({
+  password: z.string().refine((password) => evaluatePassword(password).valid, "password_policy"),
+});
+export const registration = newCredentials
   .extend({
     requested: z.enum(["country", "region", "member"]).default("member"),
     country: z.enum(["A", "B"]),
@@ -64,7 +68,7 @@ export async function register(db: Client, input: unknown) {
 }
 // Operator-only creation; never promote a pre-existing self-registered account.
 export async function bootstrap(db: Client, input: unknown) {
-  const v = credentials.parse(input);
+  const v = newCredentials.parse(input);
   const hash = await hashPassword(v.password);
   await db.execute({
     sql: "INSERT INTO accounts(id,username,password,country,region,role,requested,status) VALUES(?,?,?,'A','east','system','system','active')",

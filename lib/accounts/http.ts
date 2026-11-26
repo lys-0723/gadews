@@ -16,6 +16,8 @@ export function reply(value: unknown, status = 200) {
 }
 export function errorReply(error: unknown) {
   if (error instanceof AccountError) return reply({ error: { code: error.code } }, error.status);
+  if (error instanceof ZodError && error.issues.some((issue) => issue.message === "password_policy"))
+    return reply({ error: { code: "password_policy" } }, 400);
   if (error instanceof ZodError || error instanceof SyntaxError || error instanceof AiRuntimeError)
     return reply({ error: { code: "invalid_request" } }, 400);
   return reply({ error: { code: "store_unavailable" } }, 503);

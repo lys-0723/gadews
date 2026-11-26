@@ -10,6 +10,8 @@ import { AccountError } from "./policy";
 import { assign, authorize, bootstrap, dashboard, login, logout, register, sessionIdentity } from "./service";
 import { previewScore, sampleRequest } from "./samples";
 import { catalog } from "./policy";
+import { evaluatePassword } from "./password-strength";
+import { credentials as loginCredentials, registration } from "./service";
 
 test("registered accounts, scoped delegation, independent grants and session revocation persist", async (t) => {
   const dir = await mkdtemp(join(tmpdir(), "gadews-account-test-"));
@@ -19,7 +21,7 @@ test("registered accounts, scoped delegation, independent grants and session rev
     db.close();
     await rm(dir, { recursive: true, force: true });
   });
-  const password = randomBytes(16).toString("hex");
+  const password = "Q_" + randomBytes(16).toString("hex");
   const credentials = (username: string) => ({ username, password });
   await bootstrap(db, credentials("owner"));
   await assert.rejects(bootstrap(db, credentials("next-owner")));
@@ -105,4 +107,23 @@ test("all four scoped fixtures can run a versioned offline preview without crede
     assert.ok(Number.isFinite(result.subtotal));
     assert.ok(result.total > 0);
   }
+});
+
+test("registration strength rules preserve existing sign-in and accept seven-character passwords", () => {
+  const signup = (password: string) => registration.safeParse({
+    username: "reader", password, requested: "member", country: "A", region: "east",
+  }).success;
+  for (const value of ["Q_1234", "hello_7", "HELLO77", "HELLO 7", "Abcde🌊", "A_".padEnd(129, "x")]) {
+    assert.equal(signup(value), false);
+    assert.equal(evaluatePassword(value).strength, "weak");
+  }
+  for (const value of ["Q_12345", "ABCDEFG!", "Abcde🌊1", "A甲乙丙丁戊！"]) {
+    assert.equal(signup(value), true);
+    assert.equal(evaluatePassword(value).strength, "medium");
+  }
+  const strong = "A_1".padEnd(12, "x");
+  assert.equal(evaluatePassword(strong).strength, "strong");
+  assert.equal(signup("A_".padEnd(128, "x")), true);
+  assert.equal(signup("legacy-password"), false);
+  assert.equal(loginCredentials.safeParse({ username: "reader", password: "legacy-password" }).success, true);
 });
