@@ -3,9 +3,9 @@
 import { useEffect, useMemo } from "react";
 import { useCopy } from "@/components/gadews/locale-provider";
 import { mapCopy } from "@/lib/gadews/i18n/map";
+import { allHistory, historyOptions, qaadEntry, matchesQaadScope, type HistoryScope, type HistoryStats } from "@/lib/gadews/history-reports";
 import { CircleMarker, Popup, Tooltip } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
-import type { LayerStats } from "./woah-wahis-layer";
 
 import { usePublicSurveillance } from "@/hooks/use-public-surveillance";
 import { computeLayerStats, filterQaad, normalizeStatus, type QaadDisplayRecord as QaadRecord, type QaadStatusFilter } from "@/lib/gadews/public-surveillance";
@@ -13,15 +13,17 @@ export type { QaadStatusFilter } from "@/lib/gadews/public-surveillance";
 
 interface QaadSurveillanceLayerProps {
   visible: boolean;
+  history?: HistoryScope;
   statusFilter: QaadStatusFilter;
-  diseaseFilter: import("@/lib/gadews/public-surveillance").DiseaseFilter;
-  onStatsChange?: (stats: LayerStats) => void;
+  diseaseFilter: import("@/lib/gadews/public-surveillance").MapDiseaseFilter;
+  onStatsChange?: (stats: HistoryStats) => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
   present_in_quarter: "#ef4444",
   historical_presence_in_report_year: "#f59e0b",
   absent_in_quarter: "#22c55e",
+  absent_in_report_year: "#14804a",
   no_information: "#64748b",
   unknown: "#475569",
 };
@@ -76,16 +78,18 @@ function makeQaadKey(record: QaadRecord, index: number) {
 
 export function QaadSurveillanceLayer({
   visible,
+  history = allHistory,
   statusFilter,
   diseaseFilter,
   onStatsChange,
 }: QaadSurveillanceLayerProps) {
   const c = useCopy(mapCopy);
   const { records, state, metadata, rejectedCount, error, retry } = usePublicSurveillance("qaad", visible);
-  const filteredRecords = useMemo(() => visible ? filterQaad(records, diseaseFilter, statusFilter) : [], [records, visible, statusFilter, diseaseFilter]);
+  const options = useMemo(() => historyOptions(records.map(qaadEntry)), [records]);
+  const filteredRecords = useMemo(() => visible ? filterQaad(records, diseaseFilter, statusFilter).filter(r => matchesQaadScope(r, history)) : [], [records, visible, statusFilter, diseaseFilter, history]);
   useEffect(() => {
-    onStatsChange?.({ ...computeLayerStats(filteredRecords, "qaad"), state, metadata, rejectedCount, error: visible ? error : undefined, retry });
-  }, [filteredRecords, state, metadata, rejectedCount, error, retry, visible, onStatsChange]);
+    onStatsChange?.({ ...computeLayerStats(filteredRecords, "qaad"), options, entries: filteredRecords.map(qaadEntry), state, metadata, rejectedCount, error: visible ? error : undefined, retry });
+  }, [filteredRecords, options, state, metadata, rejectedCount, error, retry, visible, onStatsChange]);
 
   if (!visible) return null;
 

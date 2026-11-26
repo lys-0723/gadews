@@ -3,17 +3,20 @@
 import { useEffect, useMemo } from "react";
 import { useCopy } from "@/components/gadews/locale-provider";
 import { mapCopy } from "@/lib/gadews/i18n/map";
+import { allHistory, historyOptions, wahisEntry, matchesWahisScope, type HistoryScope, type HistoryStats } from "@/lib/gadews/history-reports";
 import { CircleMarker, Popup, Tooltip } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 
 import { usePublicSurveillance } from "@/hooks/use-public-surveillance";
-import { computeLayerStats, filterWahis, normalizeDiseaseId, type WahisRecord, type DiseaseFilter, type LayerStats } from "@/lib/gadews/public-surveillance";
-export type { DiseaseFilter, LayerStats } from "@/lib/gadews/public-surveillance";
+import { computeLayerStats, filterWahis, normalizeDiseaseId, type WahisRecord, type MapDiseaseFilter as DiseaseFilter } from "@/lib/gadews/public-surveillance";
+export type { MapDiseaseFilter as DiseaseFilter } from "@/lib/gadews/public-surveillance";
+export type { HistoryStats as LayerStats } from "@/lib/gadews/history-reports";
 
 interface WoahWahisLayerProps {
   visible: boolean;
+  history?: HistoryScope;
   diseaseFilter: DiseaseFilter;
-  onStatsChange?: (stats: LayerStats) => void;
+  onStatsChange?: (stats: HistoryStats) => void;
 }
 
 const DISEASE_COLORS: Record<string, string> = {
@@ -73,15 +76,17 @@ function makeWahisKey(record: WahisRecord) {
 
 export function WoahWahisLayer({
   visible,
+  history = allHistory,
   diseaseFilter,
   onStatsChange,
 }: WoahWahisLayerProps) {
   const c = useCopy(mapCopy);
   const { records, state, metadata, rejectedCount, error, retry } = usePublicSurveillance("wahis", visible);
-  const filteredRecords = useMemo(() => visible ? filterWahis(records, diseaseFilter) : [], [records, visible, diseaseFilter]);
+  const options = useMemo(() => historyOptions(records.map(wahisEntry)), [records]);
+  const filteredRecords = useMemo(() => visible ? filterWahis(records, diseaseFilter).filter(r => matchesWahisScope(r, history)) : [], [records, visible, diseaseFilter, history]);
   useEffect(() => {
-    onStatsChange?.({ ...computeLayerStats(filteredRecords, "wahis"), state, metadata, rejectedCount, error: visible ? error : undefined, retry });
-  }, [filteredRecords, state, metadata, rejectedCount, error, retry, visible, onStatsChange]);
+    onStatsChange?.({ ...computeLayerStats(filteredRecords, "wahis"), options, entries: filteredRecords.map(wahisEntry), state, metadata, rejectedCount, error: visible ? error : undefined, retry });
+  }, [filteredRecords, options, state, metadata, rejectedCount, error, retry, visible, onStatsChange]);
 
   if (!visible) return null;
 

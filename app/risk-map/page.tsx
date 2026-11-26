@@ -8,7 +8,8 @@ import { getRegionalDemoSummary, type RegionalDemoRadius, type RegionalDemoSiteI
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { MapCanvas } from "@/components/gadews/risk-map/map-canvas";
 import { LayerControlPanel } from "@/components/gadews/risk-map/layer-control-panel";
-import { TimelineController } from "@/components/gadews/risk-map/timeline-controller";
+import { allHistory, type HistoryScope } from "@/lib/gadews/history-reports";
+import { DISEASE_FILTERS } from "@/lib/gadews/public-surveillance";
 import { LegendToolkit } from "@/components/gadews/risk-map/legend-toolkit";
 import type { QaadStatusFilter } from "@/components/gadews/risk-map/qaad-surveillance-layer";
 import type { DiseaseFilter, LayerStats } from "@/components/gadews/risk-map/woah-wahis-layer";
@@ -50,6 +51,7 @@ export default function RiskMapPage() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [popupOpen, setPopupOpen] = useState(false);
+  const [history, setHistory] = useState<HistoryScope>(allHistory);
   const [diseaseFilter, setDiseaseFilter] = useState<DiseaseFilter>("all");
   const [qaadStatusFilter, setQaadStatusFilter] = useState<QaadStatusFilter>("priority");
   const [wahisStats, setWahisStats] = useState<LayerStats>({
@@ -65,6 +67,23 @@ export default function RiskMapPage() {
     countries: [],
   });
 
+  const locations = new Map([...(wahisStats.options?.locations ?? []), ...(qaadStats.options?.locations ?? [])]);
+  const countries = [...new Set([...locations.keys(), ...(history.country ? [history.country] : [])])].sort();
+  const years = [...new Set([...(wahisStats.options?.years ?? []), ...(qaadStats.options?.years ?? []), ...(history.year ? [history.year] : [])])].sort().reverse();
+  const diseaseNames = new Map([...(wahisStats.options?.diseases ?? []), ...(qaadStats.options?.diseases ?? [])]);
+  if (diseaseFilter.startsWith("source:")) {
+    const id = diseaseFilter.slice(7);
+    if (!diseaseNames.has(id)) diseaseNames.set(id, id);
+  }
+  const diseases = [...diseaseNames].filter(([id]) => !(DISEASE_FILTERS as readonly string[]).includes(id))
+    .sort((a, b) => a[1].localeCompare(b[1]));
+  function resetHistory() {
+    setHistory(allHistory);
+    setDiseaseFilter("all");
+    setQaadStatusFilter("priority");
+    setLayers(previous => ({ ...previous, wahis: true, qaad: true }));
+  }
+
   const handleToggle = (key: string, value: boolean) => {
     setLayers((prev) => ({ ...prev, [key]: value }));
     if (key === "regionalDemo" && value) {
@@ -77,6 +96,8 @@ export default function RiskMapPage() {
     <div data-risk-map className="fixed inset-0 overflow-hidden bg-background">
       {/* Full-screen map canvas */}
       <MapCanvas
+        history={history}
+        reportCenter={locations.get(history.country)}
         environment={{delivery:data,heatMonth,layer:oceanLayer,points:envPoints,site:selectedSite}}
         regionalDemo={summary}
         showHeatmap={layers.heatmap}
@@ -109,6 +130,7 @@ export default function RiskMapPage() {
           {/* Left panel: Layer controller */}
           <div data-layer-panel inert={!panelOpen || popupOpen} aria-hidden={!panelOpen || popupOpen} className={`pointer-events-auto absolute top-0 left-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto transition-all duration-300 ${popupOpen ? "hidden " : ""}${panelOpen ? "translate-x-0 opacity-100" : "-translate-x-[calc(100%+16px)] opacity-0"}`}>
             <LayerControlPanel
+              history={{scope: history, countries, years, diseases, onChange: setHistory, onReset: resetHistory}}
               environment={{delivery:data,heatMonth,onHeatMonth:setHeatMonth,failed:error,retry,layer:oceanLayer,onLayer:setOceanLayer,points:envPoints,onPoints:setEnvPoints,site:selectedSite,onSite:locate}}
               layers={layers}
               onToggle={handleToggle}
@@ -133,12 +155,7 @@ export default function RiskMapPage() {
 
           {/* Right top: Legend & Toolkit */}
           <div className={`pointer-events-auto absolute top-0 right-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto ${popupOpen ? "hidden" : sourcesOpen ? "" : "hidden lg:block"}`}>
-            <LegendToolkit wahisStats={wahisStats} qaadStats={qaadStats} />
-          </div>
-
-          {/* Bottom: Timeline controller */}
-          <div className={`pointer-events-auto absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-4xl ${popupOpen ? "hidden" : "hidden lg:block"}`}>
-            <TimelineController />
+            <LegendToolkit scope={history} wahisStats={wahisStats} qaadStats={qaadStats} enabled={{wahis: layers.wahis, qaad: layers.qaad}} />
           </div>
 
           {/* Mobile: Collapsed layer panel as bottom sheet trigger */}
