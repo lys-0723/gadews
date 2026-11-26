@@ -57,6 +57,11 @@ export const wahisEntry = (r: WahisRecord): HistoryEntry => ({
   center: hasCoordinates(r) ? [r.latitude, r.longitude] : null,
 });
 
+/** A provider summary ID can occur on more than one distinct source row. */
+export function qaadMarkerKey(record: QaadDisplayRecord) {
+  return `qaad-${record.summary_id}-${record.sourceIndex}`;
+}
+
 export const qaadEntry = (r: QaadDisplayRecord): HistoryEntry => ({
   country: r.country_or_territory, date: r.report_period ?? "", year: qaadPeriod(r).year,
   disease: normalizeDiseaseId(r.disease_id), name: r.disease_name, url: r.report_file_urls?.[0] ?? r.source_urls?.[0],

@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { useCopy } from "@/components/gadews/locale-provider";
 import { mapCopy } from "@/lib/gadews/i18n/map";
-import { allHistory, historyOptions, qaadEntry, matchesQaadScope, type HistoryScope, type HistoryStats } from "@/lib/gadews/history-reports";
+import { allHistory, historyOptions, qaadEntry, qaadMarkerKey, matchesQaadScope, type HistoryScope, type HistoryStats } from "@/lib/gadews/history-reports";
 import { CircleMarker, Popup, Tooltip } from "react-leaflet";
 import type { LatLngExpression } from "leaflet";
 
@@ -68,14 +68,6 @@ function firstLink(label: string, urls?: string[] | null) {
   );
 }
 
-function makeQaadKey(record: QaadRecord, index: number) {
-  const fallback = `${record.country_or_territory ?? "unknown"}-${record.year ?? "na"}-Q${
-    record.quarter ?? "na"
-  }-${record.disease_id ?? "unknown"}-${record.report_file_urls?.[0] ?? "na"}`;
-
-  return `qaad-${record.summary_id ?? fallback}-${index}`;
-}
-
 export function QaadSurveillanceLayer({
   visible,
   history = allHistory,
@@ -104,12 +96,12 @@ export function QaadSurveillanceLayer({
             : status === "historical_presence_in_report_year"
             ? 4.5
             : 3.5;
-        const markerKey = makeQaadKey(record, record.sourceIndex);
+        const markerKey = qaadMarkerKey(record);
 
         return (
           <CircleMarker
             key={markerKey}
-            center={jitterPosition(record, record.summary_id ?? markerKey)}
+            center={jitterPosition(record, markerKey)}
             eventHandlers={{ add: event => { const element = event.target.getElement(); if (element) { element.setAttribute("tabindex", "0"); element.setAttribute("role", "button"); element.setAttribute("aria-label", `${compact(record.disease_name)} · ${compact(record.country_or_territory)}`); element.onkeydown = (key: KeyboardEvent) => { if (key.key === "Enter" || key.key === " ") { key.preventDefault(); event.target.openPopup(); } }; } } }}
             radius={radius}
             pathOptions={{

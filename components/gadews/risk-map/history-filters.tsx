@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useLocale } from "../locale-provider";
 import type { HistoryScope } from "@/lib/gadews/history-reports";
 
@@ -15,6 +16,17 @@ export interface HistoryControls {
 
 export function HistoryFilters({ scope, countries, years, onChange, onReset }: HistoryControls) {
   const { t } = useLocale();
+  const [draft, setDraft] = useState<Pick<HistoryScope, "from" | "to"> | null>(null);
+  const range = draft ?? scope;
+  function updateDate(key: "from" | "to", value: string) {
+    const dates = { from: range.from, to: range.to, [key]: value };
+    if (dates.from && dates.to && dates.from > dates.to) {
+      setDraft(dates);
+      return;
+    }
+    setDraft(null);
+    onChange({ ...scope, ...dates });
+  }
   function update(key: keyof HistoryScope, value: string) {
     onChange({ ...scope, [key]: value });
   }
@@ -44,12 +56,12 @@ export function HistoryFilters({ scope, countries, years, onChange, onReset }: H
     <details>
       <summary className="cursor-pointer text-teal-800">{t("限定 WAHIS 事件起始日", "Limit WAHIS event start dates")}</summary>
       <div className="mt-2 grid gap-2">
-        <label>{t("自", "From")}<input type="date" className={select} value={scope.from} max={scope.to || undefined} onChange={e => update("from", e.target.value)} /></label>
-        <label>{t("至", "Through")}<input type="date" className={select} value={scope.to} min={scope.from || undefined} onChange={e => update("to", e.target.value)} /></label>
-        {scope.from && scope.to && scope.from > scope.to && <p role="alert">{t("结束日期应在开始日期或其后。", "End date must be on or after the start date.")}</p>}
+        <label>{t("自", "From")}<input type="date" className={select} value={range.from} max={range.to || undefined} aria-invalid={!!draft} onChange={e => updateDate("from", e.target.value)} /></label>
+        <label>{t("至", "Through")}<input type="date" className={select} value={range.to} min={range.from || undefined} aria-invalid={!!draft} onChange={e => updateDate("to", e.target.value)} /></label>
+        {draft && <p role="alert">{t("结束日期应在开始日期或其后。当前结果仍按上一次有效日期筛选。", "The end date must be on or after the start. Results still use the last valid dates.")}</p>}
       </div>
     </details>
     <p className="text-xs text-slate-600">{t("年份和季度按 WAHIS 事件起始日、QAAD 原报告期筛选。仅有年度报告期的记录保留在全年视图。", "Year and quarter use the WAHIS event start and the QAAD reporting period. Year-only reports appear in the all-quarters view.")}</p>
-    <button type="button" className="font-semibold text-teal-800 underline underline-offset-2" onClick={onReset}>{t("重置报告筛选", "Reset report filters")}</button>
+    <button type="button" className="font-semibold text-teal-800 underline underline-offset-2" onClick={() => { setDraft(null); onReset(); }}>{t("重置报告筛选", "Reset report filters")}</button>
   </fieldset>;
 }
