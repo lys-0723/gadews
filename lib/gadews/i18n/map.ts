@@ -18,7 +18,7 @@ export const mapCopy = {
   demo: ["示意图层（默认关闭）", "Illustrative layers (off by default)"],
   cases: ["示意病例点", "Illustrative case markers"],
   heatmap: ["示意热区", "Illustrative heatmap"],
-  unavailable: ["海温、降雨、养殖密度等数据尚未接入，不作为实际监测图层展示。", "Sea temperature, rainfall and farm density data are not connected and are not shown as monitoring layers."],
+  unavailable: ["示意热区与案例只用于演示；区域环境资料在环境证据图层单独展示。", "Illustrative cases and heatmaps are demonstrations. Regional conditions appear in the environmental evidence layers."],
   snapshot: ["静态快照", "Static snapshot"],
   idle: ["尚未请求该图层。", "Layer not requested."],
   empty: ["此快照没有报告。", "No reports in this snapshot."],

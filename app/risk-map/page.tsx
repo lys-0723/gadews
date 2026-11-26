@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { StickyHeader } from "@/components/gadews/sticky-header";
 import { useLocale } from "@/components/gadews/locale-provider";
 import { RegionalDemoPanel } from "@/components/gadews/risk-map/regional-demo-panel";
@@ -13,16 +13,30 @@ import { LegendToolkit } from "@/components/gadews/risk-map/legend-toolkit";
 import type { QaadStatusFilter } from "@/components/gadews/risk-map/qaad-surveillance-layer";
 import type { DiseaseFilter, LayerStats } from "@/components/gadews/risk-map/woah-wahis-layer";
 
+import { useEnvironment } from "@/hooks/use-environment";
+import { siteIds, type Site, oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
+
+
+function subscribeHash(fn:()=>void) { window.addEventListener("hashchange",fn);return ()=>window.removeEventListener("hashchange",fn); }
+function referenceHash() { return siteIds.find(s=>location.hash==="#env-"+s)??null; }
+
+function requestedLayer() { const key=new URLSearchParams(location.search).get("ocean");return oceanLayers.find(v=>v===key)??"off"; }
+
 export default function RiskMapPage() {
   const { t } = useLocale();
+  const {data, error, retry}=useEnvironment();
+  const selectedSite=useSyncExternalStore(subscribeHash,referenceHash,()=>null);
+  const initialLayer=useSyncExternalStore(subscribeHash,requestedLayer,()=>"off" as OceanLayer);
+  const [chosenLayer,setOceanLayer]=useState<OceanLayer|null>(null);
+  const [heatMonth, setHeatMonth] = useState(1);
+  const oceanLayer=chosenLayer??initialLayer;
+  const [envPoints,setEnvPoints]=useState(true);
+  function locate(site:Site|null){setEnvPoints(true);location.hash=site?"env-"+site:"";}
   const [layers, setLayers] = useState({
     regionalDemo: false,
     boundaries: false,
     waterSystems: false,
     farmDensity: false,
-    sst: false,
-    chlorophyll: false,
-    rainfall: false,
     heatmap: false,
     cases: false,
     coverage: false,
@@ -63,13 +77,11 @@ export default function RiskMapPage() {
     <div data-risk-map className="fixed inset-0 overflow-hidden bg-background">
       {/* Full-screen map canvas */}
       <MapCanvas
+        environment={{delivery:data,heatMonth,layer:oceanLayer,points:envPoints,site:selectedSite}}
         regionalDemo={summary}
         showHeatmap={layers.heatmap}
         showCases={layers.cases}
         showCoverage={layers.coverage}
-        showSST={layers.sst}
-        showChlorophyll={layers.chlorophyll}
-        showRainfall={layers.rainfall}
         showBoundaries={layers.boundaries}
         showWaterSystems={layers.waterSystems}
         showFarmDensity={layers.farmDensity}
@@ -97,6 +109,7 @@ export default function RiskMapPage() {
           {/* Left panel: Layer controller */}
           <div data-layer-panel inert={!panelOpen || popupOpen} aria-hidden={!panelOpen || popupOpen} className={`pointer-events-auto absolute top-0 left-4 z-20 max-h-[max(6rem,calc(100%-12rem))] overflow-y-auto transition-all duration-300 ${popupOpen ? "hidden " : ""}${panelOpen ? "translate-x-0 opacity-100" : "-translate-x-[calc(100%+16px)] opacity-0"}`}>
             <LayerControlPanel
+              environment={{delivery:data,heatMonth,onHeatMonth:setHeatMonth,failed:error,retry,layer:oceanLayer,onLayer:setOceanLayer,points:envPoints,onPoints:setEnvPoints,site:selectedSite,onSite:locate}}
               layers={layers}
               onToggle={handleToggle}
               diseaseFilter={diseaseFilter}
