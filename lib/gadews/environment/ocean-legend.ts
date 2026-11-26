@@ -27,12 +27,7 @@ export function readScale(raw: unknown, raster: Raster) {
   return continuous;
 }
 
-const units: Record<string, string> = {
-  degree_C: "°C", degrees_C: "°C", "milligram m-3": "mg/m³", "mg m^-3": "mg/m³",
-  "mmol m-3": "mmol/m³", "1e-3": "10⁻³",
-};
-export const unitText = (unit: string) => units[unit] ?? unit;
-export const numberText = (value: number) => String(Number(value.toPrecision(4)));
+export { numberText, unitText } from "./format";
 
 export function gridSummary(points: NonNullable<Feed["grid"]>["points"]) {
   if (!points.length) return null;

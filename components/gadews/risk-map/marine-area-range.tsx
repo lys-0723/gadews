@@ -3,6 +3,7 @@ import L from "leaflet";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
+import { mercatorLimit } from "@/lib/gadews/environment/pixel";
 import { ProviderLegend } from "../environment/ocean-legend";
 import { heatColors } from "@/lib/gadews/environment/heat-grid";
 import { unitText, numberText, gridBreaks, gridPalette } from "@/lib/gadews/environment/ocean-legend";
@@ -11,7 +12,7 @@ import { localRange, longitude, sampleLocations, summarize, type Extent, type Ra
 
 function viewport(map: L.Map): Extent {
   const b = map.getBounds();
-  return { south: Math.max(-85, b.getSouth()), north: Math.min(85, b.getNorth()),
+  return { south: Math.max(-mercatorLimit, b.getSouth()), north: Math.min(mercatorLimit, b.getNorth()),
     west: longitude(b.getWest()), span: Math.min(360, b.getEast() - b.getWest()) };
 }
 
@@ -82,7 +83,7 @@ export function MarineAreaRange({feed, month}: {feed: Feed; month: number}) {
     {!range ? t("正在读取数值…", "Reading values…") : <>
       <span className="block font-mono">{range.valid ? numberText(range.min!) + " – " + numberText(range.max!) + " " + unitText(range.unit)
         : range.failed === range.total && range.failed > 0 ? t("来源暂不可用", "Source unavailable")
-        : range.total ? t("未取得有效值", "No valid values") : t("视窗内无资料格点", "No grid centres in view")}</span>
+        : range.total ? t("未取得有效值", "No valid values") : t("视窗内无该产品格点", "No product cells in view")}</span>
       {range.total > 0 && <span>{t("有效", "Valid")} {range.valid}/{range.total}</span>}
       {range.failed > 0 && <> · {t("读取失败", "Failed")} {range.failed} <button type="button" className="underline" onClick={() => {setRemote(null); retry(n => n + 1);}}>{t("重试", "Retry")}</button></>}
     </>}

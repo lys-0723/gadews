@@ -5,6 +5,7 @@ import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
+import { nativeCellHalfWidth } from "@/lib/gadews/environment/map-range";
 import { gridBreaks, gridPalette } from "@/lib/gadews/environment/ocean-legend";
 import {
   station,
@@ -129,7 +130,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
         f.grid.points.map(([lat, lon, value]) => {
           if (value === null) return null;
           const sst = layer === "oisst",
-            half = sst ? 0.125 : 0.01875;
+            half = nativeCellHalfWidth(f.id);
           const stops = sst ? gridBreaks.oisst : gridBreaks.viirs;
           const color = gridPalette[stops.filter((n) => value >= n).length];
           return (

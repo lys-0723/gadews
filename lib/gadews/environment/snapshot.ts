@@ -162,6 +162,15 @@ const feed = z.object({
   if (f.id === "imerg") return !!f.imageryTime && f.frames?.length === 5 &&
     sitesFor("imerg").every(site => f.frames!.some(frame => frame.site === site));
   return true;
+}).transform(f => {
+  // Older published NOAA subsets linked to [(last)], which changes as new days arrive.
+  if (f.grid && (f.id === "oisst" || f.id === "oisst-final" || f.id === "viirs")) {
+    const day = encodeURIComponent(f.grid.time);
+    for (const series of f.series) {
+      series.source = series.source.replace(/(\.csv\?[a-z_]+(?:%5b|\[))\(last\)(%5d|\])/i, `$1(${day})$2`);
+    }
+  }
+  return f;
 });
 export const schema = z
   .object({ schemaVersion: z.literal(1), publishedAt: dateText, feeds: z.array(feed) })
