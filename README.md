@@ -36,3 +36,13 @@ unset GADEWS_ADMIN_USERNAME GADEWS_ADMIN_PASSWORD
 ```
 
 维护命令只新增一个管理员，已注册的同名账号不能借此升权。在持久磁盘上用生产构建演示时，显式设置绝对路径 `GADEWS_ACCOUNT_DB_URL=file:/path/to/accounts.db`。Vercel 多实例使用持久 libSQL 地址及服务端写令牌（见 .env.example）；初始化命令指向同一库。无需给设备接口配置凭据。为预览与正式环境分配不同账号库，原型只放虚构业务记录。
+
+## 公开环境数据
+
+在环境总览按位置、产品和有效时刻查预报、区域海况、历史再分析及来源。全球报告地图可叠加全球 Copernicus 海洋图层或 NOAA 近海样区，另显示五个气象参考点和一个近海点。卫星缺测、插值和过期分别标识；区域资料不填入塘口评分。
+
+`npm run sync:environment` 从公共 API 生成或刷新 `public/data/environment/snapshot.json`。可用 `python3 scripts/sync_environment.py --output 路径` 更新指定快照。失败的来源保留旧值和原日期；全部失败时不发布。源站时间用 UTC，气旋时间按来源保留。低频预报和日海洋产品在同一 6 小时批次中检查，产品未变则保留原版本取得时间。仅从源代码仓库运行，无需账号库、设备或模型凭据。
+
+默认分支的 Refresh public environment 工作流支持手动触发及 UTC 每 6 小时更新。发布位置为独立的 `environment-data` 分支，历史提交保留各版预报和订正。/api/environment 校验发布快照，网络不可用时提供最近已验证版本或随站版。GitHub Actions 需要允许 contents:write，数据分支需允许该工作流常规推送。工作流首次合入默认分支后才开始按计划执行。
+
+来源包括 Open-Meteo（非商业托管 API，CC BY 4.0 署名）、NASA POWER、NOAA CoastWatch/OISST、E.U. Copernicus Marine Service、Copernicus EMS/GloFAS、GDACS 事件背景和 INCOIS ABIS 产品目录。官方地区通告保留原文链接。图表显示来源网格、单位、版本时间和可重放的公开请求；模型场、遥感像元及插值各有独立产品名。

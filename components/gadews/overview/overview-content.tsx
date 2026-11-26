@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useLocale } from "@/components/gadews/locale-provider";
 import { EnvironmentalDataPanel } from "./environmental-data-panel";
 import { PublicSnapshotStatus } from "@/components/gadews/risk-map/public-source-status";
+import { EnvironmentOverview } from "../environment/environment-overview";
 import { Waves, Fish, Users, ArrowUpRight } from "lucide-react";
 
 export function OverviewContent() {
@@ -21,6 +22,7 @@ export function OverviewContent() {
         { icon: Users, title:t("人的决策", "People and decisions"), text:t("风险筛查原型帮助整理输入与证据；实际处置需要专业人员结合现场核实。", "The risk screening prototype organizes inputs and evidence. Practical decisions require professional review and field verification.") },
       ].map(item => <article key={item.title} className="rounded-2xl border border-slate-300 bg-white p-6"><item.icon className="mb-5 h-8 w-8 text-sky-800" aria-hidden="true" /><h2 className="mb-3 text-2xl font-bold text-slate-950">{item.title}</h2><p className="text-lg leading-8 text-slate-700">{item.text}</p></article>)}
     </section>
+    <EnvironmentOverview />
     <EnvironmentalDataPanel />
     <section className="mx-auto max-w-7xl px-4 py-10 lg:px-8"><div className="mb-6 flex flex-wrap items-end justify-between gap-4"><h2 className="text-3xl font-bold text-slate-950">{t("公开报告与来源状态", "Public reports and source status")}</h2><Link href="/risk-map" className="inline-flex items-center gap-2 rounded-xl bg-sky-900 px-5 py-3 text-base font-bold text-white">{t("打开完整地图", "Open full map")}<ArrowUpRight className="h-5 w-5" /></Link></div>
       <p className="mb-5 text-lg leading-8 text-slate-700">{t("以下为本地公开快照。WAHIS 记录事件；QAAD 记录区域季度或月度状态。覆盖期与获取时间分别显示，无信息不等于阴性。", "These are local public snapshots. WAHIS records events; QAAD records regional quarterly/monthly status. Coverage and retrieval dates are shown separately. No information does not mean negative.")}</p>

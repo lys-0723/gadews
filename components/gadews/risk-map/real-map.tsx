@@ -19,14 +19,14 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+import { EnvironmentLayers, type EnvironmentMaps } from "./environment-layers";
+
 export interface MapProps {
+  environment?: EnvironmentMaps;
   regionalDemo?: RegionalDemoSummary;
   showHeatmap?: boolean;
   showCases?: boolean;
   showCoverage?: boolean;
-  showSST?: boolean;
-  showChlorophyll?: boolean;
-  showRainfall?: boolean;
   showBoundaries?: boolean;
   showWaterSystems?: boolean;
   showFarmDensity?: boolean;
@@ -50,6 +50,7 @@ function PopupEvents({ onChange }: { onChange?: (visible: boolean) => void }) {
 }
 
 export default function RealMap({
+  environment,
   regionalDemo,
   showCases,
   showHeatmap,
@@ -92,6 +93,7 @@ export default function RealMap({
         <CircleMarker center={[21.0, 111.2]} radius={70} className="demo-heatmap-marker" pathOptions={{ color: "#ff0055", fillOpacity: 0.15 }} interactive={false} />
         <div className="absolute bottom-36 left-4 z-[500] max-w-[260px] rounded-xl bg-white/95 p-3 text-sm text-slate-900">{t("示意热区 · 数值仅作演示，非模型预测", "Demo heatmap · illustrative values, no model prediction")}</div>
       </>}
+      {environment && <EnvironmentLayers {...environment}/>}
       <WoahWahisLayer
         visible={!!showWahis}
         diseaseFilter={diseaseFilter}
@@ -104,7 +106,7 @@ export default function RealMap({
         onStatsChange={onQaadStatsChange}
       />
       {regionalDemo && <RegionalDemoLayer summary={regionalDemo} />}
-      {/* 你可以根据需要继续增加 showSST (海温), showChlorophyll (叶绿素) 的真实数据渲染 */}
+
     </MapContainer>
   );
 }

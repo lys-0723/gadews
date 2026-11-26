@@ -5,8 +5,11 @@ import { mapCopy } from "@/lib/gadews/i18n/map";
 import type { QaadStatusFilter } from "./qaad-surveillance-layer";
 import type { DiseaseFilter } from "./woah-wahis-layer";
 
+import { OceanControls, type EnvironmentControls } from "../environment/environment-map-controls";
+
 interface LayerControlPanelProps {
-  layers: { regionalDemo?: boolean; boundaries: boolean; waterSystems: boolean; farmDensity: boolean; sst: boolean; chlorophyll: boolean; rainfall: boolean; heatmap: boolean; cases: boolean; coverage: boolean; wahis: boolean; qaad: boolean };
+  environment?: EnvironmentControls;
+  layers: { regionalDemo?: boolean; boundaries: boolean; waterSystems: boolean; farmDensity: boolean; sst?: boolean; chlorophyll?: boolean; rainfall?: boolean; heatmap: boolean; cases: boolean; coverage: boolean; wahis: boolean; qaad: boolean };
   onToggle: (key: string, value: boolean) => void;
   diseaseFilter: DiseaseFilter;
   onDiseaseFilterChange: (value: DiseaseFilter) => void;
@@ -16,7 +19,7 @@ interface LayerControlPanelProps {
 const diseases: DiseaseFilter[] = ["all", "WSD", "AHPND", "KHV", "TILV", "EUS", "VHS", "IHN", "SVC", "other"];
 const statuses: QaadStatusFilter[] = ["priority", "all", "present_in_quarter", "historical_presence_in_report_year", "absent_in_quarter", "no_information", "unknown"];
 
-export function LayerControlPanel({ layers, onToggle, diseaseFilter, onDiseaseFilterChange, qaadStatusFilter, onQaadStatusFilterChange }: LayerControlPanelProps) {
+export function LayerControlPanel({ environment, layers, onToggle, diseaseFilter, onDiseaseFilterChange, qaadStatusFilter, onQaadStatusFilterChange }: LayerControlPanelProps) {
   const c = useCopy(mapCopy);
   const { t } = useLocale();
   return <section className="w-80 max-w-[calc(100vw-5rem)] space-y-5 rounded-2xl border border-slate-300 bg-white p-4 text-sm leading-relaxed text-slate-800 shadow-xl" aria-label={c("layers")}>
@@ -34,6 +37,7 @@ export function LayerControlPanel({ layers, onToggle, diseaseFilter, onDiseaseFi
     <label className="block space-y-2"><span className="font-semibold">{c("disease")}</span><select className="w-full rounded-lg border border-slate-400 bg-white p-2 text-sm" value={diseaseFilter} onChange={e => onDiseaseFilterChange(e.target.value as DiseaseFilter)}>{diseases.map(value => <option key={value} value={value}>{value === "all" || value === "other" ? c(value) : value}</option>)}</select></label>
     <label className="block space-y-2"><span className="font-semibold">{c("status")}</span><select className="w-full rounded-lg border border-slate-400 bg-white p-2 text-sm" value={qaadStatusFilter} onChange={e => onQaadStatusFilterChange(e.target.value as QaadStatusFilter)}>{statuses.map(value => <option key={value} value={value}>{c(value === "all" ? "allStatuses" : value)}</option>)}</select></label>
     <p>{c("qaadNote")}</p>
+    {environment && <OceanControls {...environment}/>}
     <details className="border-t border-slate-200 pt-3"><summary className="cursor-pointer font-bold">{c("demo")}</summary><div className="mt-3 space-y-3">{(["cases", "heatmap"] as const).map(key => <label key={key} className="flex items-center gap-3"><input type="checkbox" checked={layers[key]} onChange={e => onToggle(key, e.target.checked)} className="h-5 w-5 accent-sky-800" />{c(key)}</label>)}<p>{c("unavailable")}</p></div></details>
   </section>;
 }
