@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { allHistory, matchesWahisScope, matchesQaadScope } from "./history-reports";
+import { allHistory, matchesWahisScope, matchesQaadScope, qaadMarkerKey } from "./history-reports";
 import {
   parseWahis, parseQaad, hasCoordinates, latestWahisEvents,
   filterWahis, filterQaad, computeLayerStats, DISEASE_FILTERS, QAAD_FILTERS,
@@ -70,6 +70,11 @@ test("real snapshots preserve every row and all existing disease/status filter c
   assert.equal(w.records.length, 371); assert.equal(w.rejectedCount, 0);
   assert.equal(q.records.length, 1789); assert.equal(q.rejectedCount, 0);
   assert.equal(new Set(q.records.map((r) => r.summary_id)).size, 1784);
+  assert.equal(new Set(q.records.map(qaadMarkerKey)).size, q.records.length);
+  const duplicates = q.records.filter(r => r.summary_id === "QAAD-2025-Q4-Philippines-WSD");
+  assert.equal(duplicates.length, 2);
+  const stable = filterQaad(q.records, "WSD", "priority").filter(r => r.summary_id === duplicates[0].summary_id);
+  assert.deepEqual(stable.map(qaadMarkerKey), duplicates.map(qaadMarkerKey));
   const highlighted = ["WSD", "AHPND", "KHV", "TILV", "EUS", "VHS", "IHN", "SVC"];
   for (const disease of DISEASE_FILTERS) for (const status of QAAD_FILTERS) {
     const expected = qaad.filter((r) => (disease === "all" || (disease === "other" ? !highlighted.includes(String(r.disease_id).toUpperCase()) : String(r.disease_id).toUpperCase() === disease)) && (status === "all" || (status === "priority" ? ["present_in_quarter", "historical_presence_in_report_year"].includes(String(r.status_summary)) : r.status_summary === status)));
