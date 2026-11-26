@@ -39,6 +39,15 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
   const [index, setIndex] = useState(() => timeIndex(series.times, asOf));
   const [key, setKey] = useState(series.fields[0].key);
   const field = series.fields.find((f) => f.key === key) ?? series.fields[0];
+  const periodLabel = (time: string) => {
+    if (feed.id === "seas5") return time.slice(0, 7);
+    if (feed.id === "ec46") {
+      const end = new Date(time + "T00:00:00Z");
+      end.setUTCDate(end.getUTCDate() + 6);
+      return time + " – " + end.toISOString().slice(0, 10);
+    }
+    return time.replace("T", " ");
+  };
   const numeric = field.values.filter((v): v is number => v !== null);
   const min = Math.min(...numeric),
     max = Math.max(...numeric);
@@ -70,7 +79,7 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
         <select className={inputClass} value={index} onChange={(e) => setIndex(Number(e.target.value))}>
           {series.times.map((v, i) => (
             <option key={v} value={i}>
-              {v.replace("T", " ")}
+              {periodLabel(v)}
             </option>
           ))}
         </select>
@@ -119,7 +128,7 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
                 )}
               </svg>
               <figcaption className="mt-2 text-sm">
-                {series.times[0]} — {series.times.at(-1)} UTC · {min.toFixed(2)}–{max.toFixed(2)} {field.unit}{" "}
+                {periodLabel(series.times[0])} — {periodLabel(series.times[n - 1])} UTC · {min.toFixed(2)}–{max.toFixed(2)} {field.unit}{" "}
                 · {t("有效时次", "Valid times")} {numeric.length}/{n}
               </figcaption>
             </figure>
@@ -152,7 +161,13 @@ function SeriesPanel({ series, feed, asOf }: { series: Series; feed: Feed; asOf:
         </p>
       )}
       <aside className="border-l-2 border-teal-600 pl-3 text-sm leading-6 text-slate-700">
-        {feed.id === "weather" || feed.id === "marine" || feed.id === "flood"
+        {feed.id === "gefs" ? t(
+          "每天汇总 31 个集合成员。P50 是中位数，P10 至 P90 表示成员预测的中间 80% 范围。成员缺值时该指标留空。",
+          "Each day summarizes 31 members. P50 is the median. P10–P90 spans the central 80% of member forecasts. Incomplete ensembles are left blank.",
+        ) : feed.id === "ec46" || feed.id === "seas5" ? t(
+          "距平是该周或该月与模式历史同期平均值的差。气温为正表示偏暖（差 1 K 相当于差 1 °C），降水为负表示偏干。该展望适用于区域尺度。",
+          "Anomalies are departures from the model’s historical average for the same period. Positive temperature means warmer (a 1 K difference equals 1 °C), and negative precipitation means drier. Interpret at regional scale.",
+        ) : feed.id === "weather" || feed.id === "marine" || feed.id === "flood"
           ? t(
               "复核时先对齐预报的地点与时段，再查同期公开通告或本场记录。",
               "Match the forecast footprint and time before checking notices or local observations.",
@@ -219,6 +234,16 @@ export function EnvironmentOverview() {
           "Inspect location, dates and coverage alongside public disease reports to decide what to verify. Offshore grid cells describe regional conditions; farm assessments need local evidence.",
         )}
       </p>
+      <nav aria-label={t("天气与气候预报", "Weather and climate forecasts")} className="mb-5 flex flex-wrap gap-x-5 gap-y-2">
+        {(["weather", "gefs", "ec46", "seas5"] as const).map((id) => (
+          <button type="button" key={id} className={linkClass} onClick={() => {
+            if (site === "offshore") setSite("zhanjiang");
+            setSelected(id);
+          }}>
+            {t(...names[id])}
+          </button>
+        ))}
+      </nav>
       <div className="mb-4 grid gap-4 sm:grid-cols-2">
         <label>
           {t("代表位置", "Reference location")}
@@ -353,7 +378,7 @@ export function EnvironmentOverview() {
         <Link href="https://open-meteo.com/en/terms" className={linkClass}>
           Open-Meteo (CC BY 4.0)
         </Link>{" "}
-        · NASA POWER · NOAA CoastWatch / OISST · E.U. Copernicus Marine Service · GloFAS / Copernicus EMS ·
+        · ECMWF EC46 / SEAS5 · NOAA GEFS · NASA POWER · NOAA CoastWatch / OISST · E.U. Copernicus Marine Service · GloFAS / Copernicus EMS ·
         GDACS · INCOIS
       </p>
     </section>
