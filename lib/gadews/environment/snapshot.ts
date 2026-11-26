@@ -12,6 +12,9 @@ export const station: Record<Site, [string, string, number, number]> = {
 };
 export const feedIds = [
   "weather",
+  "gefs",
+  "ec46",
+  "seas5",
   "marine",
   "flood",
   "era5",
@@ -31,6 +34,9 @@ export const feedIds = [
 export type FeedId = (typeof feedIds)[number];
 export const names: Record<FeedId, [string, string]> = {
   weather: ["Open-Meteo · 天气预报", "Open-Meteo · Weather forecast"],
+  gefs: ["NOAA GEFS · 15 天集合天气预报", "NOAA GEFS · 15-day ensemble weather"],
+  ec46: ["ECMWF EC46 · 逐周气候展望", "ECMWF EC46 · Weekly outlook"],
+  seas5: ["ECMWF SEAS5 · 逐月气候展望", "ECMWF SEAS5 · Monthly outlook"],
   marine: ["Open-Meteo · 海况预报", "Open-Meteo · Marine forecast"],
   flood: ["GloFAS · 河流流量预报", "GloFAS · River discharge forecast"],
   era5: ["ERA5 · 历史再分析", "ERA5 · Historical reanalysis"],
@@ -48,6 +54,14 @@ export const names: Record<FeedId, [string, string]> = {
   abis: ["INCOIS ABIS · 区域藻华产品", "INCOIS ABIS · Regional bloom product"],
 };
 export const variables: Record<string, [string, string]> = {
+  temperature_2m_anomaly: ["平均气温距平", "Mean air temperature anomaly"],
+  precipitation_anomaly: ["累计降水距平", "Total precipitation anomaly"],
+  temperature_2m_mean_p10: ["日均气温 · P10", "Daily mean air temperature · P10"],
+  temperature_2m_mean_p50: ["日均气温 · P50", "Daily mean air temperature · P50"],
+  temperature_2m_mean_p90: ["日均气温 · P90", "Daily mean air temperature · P90"],
+  precipitation_sum_p10: ["日累计降水 · P10", "Daily precipitation · P10"],
+  precipitation_sum_p50: ["日累计降水 · P50", "Daily precipitation · P50"],
+  precipitation_sum_p90: ["日累计降水 · P90", "Daily precipitation · P90"],
   temperature_2m: ["2 米气温", "2 m air temperature"],
   relative_humidity_2m: ["2 米相对湿度", "2 m humidity"],
   precipitation: ["小时降水", "Hourly precipitation"],
@@ -74,7 +88,7 @@ export const variables: Record<string, [string, string]> = {
   ph: ["pH（总标度）", "pH (total scale)"],
 };
 export const sitesFor = (key: FeedId): readonly Site[] =>
-  key === "weather" || key === "era5"
+  ["weather", "gefs", "ec46", "seas5", "era5"].includes(key)
     ? siteIds.slice(0, 5)
     : key === "power"
       ? ["zhanjiang"]
@@ -143,6 +157,12 @@ export function overdue(f: Feed, now: number) {
   if (now - utcMillis(f.checkedAt) > 12 * 3600000) return true;
   const end = f.grid?.time ?? f.series[0]?.times.at(-1) ?? f.events?.[0]?.end;
   if (!end || f.id === "era5" || f.id === "cyclones") return false;
+  if (f.id === "gefs" || f.id === "ec46" || f.id === "seas5") {
+    const expires = new Date(utcMillis(end));
+    if (f.id === "seas5") expires.setUTCMonth(expires.getUTCMonth() + 1);
+    else expires.setUTCDate(expires.getUTCDate() + (f.id === "ec46" ? 7 : 1));
+    return now >= expires.getTime();
+  }
   const ageDays = (now - utcMillis(end)) / 86400000;
   if (f.id === "oisst-final") return ageDays > 24;
   return ageDays > (f.id === "weather" || f.id === "marine" || f.id === "flood" ? 1 : 4);

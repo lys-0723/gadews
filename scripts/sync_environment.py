@@ -80,7 +80,7 @@ def point(station, lat, lon, times, variables, source, depth=None):
     return dict(site=station[0], requested=[station[1], station[2]], lat=lat, lon=lon, times=times, fields=fields, source=source, depthM=depth)
 
 
-def meteo(base, stations, group, fields, **params):
+def meteo(base, stations, group, fields, *, summarize=None, **params):
     u = endpoint(base, latitude=",".join(str(s[1]) for s in stations), longitude=",".join(str(s[2]) for s in stations),
                  timezone="GMT", **{group: ",".join(fields)}, **params)
     payload = json.loads(read(u))
@@ -92,9 +92,46 @@ def meteo(base, stations, group, fields, **params):
         values, units = item[group], item[group + "_units"]
         if abs(item["latitude"]-station[1]) > 1 or abs(item["longitude"]-station[2]) > 1 or item["utc_offset_seconds"] != 0:
             raise ValueError("station or time zone mismatch")
-        series.append(point(station, item["latitude"], item["longitude"], values["time"],
-                            [(f, units[f], values[f]) for f in fields], u))
+        times = values["time"]
+        variables = [(f, units[f], values[f]) for f in fields]
+        if summarize:
+            times, variables = summarize(times, fields, values, units)
+        series.append(point(station, item["latitude"], item["longitude"], times, variables, u))
     return {"series": series}
+
+
+def gefs_percentiles(times, fields, values, units):
+    # 31 members including control. With 31 sorted values, the linearly
+    # interpolated 10th, 50th and 90th percentiles land on exact ranks.
+    variables = []
+    for field in fields:
+        keys = [field] + [f"{field}_member{i:02}" for i in range(1, 31)]
+        if any(len(values[k]) != len(times) or units[k] != units[field] for k in keys):
+            raise ValueError("invalid GEFS member series")
+        samples = zip(*(values[k] for k in keys))
+        ordered = [sorted(day) if None not in day else None for day in samples]
+        for percentile, rank in [(10, 3), (50, 15), (90, 27)]:
+            variables.append((f"{field}_p{percentile}", units[field],
+                              [day[rank] if day is not None else None for day in ordered]))
+    if not any(v is not None for _, _, data in variables for v in data):
+        raise ValueError("no complete GEFS ensemble")
+    return times, variables
+
+
+def available_periods(times, fields, values, units):
+    if any(len(values[f]) != len(times) for f in fields):
+        raise ValueError("invalid outlook time series")
+    # The API pads requests beyond the model horizon with null periods.
+    end = max((i + 1 for i in range(len(times)) if any(values[f][i] is not None for f in fields)), default=0)
+    if end == 0:
+        raise ValueError("empty climate outlook")
+    return times[:end], [(f, units[f], values[f][:end]) for f in fields]
+
+
+def outlook(period, model, days):
+    return meteo("https://seasonal-api.open-meteo.com/v1/seasonal", STATIONS, period,
+                 ["temperature_2m_anomaly", "precipitation_anomaly"], summarize=available_periods,
+                 models=model, forecast_days=days)
 
 
 def nasa(today):
@@ -203,6 +240,10 @@ def collect(today):
     return {
         "weather": lambda: meteo("https://api.open-meteo.com/v1/forecast",STATIONS,"hourly",
             ["temperature_2m","relative_humidity_2m","precipitation","wind_speed_10m","shortwave_radiation"], forecast_days=7,wind_speed_unit="ms"),
+        "gefs": lambda: meteo("https://ensemble-api.open-meteo.com/v1/ensemble", STATIONS, "daily",
+            ["temperature_2m_mean", "precipitation_sum"], summarize=gefs_percentiles, models="gfs_seamless", forecast_days=15),
+        "ec46": lambda: outlook("weekly", "ecmwf_ec46", 46),
+        "seas5": lambda: outlook("monthly", "ecmwf_seas5", 215),
         "marine": lambda: meteo(MARINE,[SEA],"hourly",["sea_surface_temperature","sea_level_height_msl","ocean_current_velocity"],forecast_days=3),
         "flood": lambda: meteo(FLOOD,[STATIONS[2]],"daily",["river_discharge"],forecast_days=7),
         "era5": lambda: meteo(ARCHIVE,STATIONS,"daily",["temperature_2m_mean","precipitation_sum","wind_speed_10m_max","shortwave_radiation_sum"],

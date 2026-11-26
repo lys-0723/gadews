@@ -49,6 +49,21 @@ class EnvironmentTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             env.point(env.SEA,20,111,["2026-11-25"],[("sst","°C",[])],"url")
 
+    def test_outlook_preserves_internal_gaps_and_omits_empty_tail(self):
+        times = ["2026-11-01", "2026-12-01", "2027-01-01", "2027-02-01"]
+        data = {"t": [0, None, None, None], "p": [None, None, -4, None]}
+        actual, fields = env.available_periods(times, ["t", "p"], data, {"t": "K", "p": "mm"})
+        self.assertEqual(actual, times[:3])
+        self.assertEqual(fields[1][2], [None, None, -4])
+        with self.assertRaises(ValueError):
+            env.available_periods(times, ["t"], {"t": [None] * 4}, {"t": "K"})
+
+    def test_gefs_percentiles_require_all_members_per_day(self):
+        members = ["t"] + [f"t_member{i:02}" for i in range(1, 31)]
+        values = {key: [30 - i, i if i else None] for i, key in enumerate(members)}
+        _, fields = env.gefs_percentiles(["2026-11-26", "2026-11-27"], ["t"], values, dict.fromkeys(members, "°C"))
+        self.assertEqual([f[2] for f in fields], [[3, None], [15, None], [27, None]])
+
     def test_publication_validation_rejects_incomplete_snapshot(self):
         snapshot=json.loads(env.BUNDLED.read_bytes())
         env.validate(snapshot)
