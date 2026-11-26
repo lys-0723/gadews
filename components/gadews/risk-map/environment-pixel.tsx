@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Popup, useMapEvent } from "react-leaflet";
 import { useLocale } from "../locale-provider";
+import { unitText, numberText } from "@/lib/gadews/environment/ocean-legend";
 import { names, type FeedId } from "@/lib/gadews/environment/snapshot";
 
 interface Pixel {
@@ -55,7 +56,7 @@ export function EnvironmentPixel({ id, time }: { id: FeedId; time: string }) {
       {p ? (
         <>
           <p>
-            {p.value === null ? t("该像元缺测", "Missing pixel") : Number(p.value.toFixed(3)) + " " + p.unit}
+            {p.value === null ? t("该像元缺测", "Missing pixel") : numberText(p.value) + " " + unitText(p.unit)}
           </p>
           <p>
             {p.lat.toFixed(3)}°, {p.lon.toFixed(3)}°

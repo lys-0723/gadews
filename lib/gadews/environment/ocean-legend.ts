@@ -47,3 +47,7 @@ export function gridSummary(points: NonNullable<Feed["grid"]>["points"]) {
     west: Math.min(...longitudes), east: Math.max(...longitudes),
   };
 }
+
+
+export const gridPalette = ["#405792", "#25849c", "#49ad9a", "#d7ab4c"];
+export const gridBreaks = { oisst: [20, 25, 30], viirs: [0.3, 1, 3] } as const;

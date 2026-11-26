@@ -12,7 +12,6 @@ import {
   overdue,
 } from "@/lib/gadews/environment/snapshot";
 
-import { heatColors } from "@/lib/gadews/environment/heat-grid";
 import { oceanLayers, type OceanLayer } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentControls {
   hideSitePicker?: boolean;
@@ -109,29 +108,12 @@ export function OceanControls({
                 {current.series[0].times.map((v,i) => <option key={v} value={i}>{v.slice(0,7)}</option>)}
               </select>
             </label>
-            <p>{["0–24%", "25–49%", "50–74%", "75–100%"].map((label,i) => <span key={label} className="mr-2 inline-block"><i className="mr-1 inline-block h-3 w-3" style={{background: heatColors[i]}}/>{label}</span>)}</p>
             <p>{t("空白为陆地或缺测；概率取整至 1%。", "Blank cells are land or missing. Probabilities rounded to 1%.")}</p>
           </>}
           {current?.grid && (
             <button type="button" className="text-teal-800 underline" onClick={() => onSite("offshore")}>
               {t("定位近海样区", "Locate offshore subset")}
             </button>
-          )}
-          {current?.grid && (
-            <div className="flex flex-wrap gap-2">
-              {(layer === "oisst" ? ["<20", "20–25", "25–30", "≥30"] : ["<0.3", "0.3–1", "1–3", "≥3"]).map(
-                (v, i) => (
-                  <span key={v}>
-                    <i
-                      aria-hidden="true"
-                      className="mr-1 inline-block h-3 w-3 rounded-sm"
-                      style={{ background: gridPalette[i] }}
-                    />
-                    {v}
-                  </span>
-                ),
-              )}
-            </div>
           )}
           {current?.grid && <OffshoreGridSummary grid={current.grid}/>}
           {current?.raster && <p className="text-xs">{t("视窗内显示官方色标和九个位置的抽样范围。点击水域可查单个像元。", "The map shows the provider scale and range of nine sampled locations. Select water to inspect a cell.")}</p>}
@@ -155,4 +137,3 @@ export function OceanControls({
     </fieldset>
   );
 }
-export const gridPalette = ["#405792", "#25849c", "#49ad9a", "#d7ab4c"];

@@ -5,7 +5,7 @@ import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
 import { CircleMarker, Popup, Rectangle, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { useLocale } from "../locale-provider";
-import { gridPalette } from "../environment/environment-map-controls";
+import { gridBreaks, gridPalette } from "@/lib/gadews/environment/ocean-legend";
 import {
   station,
   siteIds,
@@ -121,7 +121,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
     f = feeds.find((s) => s.id === layer);
   return (
     <>
-      {f && (f.raster || f.grid || f.heatMaps) && <MarineAreaRange key={f.id + (f.raster?.time ?? "")} feed={f} month={heatMonth}/>}
+      {f && (f.raster || f.grid || f.heatMaps) && <MarineAreaRange key={"range:" + f.id + (f.raster?.time ?? "")} feed={f} month={heatMonth}/>}
       {f?.heatMaps && <HeatwaveGrid encoded={f.heatMaps[heatMonth]} month={f.series[0].times[heatMonth]}/>}
       {f?.raster && <MarineTiles key={f.raster.layer + f.raster.time} raster={f.raster} />}
       {f?.raster && <EnvironmentPixel key={f.id + f.raster.time} id={f.id} time={f.raster.time} />}
@@ -130,7 +130,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
           if (value === null) return null;
           const sst = layer === "oisst",
             half = sst ? 0.125 : 0.01875;
-          const stops = sst ? [20, 25, 30] : [0.3, 1, 3];
+          const stops = sst ? gridBreaks.oisst : gridBreaks.viirs;
           const color = gridPalette[stops.filter((n) => value >= n).length];
           return (
             <Rectangle
