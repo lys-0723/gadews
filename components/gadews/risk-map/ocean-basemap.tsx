@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import type { FeatureCollection } from "geojson";
 import L from "leaflet";
 import atlasLabels from "@/lib/gadews/environment/atlas-labels.json";
-import { GeoJSON, Marker, Pane, TileLayer, useMap, useMapEvents } from "react-leaflet";
+import { GeoJSON, Marker, Pane, useMap, useMapEvents } from "react-leaflet";
 import { useLocale } from "../locale-provider";
 import "./ocean-basemap.css";
 
 const coastPane = "gadews-atlas-coast";
 const detailZoom = 5;
+// Leaflet suppresses tileerror for its own cancelled-request image; use a distinct transparent GIF.
+const missingTile = "data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const geographyStyle = { color: "#9aa9a7", weight: 0.8, opacity: 0.8, fillColor: "#faf8f0", fillOpacity: 1 };
 
 // Positions, names and minimum label zoom come from the same bundled Natural Earth source.
@@ -52,6 +54,9 @@ export function OceanBasemap() {
     const controller = new AbortController();
     const container = map.getContainer();
     container.classList.add("gadews-ocean-basemap");
+    const credits = map.attributionControl;
+    const previousPosition = credits?.getPosition();
+    credits?.setPosition("bottomleft");
     fetch("/globe/countries.json", { signal: controller.signal })
       .then(async response => {
         if (!response.ok) throw new Error("Atlas unavailable");
@@ -63,24 +68,37 @@ export function OceanBasemap() {
     return () => {
       controller.abort();
       container.classList.remove("gadews-ocean-basemap");
+      if (credits && previousPosition && map.getContainer().isConnected) credits.setPosition(previousPosition);
     };
   }, [map]);
 
   const showDetail = zoom >= detailZoom || worldFailed;
+  useEffect(() => {
+    if (!showDetail) return;
+    const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      className: "gadews-geography-tiles",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxNativeZoom: 19, maxZoom: 20, errorTileUrl: missingTile,
+    });
+    // Attach before the initial tile requests. Refused, cached or offline tiles
+    // can finish before a later React effect subscribes to Leaflet events.
+    const syncCoverage = () => setTileFailed(Boolean(tiles.getContainer()?.querySelector('img[src^="data:image/gif"]')));
+    const onError = () => setTileFailed(true);
+    tiles.on("tileerror", onError);
+    tiles.on("loading load", syncCoverage);
+    tiles.addTo(map);
+    return () => {
+      tiles.off("tileerror", onError);
+      tiles.off("loading load", syncCoverage);
+      tiles.remove();
+    };
+  }, [map, showDetail]);
   return <>
     <Pane name={coastPane} style={{ zIndex: 150, pointerEvents: "none" }}>
       {world && <GeoJSON pane={coastPane} data={world} interactive={false} style={geographyStyle}
         attribution='<a href="https://www.naturalearthdata.com/">Natural Earth</a> 1:110m' />}
       {world && !showDetail && <AtlasLabels zoom={zoom} />}
     </Pane>
-    {showDetail && <TileLayer
-      className="gadews-geography-tiles"
-      url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      maxNativeZoom={19} maxZoom={20}
-      errorTileUrl="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
-      eventHandlers={{ loading: () => setTileFailed(false), tileerror: () => setTileFailed(true) }}
-    />}
     {showDetail && tileFailed && <div role="status" className="gadews-basemap-status">
       {world
         ? t("部分地理瓦片缺失，底层仅显示全球概略边界。", "Some geographic tiles are missing; underlying boundaries are generalized.")
