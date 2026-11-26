@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ChevronDown, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { areaNames, roleNames, type SessionIdentity } from "@/lib/accounts/display";
+import { areaNames, identityLabel, type SessionIdentity } from "@/lib/accounts/display";
 import { useLocale } from "./locale-provider";
 
 export function HeaderAccount() {
@@ -95,8 +95,7 @@ export function HeaderAccount() {
   );
 
   const approved = identity.active && identity.status === "active";
-  const role = approved ? t(...roleNames[identity.role])
-    : identity.status === "pending" ? t("待审批", "Pending approval") : t("权限未启用", "Access inactive");
+  const role = t(...identityLabel(identity.role, identity.status, identity.active));
   const country = areaNames[identity.country];
   const region = areaNames[identity.region];
   let scope = "";

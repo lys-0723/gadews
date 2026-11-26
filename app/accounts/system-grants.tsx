@@ -87,7 +87,7 @@ export function SystemGrants({ accounts, busy, save, modelLabel }: {
 }) {
   const { t } = useLocale();
   const [selected, setSelected] = useState("");
-  const candidates = accounts.filter(account => account.role !== "system");
+  const candidates = accounts.filter(account => account.role !== "system" && account.status !== "rejected");
   const account = candidates.find(item => item.id === selected);
   return (
     <section id="user-permissions" className="scroll-mt-28 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">

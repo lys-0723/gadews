@@ -3,11 +3,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { areaNames, roleNames } from "@/lib/accounts/display";
+import { areaNames, identityLabel, roleNames } from "@/lib/accounts/display";
 import { evaluatePassword } from "@/lib/accounts/password-strength";
 import { accountApi as api, accountMessages as messages } from "@/lib/accounts/client";
 import { SystemGrants } from "./system-grants";
-import { ApprovalQueue, PendingApplication } from "./approval-queue";
+import { ApprovalQueue, ApplicationDetails } from "./approval-queue";
 import { AccessPreview } from "./access-preview";
 import { StickyHeader } from "@/components/gadews/sticky-header";
 import { useLocale } from "@/components/gadews/locale-provider";
@@ -27,6 +27,7 @@ const labels: Record<string, readonly [string, string]> = {
   active: ["已启用", "Active"],
   pending: ["待审批", "Awaiting approval"],
   disabled: ["已停用", "Disabled"],
+  rejected: ["申请已拒绝", "Application rejected"],
   "wsd-v1.0": ["白斑病 · v1.0", "White spot disease · v1.0"],
   "tilapia-demo-score-v0.1": ["罗非鱼 · v0.1", "Tilapia · v0.1"],
   "knowledge-chat-v1": ["知识助手 · v1", "Knowledge assistant · v1"],
@@ -355,6 +356,8 @@ export default function AccountsPage() {
             2,
           ),
         );
+      if (action === "reopen") setMessage(t("申请已返回待审批列表。", "Application returned to the pending list."));
+      if (action === "reject") setMessage(t("申请已拒绝。", "Application rejected."));
       if (action === "approve") setMessage(t("申请已批准。", "Application approved."));
       if (action === "systemGrant") setMessage(t("用户权限已保存。", "User permissions saved."));
       if (action === "assign") setMessage(t("授权已保存。", "Grants saved."));
@@ -418,8 +421,7 @@ export default function AccountsPage() {
                 <div>
                   <h2 className="text-xl font-bold">{view.self.username}</h2>
                   <p>
-                    {view.active ? t(...roleNames[view.self.role]) : view.self.status === "pending"
-                      ? t("待审批", "Awaiting approval") : t("权限暂不可用", "Access unavailable")}
+                    {t(...identityLabel(view.self.role, view.self.status, view.active))}
                     {view.active && view.self.role !== "system" && " · " + label(view.self.country, t)}
                     {view.active && (view.self.role === "region" || view.self.role === "member") &&
                       " / " + label(view.self.region, t)}
@@ -434,7 +436,7 @@ export default function AccountsPage() {
                   </button>
                 </div>
               </div>
-              {view.self.status === "pending" && <PendingApplication account={view.self} />}
+              {(view.self.status === "pending" || view.self.status === "rejected") && <ApplicationDetails account={view.self} />}
               {view.active && view.self.role !== "member" && (
                 <nav aria-label={t("账号管理操作", "Account management actions")} className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 pt-4 text-sm font-semibold text-teal-800">
                   <a className="underline underline-offset-4" href="#approvals">{t("待审批申请", "Pending applications")} ({view.approvals.length})</a>
@@ -443,7 +445,7 @@ export default function AccountsPage() {
               )}
             </section>
             {view.active && view.self.role !== "member" && (
-              <ApprovalQueue view={view} approve={input => act("approve", input)} busy={busy} />
+              <ApprovalQueue view={view} approve={input => act("approve", input)} reject={input => act("reject", input)} busy={busy} />
             )}
             {view.active && view.self.role === "system" && <SystemGrants accounts={view.systemAccounts} busy={busy} save={act} modelLabel={label} />}
             {view.active && (
@@ -492,8 +494,14 @@ export default function AccountsPage() {
                     <ul className="mt-3 divide-y">
                       {view.directory.map((a) => (
                         <li className="py-2" key={a.username}>
-                          {a.username} · {t(...roleNames[a.status === "pending" ? a.requested : a.role])} ·{" "}
+                          {a.username} · {t(...roleNames[(a.status === "pending" || a.status === "rejected") ? a.requested : a.role])} ·{" "}
                           {label(a.country, t)} / {label(a.region, t)} · {label(a.status, t)}
+                          {a.status === "rejected" && (
+                            <button type="button" disabled={busy} onClick={() => act("reopen", { id: a.id })}
+                              className="ml-3 rounded-md border border-teal-700 px-3 py-1.5 font-medium text-teal-800 hover:bg-teal-50">
+                              {t("重新审核", "Reopen application")}
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>

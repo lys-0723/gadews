@@ -18,3 +18,10 @@ export const areaNames: Record<string, [string, string]> = {
 export type SessionIdentity = Pick<Account, "username" | "role" | "country" | "region" | "status"> & {
   active: boolean;
 };
+
+export function identityLabel(role: Role, status: Account["status"], active: boolean): [string, string] {
+  if (status === "pending") return ["待审批", "Pending approval"];
+  if (status === "rejected") return ["申请已拒绝", "Application rejected"];
+  if (status === "disabled") return ["已停用", "Disabled"];
+  return active ? roleNames[role] : ["权限暂不可用", "Access unavailable"];
+}

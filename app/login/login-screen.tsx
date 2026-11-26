@@ -7,7 +7,7 @@ import { ArrowRight, Eye, EyeOff, Shield, UserRound } from "lucide-react";
 import { StickyHeader } from "@/components/gadews/sticky-header";
 import { useLocale } from "@/components/gadews/locale-provider";
 import { accountApi, accountMessages } from "@/lib/accounts/client";
-import { roleNames, type SessionIdentity } from "@/lib/accounts/display";
+import { identityLabel, roleNames, type SessionIdentity } from "@/lib/accounts/display";
 import styles from "./login.module.css";
 
 export function LoginScreen({ entry }: { entry: "admin" | "user" }) {
@@ -85,8 +85,7 @@ export function LoginScreen({ entry }: { entry: "admin" | "user" }) {
               <>
                 <p className={styles.identity}>
                   <strong>{identity.username}</strong>
-                  <span>{identity.active ? t(...roleNames[identity.role]) : identity.status === "pending"
-                    ? t("待审批", "Awaiting approval") : t("权限暂不可用", "Access unavailable")}</span>
+                  <span>{t(...identityLabel(identity.role, identity.status, identity.active))}</span>
                 </p>
                 <Link className={styles.primary} href="/accounts">{t("进入账号工作区", "Open workspace")} <ArrowRight size={19} /></Link>
                 <button type="button" className={styles.textButton} disabled={busy} onClick={signOut}>
