@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useLocale } from "./locale-provider";
+import { HeaderAccount } from "./header-account";
 
 const links = [
   ["/", "首页", "Home"],
@@ -12,7 +13,6 @@ const links = [
   ["/risk-map", "全球报告", "Global reports"],
   ["/warning-tools", "预警工具", "Warning tools"],
   ["/knowledge-bank", "知识资源", "Knowledge"],
-  ["/accounts", "账号管理", "Accounts"],
   ["/why-gadews-matters", "走近 GADEWS", "About GADEWS"],
 ] as const;
 
@@ -47,6 +47,7 @@ export function StickyHeader({ variant = "light" }: { variant?: "light" | "dark"
   return <header ref={root} className={`gadews-header header-${variant} ${scrolled ? "is-scrolled" : ""} ${open ? "menu-open" : ""}`}>
     <Brand dark={variant !== "light"} />
     <nav className="site-desktop-nav" aria-label={t("主导航", "Main navigation")}>{nav}</nav>
+    <HeaderAccount />
     <LanguageSwitch />
     <button ref={trigger} type="button" className="site-menu-trigger" onClick={() => setOpen(value => !value)} aria-controls="site-mobile-nav" aria-expanded={open} aria-label={open ? t("关闭导航菜单", "Close navigation menu") : t("打开导航菜单", "Open navigation menu")}>{open ? <X /> : <Menu />}</button>
     {open && <nav id="site-mobile-nav" className="site-mobile-nav" aria-label={t("移动导航", "Mobile navigation")}>{nav}<Link href="/knowledge-bank/literature" onClick={() => setOpen(false)}>{t("文献库", "Literature library")}<ArrowUpRight size={19} /></Link></nav>}

@@ -23,3 +23,35 @@ test("shared navigation offers Home and language switching and restores menu foc
     assert.equal(document.documentElement.lang, "en");
   } finally { cleanup(); }
 });
+
+test("account header reflects the approved session, pending access and expiry", async () => {
+  const React = await import("react");
+  const { render, screen, fireEvent, cleanup, waitFor } = await import("@testing-library/react");
+  const { LocaleProvider } = await import("./locale-provider");
+  const { StickyHeader } = await import("./sticky-header");
+  const originalFetch = globalThis.fetch;
+  const user = { username: "demo.reader", role: "region", country: "A", region: "east" };
+  let identity: unknown = { ...user, status: "pending", active: false };
+  globalThis.fetch = async () => Response.json(identity);
+  try {
+    render(<LocaleProvider initialLocale="zh-CN"><StickyHeader /></LocaleProvider>);
+    assert.ok(await screen.findByRole("button", { name: "待审批" }));
+    assert.equal(screen.queryByText("区域管理员"), null);
+    identity = { ...user, status: "active", active: true };
+    fireEvent(window, new window.Event("gadews:session-changed"));
+    const role = await screen.findByRole("button", { name: /区域管理员.*示例国甲 · 东区/ });
+    fireEvent.click(role);
+    assert.ok(screen.getByText("demo.reader"));
+    assert.equal(screen.getByRole("link", { name: "账号管理" }).getAttribute("href"), "/accounts");
+    assert.ok(screen.getByRole("button", { name: "退出登录" }));
+
+    identity = null;
+    fireEvent(window, new window.Event("gadews:session-changed"));
+    await waitFor(() => assert.equal(screen.queryByText("demo.reader"), null));
+    assert.equal(screen.getByRole("link", { name: "普通用户登录" }).getAttribute("href"), "/login?entry=user");
+    assert.equal(screen.getByRole("link", { name: "管理员登录" }).getAttribute("href"), "/login?entry=admin");
+  } finally {
+    cleanup();
+    globalThis.fetch = originalFetch;
+  }
+});
