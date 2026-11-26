@@ -34,9 +34,11 @@ function navigate(href: string, replace = false) {
   window.dispatchEvent(new Event("gadews:map-location"));
 }
 
-function follow(event: MouseEvent<HTMLAnchorElement>, href: string) {
+function follow(event: MouseEvent<HTMLAnchorElement>, href: string, beforeNavigate?: () => void) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
   event.preventDefault();
+  if (event.currentTarget.getAttribute("aria-current") === "page") return;
+  beforeNavigate?.();
   navigate(href);
 }
 
@@ -61,13 +63,20 @@ export default function RiskMapPage() {
     : [activeFeed?.grid?.time ?? activeFeed?.raster?.time].filter((v): v is string => !!v);
   const availableDays = new Set(data ? regionalDates(data.snapshot, site, data.asOf) : []);
   for (const time of layerDates) availableDays.add(time.slice(0,10));
-  const days = [...availableDays].sort();
   const requestedDay = url.searchParams.get("day") ??
     (activeFeed && !activeFeed.heatMaps ? layerDates[0]?.slice(0,10) : null);
+  // A previously shared date can age out of a rolling snapshot. Keep the date visible.
+  const requestedDate = requestedDay && /^\d{4}-\d{2}-\d{2}$/.test(requestedDay) ? new Date(requestedDay + "T00:00:00Z") : null;
+  const outsideSnapshot = !!(data && requestedDay && requestedDate && Number.isFinite(requestedDate.getTime()) &&
+    requestedDate.toISOString().slice(0, 10) === requestedDay && !availableDays.has(requestedDay));
+  if (outsideSnapshot && requestedDay) availableDays.add(requestedDay);
+  const days = [...availableDays].sort();
   const day = effectiveRegionalDay(days, requestedDay, data?.asOf ?? 0);
   const validTime = regionalLayerTime(activeFeed, day);
-  const month = Math.max(0, layerDates.indexOf(validTime ?? ""));
-  const regionalLink = regionalUrl("offshore", "salinity");
+  const month = layerDates.indexOf(validTime ?? "");
+  const [regionalLink, setRegionalLink] = useState(regionalUrl("offshore", "salinity"));
+  const [focusRevision, setFocusRevision] = useState(0);
+  const currentUrl = url.pathname + url.search + url.hash;
   const [points, setPoints] = useState(true);
   const [demo, setDemo] = useState(false);
   const [siteId, setSiteId] = useState<RegionalDemoSiteId>("A");
@@ -78,9 +87,11 @@ export default function RiskMapPage() {
   function locate(next: Site) {
     setDemo(false);
     setPoints(true);
+    setFocusRevision(revision => revision + 1);
     navigate(regionalUrl(next, layer, day), true);
   }
   function chooseLayer(next: OceanLayer) {
+    setDemo(false);
     const f = data?.snapshot.feeds.find(item => item.id === next);
     const first = f?.grid?.time ?? f?.raster?.time ?? f?.series[0]?.times[0];
     navigate(regionalUrl(site, next, regionalLayerTime(f, day) ? day : first?.slice(0,10) ?? day), true);
@@ -124,11 +135,11 @@ export default function RiskMapPage() {
     <main className={styles.workspace}>
       <header className={styles.toolbar}>
         <nav aria-label={t("地图视图", "Map views")} className={styles.views}>
-          <a href="/risk-map" aria-current={!regional ? "page" : undefined} onClick={e => { if (regional) { setDemo(false); follow(e, "/risk-map"); } }}>
+          <a href="/risk-map" aria-current={!regional ? "page" : undefined} onClick={e => follow(e, "/risk-map", () => { setRegionalLink(currentUrl); setDemo(false); })}>
             <Globe2 size={17} aria-hidden="true"/>{t("全球历史报告", "Historical reports")}
           </a>
-          <a href={regional ? url.pathname + url.search + url.hash : regionalLink} aria-current={regional ? "page" : undefined}
-            onClick={e => {if (!regional) follow(e, regionalLink);}}>
+          <a href={regional ? currentUrl : regionalLink} aria-current={regional ? "page" : undefined}
+            onClick={e => follow(e, regionalLink)}>
             <Waves size={17} aria-hidden="true"/>{t("区域监测与复核", "Regional monitoring")}
           </a>
         </nav>
@@ -139,9 +150,12 @@ export default function RiskMapPage() {
           {regional ? <>
             <RegionalEvidencePanel delivery={data} failed={error} retry={retry} site={site} day={day} days={days}
               onSiteChange={locate} onDayChange={next => {setDemo(false); navigate(regionalUrl(site, layer, next), true);}}>
+              {outsideSnapshot && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm">
+                {t("当前快照没有所选日期的区域日资料。请选择其他日期查看已有资料。", "No regional daily evidence for this date in the current snapshot. Select another date to inspect available data.")}
+              </p>}
               <OceanControls hideSitePicker delivery={data} failed={error} retry={retry} layer={layer} onLayer={chooseLayer}
-                points={points} onPoints={setPoints} site={site} onSite={s => s && locate(s)}
-                heatMonth={month} onHeatMonth={i => navigate(regionalUrl(site, layer, layerDates[i]?.slice(0,10)), true)} />
+                points={points} onPoints={value => {setDemo(false); setPoints(value);}} site={site} onSite={s => s && locate(s)}
+                heatMonth={month} onHeatMonth={i => {setDemo(false); navigate(regionalUrl(site, layer, layerDates[i]?.slice(0,10)), true);}} />
               {layer !== "off" && !validTime && <p role="status" className="rounded-md bg-amber-50 px-3 py-2 text-sm">
                 {t("所选日期没有该图层，地图仅显示地理背景和已打开的代表点。", "No layer for this date. Only geography and enabled reference points are shown.")}
                 {layerDates.length > 0 && <button type="button" className="ml-1 underline" onClick={() => navigate(regionalUrl(site, layer, layerDates[0].slice(0,10)), true)}>
@@ -149,7 +163,7 @@ export default function RiskMapPage() {
                 </button>}
               </p>}
             </RegionalEvidencePanel>
-            <details><summary className="cursor-pointer font-semibold">{t("附近巡查记录演示", "Nearby monitoring example")}</summary>
+            <details onToggle={event => {if (!event.currentTarget.open) setDemo(false);}}><summary className="cursor-pointer font-semibold">{t("附近巡查记录演示", "Nearby monitoring example")}</summary>
               <label className="my-3 flex items-center gap-2"><input id="regional-demo-toggle" type="checkbox" checked={demo} onChange={e => setDemo(e.target.checked)}/>{t("查看虚构场点及周边记录", "View fictional sites and records")}</label>
               {summary && <RegionalDemoPanel summary={summary} onSiteChange={setSiteId} onRadiusChange={setRadius} onClose={() => setDemo(false)} />}
             </details>
@@ -171,9 +185,13 @@ export default function RiskMapPage() {
           </>}
         </aside>
         <div className={styles.map} data-map-controls-space>
+          {summary && <div className={styles.demoNotice}>
+            <strong>{t("虚构巡查记录 · 2025 年 5 月", "Fictional monitoring records · May 2025")}</strong>
+            <button type="button" className="underline" onClick={() => setDemo(false)}>{t("返回区域资料", "Return to regional evidence")}</button>
+          </div>}
           <MapCanvas key={regional ? "regional" : "history"} history={regional ? undefined : history}
             reportCenter={!regional ? locations.get(history.country) : undefined}
-            environment={regional && !demo ? {delivery:data, heatMonth:month, layer:validTime ? layer : "off", points, site, day, onSiteChange: locate} : undefined}
+            environment={regional && !demo ? {delivery:data, heatMonth:month, focusRevision, layer:validTime ? layer : "off", points, site, day, onSiteChange: locate} : undefined}
             regionalDemo={summary} showWahis={!regional && sources.wahis} showQaad={!regional && sources.qaad}
             diseaseFilter={diseaseFilter} qaadStatusFilter={qaadStatusFilter}
             onWahisStatsChange={setWahisStats} onQaadStatsChange={setQaadStats}

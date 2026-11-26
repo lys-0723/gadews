@@ -18,6 +18,7 @@ import {
   type Feed,
 } from "@/lib/gadews/environment/snapshot";
 export interface EnvironmentMaps {
+  focusRevision?: number;
   onSiteChange?: (site: Site) => void;
   day?: string;
   heatMonth: number;
@@ -110,12 +111,12 @@ function MarineTiles({
     </>
   );
 }
-export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, day, onSiteChange }: EnvironmentMaps) {
+export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, day, onSiteChange, focusRevision }: EnvironmentMaps) {
   const map = useMap(),
     { t } = useLocale();
   useEffect(() => {
     if (site) map.setView([station[site][2], station[site][3]], site === "offshore" ? 7 : 6);
-  }, [map, site]);
+  }, [map, site, focusRevision]);
   const feeds = delivery?.snapshot.feeds ?? [],
     f = feeds.find((s) => s.id === layer);
   return (
