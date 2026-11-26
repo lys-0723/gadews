@@ -1,4 +1,5 @@
 "use client";
+import { MarineAreaRange } from "./marine-area-range";
 import { HeatwaveGrid } from "./heatwave-grid";
 import { EnvironmentPixel } from "./environment-pixel";
 import { useEffect, useState } from "react";
@@ -93,7 +94,7 @@ function MarineTiles({
     <>
       <TileLayer
         url={"https://wmts.marine.copernicus.eu/teroWmts?" + q + "&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}"}
-        opacity={0.6}
+        opacity={1}
         zIndex={3}
         maxNativeZoom={9}
         attribution="E.U. Copernicus Marine Service"
@@ -120,6 +121,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
     f = feeds.find((s) => s.id === layer);
   return (
     <>
+      {f && (f.raster || f.grid || f.heatMaps) && <MarineAreaRange key={f.id + (f.raster?.time ?? "")} feed={f} month={heatMonth}/>}
       {f?.heatMaps && <HeatwaveGrid encoded={f.heatMaps[heatMonth]} month={f.series[0].times[heatMonth]}/>}
       {f?.raster && <MarineTiles key={f.raster.layer + f.raster.time} raster={f.raster} />}
       {f?.raster && <EnvironmentPixel key={f.id + f.raster.time} id={f.id} time={f.raster.time} />}
@@ -137,7 +139,7 @@ export function EnvironmentLayers({ delivery, layer, points, site, heatMonth, da
                 [lat - half, lon - half],
                 [lat + half, lon + half],
               ]}
-              pathOptions={{ stroke: false, fillOpacity: 0.65, fillColor: color }}
+              pathOptions={{ stroke: false, fillOpacity: 1, fillColor: color }}
             >
               <Popup>
                 <strong>{t(...names[f.id])}</strong>

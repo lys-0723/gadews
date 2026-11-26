@@ -1,4 +1,6 @@
 "use client";
+import { OffshoreGridSummary } from "./ocean-legend";
+import { unitText } from "@/lib/gadews/environment/ocean-legend";
 import { useLocale } from "../locale-provider";
 import {
   names,
@@ -40,6 +42,7 @@ export function OceanControls({
 }: EnvironmentControls) {
   const { t } = useLocale();
   const current = delivery?.snapshot.feeds.find((f) => f.id === layer);
+  const unit = current?.grid?.unit ?? current?.series[0]?.fields[0]?.unit;
   const day = current?.heatMaps ? current.series[0].times[heatMonth] : current?.grid?.time ?? current?.raster?.time;
   const control = "mt-1 block w-full rounded-lg border border-slate-400 bg-white px-2 py-2";
   return (
@@ -83,41 +86,23 @@ export function OceanControls({
         </p>
       )}
       {layer !== "off" && (
-        <p>
-          {t("点选格网以查看像元、单位和资料期。", "Select a grid cell for its value, unit and valid time.")}
-        </p>
-      )}
-      {layer !== "off" && (
-        <div className="space-y-1 rounded-lg bg-slate-50 p-2">
-          <p>
-            {layer === "heatwave"
-              ? t("全球 1° 海洋热浪概率（研究性预报），起报月份 ", "Global 1° experimental marine heatwave probability, initial month ") + (current?.issueMonth?.slice(0,7) ?? "—")
-              : layer === "oisst"
-              ? t("近海样区 · 0.25° 日海温格网（°C）", "Offshore subset · 0.25° daily SST (°C)")
-              : layer === "viirs"
-                ? t(
-                    "近海抽样 · 4 km 卫星像元（mg/m³）",
-                    "Offshore subset · sampled 4 km satellite pixels (mg/m³)",
-                  )
-                : layer === "chl-l3"
-                  ? t(
-                      "全球卫星海色（mg/m³），空白处缺测",
-                      "Global satellite chlorophyll (mg/m³); gaps are missing",
-                    )
-                  : layer === "chl-l4"
-                    ? t(
-                        "全球插值海色（mg/m³），与卫星层分列",
-                        "Global interpolated chlorophyll (mg/m³), separate from observations",
-                      )
-                    : t("海洋模式格网", "Ocean model grid") +
-                      " · " +
-                      (current?.series[0]?.fields[0]?.unit ?? "—") +
-                      " · " +
-                      t("深度", "depth") +
-                      " " +
-                      (current?.series[0]?.depthM?.toFixed(2) ?? "—") +
-                      " m"}
+        <div aria-label={t("海洋图层图例", "Marine layer legend")} className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm">
+          <h3 className="font-semibold text-slate-900">{t(...names[layer])}</h3>
+          <p>{layer === "heatwave" ? t("全球 1° 海洋热浪概率 · 研究性月度预报", "Global 1° marine heatwave probability · experimental monthly forecast")
+            : layer === "oisst" ? t("近海样区 · 0.25° 日海温分析", "Offshore subset · 0.25° daily SST analysis")
+            : layer === "viirs" ? t("近海样区 · 4 km 卫星海色抽样", "Offshore subset · sampled 4 km satellite ocean colour")
+            : layer === "chl-l3" ? t("全球海域 · L3 卫星海色像元", "Global ocean · L3 satellite ocean colour")
+            : layer === "chl-l4" ? t("全球海域 · L4 插值海色", "Global ocean · L4 interpolated ocean colour")
+            : t("全球海域 · 海洋模式格网", "Global ocean · model grid")}
+            {unit && " · " + unitText(unit)}
           </p>
+          <p>{t("有效期", "Valid time")} · {day
+            ? (current?.heatMaps ? day.slice(0,7) : day.replace("T"," ").replace(/(\.000)?Z$/,"")) + " UTC"
+            : t("暂无资料", "No data")}
+            {current?.series[0]?.depthM != null && " · " + t("深度", "Depth") + " " + current.series[0].depthM.toFixed(2) + " m"}
+            {current && overdue(current, delivery!.asOf) && " · " + t("超期或待更新", "Stale or awaiting update")}
+          </p>
+          {current?.issueMonth && <p>{t("起报月份", "Initial month")} · {current.issueMonth.slice(0,7)}</p>}
           {current?.heatMaps && <>
             <label className="block">{t("预报月份", "Forecast month")}
               <select className={control} value={heatMonth} onChange={e => onHeatMonth(Number(e.target.value))}>
@@ -148,17 +133,8 @@ export function OceanControls({
               )}
             </div>
           )}
-          {current?.raster && (
-            <a className="underline" target="_blank" rel="noreferrer" href={legendUrl(current.raster)}>
-              {t("查看提供方色标", "Open provider colour scale")}
-            </a>
-          )}
-          <p>
-            {day?.slice(0, 10) ?? t("暂无资料", "No data")} UTC{" "}
-            {current &&
-              overdue(current, delivery!.asOf) &&
-              " · " + t("超期或待更新", "Stale or awaiting update")}
-          </p>
+          {current?.grid && <OffshoreGridSummary grid={current.grid}/>}
+          {current?.raster && <p className="text-xs">{t("视窗内显示官方色标和九个位置的抽样范围。点击水域可查单个像元。", "The map shows the provider scale and range of nine sampled locations. Select water to inspect a cell.")}</p>}
           {current?.state === "retained" && (
             <p>{t("同步失败，保留最后成功版本。", "Refresh failed; last available version retained.")}</p>
           )}
@@ -180,15 +156,3 @@ export function OceanControls({
   );
 }
 export const gridPalette = ["#405792", "#25849c", "#49ad9a", "#d7ab4c"];
-export function legendUrl(r: { layer: string; style: string }) {
-  return (
-    "https://wmts.marine.copernicus.eu/teroWmts?" +
-    new URLSearchParams({
-      SERVICE: "WMTS",
-      REQUEST: "GetLegend",
-      LAYER: r.layer,
-      STYLE: r.style,
-      FORMAT: "image/svg+xml",
-    })
-  );
-}
