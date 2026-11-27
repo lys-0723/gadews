@@ -28,3 +28,8 @@
   .bar a { font-size:13px; justify-content:center; text-align:center; }
   .bar a svg { display:none; }
 }
+
+.barLabel { display:inline-flex; align-items:center; color:#45615e; font-size:13px; font-weight:600; }
+@media(max-width:600px) {
+  .barLabel { display:none; }
+}
