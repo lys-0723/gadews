@@ -10,17 +10,22 @@ import { MonitoringEvidencePanel } from "./monitoring-evidence-panel";
 import { WsdRiskModel } from "./wsd-risk-model";
 import { TilapiaRiskModel } from "./tilapia-risk-model";
 
-export function WarningWorkbench() {
+export function WarningWorkbench({
+  initialDisease = "wsd", initialRole = "manager",
+}: {
+  initialDisease?: "wsd" | "tilapia";
+  initialRole?: "manager" | "producer";
+} = {}) {
   const w = useWorkbenchText();
-  const [disease, setDisease] = useState<"wsd" | "tilapia">("wsd");
+  const [disease, setDisease] = useState<"wsd" | "tilapia">(initialDisease);
   const [monitoringSnapshot, setMonitoringSnapshot] = useState<MonitoringSnapshot | null>(null);
   const [sourceMode, setSourceMode] = useState<"published" | "demo">("published");
   const [demoSource] = useState(() => createDemoMonitoringSource());
   const [demoVisited, setDemoVisited] = useState(false);
   const [startRequest, setStartRequest] = useState(0);
-  const [tilapiaVisited, setTilapiaVisited] = useState(false);
+  const [tilapiaVisited, setTilapiaVisited] = useState(initialDisease === "tilapia");
   const [aiRevision, setAiRevision] = useState(0);
-  const [role, setRole] = useState<"manager" | "producer">("manager");
+  const [role, setRole] = useState<"manager" | "producer">(initialRole);
   const buttonClass = (selected: boolean) => `min-h-12 rounded-2xl px-5 py-3 text-left text-sm font-bold transition-colors ${selected ? "bg-teal-700 text-white" : "bg-slate-50 text-slate-700 hover:bg-teal-50"}`;
   const origin: MonitoringOrigin = sourceMode === "demo" && monitoringSnapshot ? { kind: "demo", scenarioId: monitoringSnapshot.feed.id, generatedAt: monitoringSnapshot.fetchedAt } : { kind: "published" };
   return <div className="min-w-0">

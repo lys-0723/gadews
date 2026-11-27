@@ -1,0 +1,36 @@
+.directory { scroll-margin-top: 90px; background: #f5f9f7; color: #153941; border-block: 1px solid #c8d8d2; }
+.directoryInner { max-width: 1480px; margin: 0 auto; padding: clamp(32px,4vw,64px) clamp(20px,4.4vw,86px); }
+.directory h2 { margin: 0 0 22px; color: #183e42; font-size: clamp(26px,3.4vw,42px); font-weight: 600; letter-spacing: -.035em; }
+.cards { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: clamp(12px,2vw,28px); }
+.card { min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 20px 0 12px; border-top: 2px solid #70a89c; }
+.card:hover .cardName { color:#08776c; text-decoration:underline; text-underline-offset:4px; }
+.role { display:flex; align-items:center; gap:7px; font-size:14px; color:#3f6664; }
+.cardName { display:flex; align-items:baseline; justify-content:space-between; gap:8px; font-size:clamp(20px,2vw,29px); line-height:1.3; font-weight:650; }
+.cardName svg { flex-shrink:0; align-self:center; }
+.task { color:#486269; font-size:15px; line-height:1.6; }
+.shell { padding-top:94px; min-height:100svh; background:#f3f7f6; color:#163944; }
+.bar { position:sticky; top:94px; z-index:20; background:#e5efec; border-bottom:1px solid #c4d6cf; }
+.barInner,.content,.resources { max-width:1232px; margin-inline:auto; padding-inline:clamp(16px,3vw,44px); }
+.barInner { display:flex; flex-wrap:wrap; column-gap:clamp(10px,2vw,30px); }
+.bar a { display:inline-flex; align-items:center; gap:7px; min-height:48px; padding:7px 2px; color:#395c5c; font-size:14px; border-bottom:3px solid transparent; }
+.bar a[aria-current] { border-color:#177269; color:#114d49; font-weight:700; }
+.content { padding-top:clamp(22px,3vw,44px); padding-bottom:36px; min-width:0; }
+.resources { display:flex; flex-wrap:wrap; gap:8px 22px; padding-block:18px 100px; border-top:1px solid #cad9d5; }
+.resources a { display:inline-flex; align-items:center; min-height:36px; color:#185f5b; text-decoration:underline; text-underline-offset:4px; }
+@media(max-width:760px) {
+  .shell { padding-top:78px; }
+  .bar { top:78px; }
+  .cards { grid-template-columns:1fr; }
+  .card { padding:14px 0 6px; gap:5px; }
+  .bar a { min-height:44px; }
+}
+@media(max-width:480px) {
+  .barInner { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px; }
+  .bar a { font-size:13px; justify-content:center; text-align:center; }
+  .bar a svg { display:none; }
+}
+
+.barLabel { display:inline-flex; align-items:center; color:#45615e; font-size:13px; font-weight:600; }
+@media(max-width:600px) {
+  .barLabel { display:none; }
+}

@@ -11,6 +11,7 @@ import { OceanFilm } from "./ocean-film";
 import { RecentSnapshotEvents } from "./recent-snapshot-events";
 import { useOceanNarrative } from "./ocean-atmosphere";
 import { HeroIntro, HeroTitle } from "./hero-intro";
+import { WorkspaceDirectory } from "../workspaces/workspace-navigation";
 import { LifeParticles } from "./life-particles";
 
 export function HomePage() {
@@ -45,14 +46,14 @@ export function HomePage() {
               )}
             </p>
             <div className="hero-actions">
-              <a href="#reports" className="primary-link">
-                {t("探索全球报告", "Explore reports")}
+              <a href="#workspaces" className="primary-link">
+                {t("选择工作区", "Choose a workspace")}
                 <span className="link-arrow" aria-hidden="true">
                   ↗
                 </span>
               </a>
-              <a href="#prototype" className="secondary-link">
-                {t("了解预警原型", "Our prototype")}
+              <a href="#reports" className="secondary-link">
+                {t("探索全球报告", "Explore reports")}
                 <span className="link-arrow" aria-hidden="true">
                   ↗
                 </span>
@@ -79,6 +80,7 @@ export function HomePage() {
             </div>
           </div>
         </section>
+        <WorkspaceDirectory />
         <section
           className="one-health"
           id="one-health"
