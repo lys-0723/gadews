@@ -4,20 +4,14 @@ import { usePublicSurveillance } from "@/hooks/use-public-surveillance";
 import { useLocale } from "../locale-provider";
 import type { Site } from "@/lib/gadews/environment/snapshot";
 
-const countries: Record<Site, [string, string]> = {
-  guangzhou: ["中国", "China"],
-  zhanjiang: ["中国", "China"],
-  offshore: ["中国", "China"],
-  mekong: ["越南", "Vietnam"],
-  chanthaburi: ["泰国", "Thailand"],
-  andhra: ["印度", "India"],
-};
+import { siteCountries } from "@/lib/gadews/environment/site-countries";
+
 export function CountryReports({ site }: { site: Site }) {
   const { t } = useLocale(),
     [open, setOpen] = useState(false);
   const wahis = usePublicSurveillance("wahis", open),
     qaad = usePublicSurveillance("qaad", open);
-  const [zh, country] = countries[site];
+  const [zh, country] = siteCountries[site];
   return (
     <details className="mt-4 border-t border-slate-200 pt-3" onToggle={(e) => setOpen(e.currentTarget.open)}>
       <summary className="cursor-pointer font-semibold">
