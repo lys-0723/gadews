@@ -10,7 +10,8 @@ import { numberText, unitText } from "@/lib/gadews/environment/format";
 import { siteCountries } from "@/lib/gadews/environment/site-countries";
 import { names, overdue, siteIds, station, variables, type Delivery, type Site } from "@/lib/gadews/environment/snapshot";
 import { wahisEntry, qaadEntry, type HistoryEntry } from "@/lib/gadews/history-reports";
-import type { LoadState, SourceMetadata } from "@/lib/gadews/public-surveillance";
+import { mapCopy } from "@/lib/gadews/i18n/map";
+import { QAAD_FILTERS, type QaadStatusFilter, type LoadState, type SourceMetadata } from "@/lib/gadews/public-surveillance";
 
 const measures = [
   { key: "precipitation_sum_p50", feed: "gefs" },
@@ -113,6 +114,8 @@ function HistoryCard({ title, caption, rows, state, metadata, retry }: {
           <summary className="cursor-pointer text-sm font-semibold">{t("查看最近记录", "Inspect recent records")}</summary>
           <ul className="mt-2 divide-y divide-slate-200">{ordered.slice(0,5).map((r,i) => <li key={i} className="py-2 text-sm">
             <span className="block text-xs text-slate-600">{r.date || t("资料期未标注", "Period unspecified")}</span>
+            {r.status && <p className="text-xs text-slate-700">{(QAAD_FILTERS as readonly string[]).includes(r.status) && r.status !== "all" && r.status !== "priority"
+              ? t(...mapCopy[r.status as Exclude<QaadStatusFilter, "all" | "priority">]) : r.status}</p>}
             {r.url?.startsWith("https://") ? <a className={textLink} href={r.url} target="_blank" rel="noreferrer">{r.name}</a> : r.name}
           </li>)}</ul>
         </details> : <p className="mt-2 text-sm">{t("所选范围无匹配记录。", "No matching records for this selection.")}</p>}

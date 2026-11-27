@@ -110,10 +110,9 @@ export function RegionalDesk() {
   const layer = site === "offshore" && data ? (["ocean-temp","salinity","chl-l4","oisst","heatwave"] as const).find(id =>
     regionalLayerTime(data.snapshot.feeds.find(f => f.id === id), day)) ?? "off" : "off";
   const mapUrl = `/risk-map?view=regional&ocean=${layer}${day ? "&day=" + day : ""}#env-${site}`;
-  function changeScope(nextSite: Site, nextDay: string) {
+  function changeScope(field: "site" | "day", value: string) {
     const next = new URL(window.location.href);
-    next.searchParams.set("site", nextSite);
-    if (nextDay) next.searchParams.set("day", nextDay);
+    next.searchParams.set(field, value);
     window.history.replaceState(null, "", next.pathname + next.search);
   }
   const [zh, en, lat, lon] = station[site];
@@ -128,12 +127,12 @@ export function RegionalDesk() {
 
     <div className="grid gap-x-8 gap-y-3 rounded-xl bg-[#e7f0ed] p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-[1.25fr_1fr_1fr] lg:items-end">
       <label className="text-sm font-semibold">{t("监测代表点", "Monitoring reference point")}
-        <select value={site} onChange={e => changeScope(e.target.value as Site, day)} className={control}>
+        <select value={site} onChange={e => changeScope("site", e.target.value)} className={control}>
           {siteIds.map(id => <option key={id} value={id}>{t(station[id][0],station[id][1])}</option>)}
         </select>
       </label>
       <label className="text-sm font-semibold">{t("资料日期（UTC）", "Evidence date (UTC)")}
-        <select value={day} disabled={!data} onChange={e => changeScope(site, e.target.value)} className={control}>
+        <select value={day} disabled={!data} onChange={e => changeScope("day", e.target.value)} className={control}>
           {!data && <option value={day}>{t("等待读取快照", "Waiting for snapshot")}</option>}
           {options.map(date => <option key={date} value={date}>{date}</option>)}
         </select>

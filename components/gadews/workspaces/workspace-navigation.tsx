@@ -27,11 +27,11 @@ export function WorkspaceDirectory() {
     <div className={styles.directoryInner}>
       <h2 id="workspace-directory-title">{t("选择工作区", "Choose a workspace")}</h2>
       <nav aria-label={t("公开角色工作区", "Public role workspaces")} className={styles.cards}>
-        {workspaces.map(({path, name, role, task, icon: Icon}) => <Link href={path} key={path} className={styles.card}>
+        {workspaces.map(({path, name, role, task, icon: Icon}) => <a href={path} key={path} className={styles.card}>
           <span className={styles.role}><Icon size={18} aria-hidden="true"/>{t(...roleNames[role])}</span>
           <span className={styles.cardName}>{t(name[0],name[1])}<ArrowUpRight size={21} aria-hidden="true"/></span>
           <span className={styles.task}>{t(task[0],task[1])}</span>
-        </Link>)}
+        </a>)}
       </nav>
     </div>
   </section>;
@@ -41,9 +41,9 @@ export function WorkspaceNavigation() {
   const {t} = useLocale(), pathname = usePathname();
   return <nav className={styles.bar} aria-label={t("切换公开工作区", "Switch public workspace")}>
     <div className={styles.barInner}><span className={styles.barLabel}>{t("公开工作区", "Public workspaces")}</span>{workspaces.map(({path,role,icon: Icon}) =>
-      <Link key={path} href={path} aria-current={pathname === path ? "page" : undefined}>
+      <a key={path} href={path} aria-current={pathname === path ? "page" : undefined}>
         <Icon size={16} aria-hidden="true"/>{t(...roleNames[role])}
-      </Link>)}</div>
+      </a>)}</div>
   </nav>;
 }
 

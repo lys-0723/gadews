@@ -9,7 +9,7 @@
 .cardName svg { flex-shrink:0; align-self:center; }
 .task { color:#486269; font-size:15px; line-height:1.6; }
 .shell { padding-top:94px; min-height:100svh; background:#f3f7f6; color:#163944; }
-.bar { background:#e5efec; border-bottom:1px solid #c4d6cf; }
+.bar { position:sticky; top:94px; z-index:20; background:#e5efec; border-bottom:1px solid #c4d6cf; }
 .barInner,.content,.resources { max-width:1232px; margin-inline:auto; padding-inline:clamp(16px,3vw,44px); }
 .barInner { display:flex; flex-wrap:wrap; column-gap:clamp(10px,2vw,30px); }
 .bar a { display:inline-flex; align-items:center; gap:7px; min-height:48px; padding:7px 2px; color:#395c5c; font-size:14px; border-bottom:3px solid transparent; }
@@ -19,6 +19,7 @@
 .resources a { display:inline-flex; align-items:center; min-height:36px; color:#185f5b; text-decoration:underline; text-underline-offset:4px; }
 @media(max-width:760px) {
   .shell { padding-top:78px; }
+  .bar { top:78px; }
   .cards { grid-template-columns:1fr; }
   .card { padding:14px 0 6px; gap:5px; }
   .bar a { min-height:44px; }

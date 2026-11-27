@@ -233,3 +233,21 @@ test("manual evaluation errors and demo configuration errors survive source swit
     await user.click(screen.getByRole("button", { name: "Published observations" })); assert.ok(manual.getByText(/could not be evaluated/)); assert.equal(manual.queryByRole("region", { name: "Assessment result" }), null);
   } finally { globalThis.fetch = original; cleanup(); }
 });
+
+test("farm deep link opens the producer guidance and initializes the requested disease", async () => {
+  const React = await import("react");
+  const { render, screen, cleanup, waitFor } = await import("@testing-library/react");
+  const { WarningWorkbench } = await import("./warning-workbench");
+  const data = await resources();
+  const previous = globalThis.fetch;
+  globalThis.fetch = async url => Response.json(String(url).includes("tilapia") ? data.knowledge : data.wsd);
+  try {
+    render(<WarningWorkbench initialDisease="tilapia" initialRole="producer" />);
+    assert.equal(screen.getByRole("button", {name: "Farm / Local Producer"}).getAttribute("aria-pressed"), "true");
+    assert.equal(screen.getByRole("button", {name: "Tilapia streptococcosis"}).getAttribute("aria-pressed"), "true");
+    await waitFor(() => assert.ok(screen.getByRole("button", {name: "Evaluate tilapia"})));
+  } finally {
+    cleanup();
+    globalThis.fetch = previous;
+  }
+});
